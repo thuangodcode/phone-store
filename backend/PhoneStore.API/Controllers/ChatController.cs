@@ -73,7 +73,7 @@ public class ChatController : ControllerBase
     {
         var session = await _context.ChatSessions.Find(s => s.Id == sessionId).FirstOrDefaultAsync();
         if (session == null)
-            return NotFound(ApiResponse.FailResponse("Session not found"));
+            return NotFound(ApiResponse.ErrorResponse("Session not found"));
 
         var staffId = GetUserId();
         var staffName = GetUserName();
