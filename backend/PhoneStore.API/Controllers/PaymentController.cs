@@ -47,6 +47,26 @@ public class PaymentController : ControllerBase
         }
     }
 
+    [Authorize]
+    [HttpGet("check-status/{orderCode}")]
+    public async Task<ActionResult<ApiResponse<bool>>> CheckPaymentStatus(long orderCode)
+    {
+        try
+        {
+            var status = await _payOSService.GetPaymentStatus(orderCode);
+            if (status == "PAID")
+            {
+                await _orderService.UpdatePaymentStatusByOrderCodeAsync(orderCode, "Paid");
+                return Ok(ApiResponse<bool>.SuccessResponse(true, "Payment successful"));
+            }
+            return Ok(ApiResponse<bool>.SuccessResponse(false, "Payment pending"));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<bool>.ErrorResponse(ex.Message));
+        }
+    }
+
     [HttpPost("webhook")]
     public async Task<IActionResult> Webhook([FromBody] WebhookType payload)
     {

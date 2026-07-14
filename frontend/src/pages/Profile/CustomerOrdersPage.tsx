@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import { toast } from 'react-toastify';
@@ -10,24 +10,42 @@ export const CustomerOrdersPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const fetchOrders = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res: any = await axiosClient.get('/orders?page=1&pageSize=50');
+      if (res.data && res.data.items) {
+        setOrders(res.data.items);
+      }
+    } catch (error) {
+      toast.error('Không thể tải lịch sử đơn hàng');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     // Check if coming back from PayOS successfully
     const searchParams = new URLSearchParams(location.search);
     const code = searchParams.get('code');
+    const orderCode = searchParams.get('orderCode');
     const cancel = searchParams.get('cancel');
-    if (code === '00' && cancel === 'false') {
-      toast.success('Thanh toán thành công! Cảm ơn bạn đã đặt hàng.', { toastId: 'payos-success' });
-      // Remove query params to avoid duplicate toasts on refresh
-      navigate('/history', { replace: true });
+
+    if (code === '00' && orderCode) {
+      axiosClient.get(`/payment/check-status/${orderCode}`).then(() => {
+        toast.success('Thanh toán thành công! Đơn hàng của bạn đã được cập nhật.', { toastId: 'payos-success' });
+        fetchOrders();
+      });
+      window.history.replaceState({}, '', '/history');
     } else if (cancel === 'true') {
       toast.error('Bạn đã huỷ thanh toán đơn hàng.', { toastId: 'payos-cancel' });
-      navigate('/history', { replace: true });
+      window.history.replaceState({}, '', '/history');
     } else if (location.state?.method === 'PayAtStore') {
       toast.success('Đặt hàng thành công! Đơn hàng của bạn đang được xử lý.', { toastId: 'pay-store' });
       // Remove state
       navigate('/history', { replace: true });
     }
-  }, [location, navigate]);
+  }, [location, navigate, fetchOrders]);
 
   useEffect(() => {
     const fetchOrders = async () => {

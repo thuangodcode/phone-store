@@ -65,6 +65,19 @@ public class PayOSService : IPayOSService
         return webhookType;
     }
 
+    public async Task<string> GetPaymentStatus(long orderCode)
+    {
+        var response = await _httpClient.GetAsync($"/v2/payment-requests/{orderCode}");
+        if (!response.IsSuccessStatusCode)
+        {
+            return "PENDING";
+        }
+        var jsonResponse = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(jsonResponse);
+        var status = document.RootElement.GetProperty("data").GetProperty("status").GetString();
+        return status ?? "PENDING";
+    }
+
     private string CreateSignature(string data, string key)
     {
         var keyBytes = Encoding.UTF8.GetBytes(key);

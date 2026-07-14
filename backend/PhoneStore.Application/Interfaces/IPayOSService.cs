@@ -16,4 +16,5 @@ public interface IPayOSService
 {
     Task<CreatePaymentResult> CreatePaymentLink(long orderCode, int amount, string description, string returnUrl, string cancelUrl);
     WebhookType VerifyPaymentWebhookData(WebhookType webhookType);
+    Task<string> GetPaymentStatus(long orderCode);
 }

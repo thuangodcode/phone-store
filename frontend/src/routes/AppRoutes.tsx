@@ -7,6 +7,7 @@ import { HomePage } from '../pages/Home/HomePage';
 import { ProductDetailPage } from '../pages/Home/ProductDetailPage';
 import { CartPage } from '../pages/Cart/CartPage';
 import { CheckoutPage } from '../pages/Checkout/CheckoutPage';
+import { PaymentSuccessPage } from '../pages/Checkout/PaymentSuccessPage';
 import { LoginPage } from '../pages/Auth/LoginPage';
 import { RegisterPage } from '../pages/Auth/RegisterPage';
 import { MapsPage } from '../pages/Home/MapsPage';
@@ -45,6 +46,7 @@ export const AppRoutes: React.FC = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/payment-success" element={<PaymentSuccessPage />} />
           <Route path="/wishlist" element={<div className="p-8 text-center text-xl">Wishlist Page (WIP)</div>} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/history" element={<CustomerOrdersPage />} />
