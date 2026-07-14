@@ -5,6 +5,8 @@ import { AdminLayout } from '../components/Layout/AdminLayout';
 import { ProtectedRoute, AdminRoute } from './ProtectedRoutes';
 import { HomePage } from '../pages/Home/HomePage';
 import { LoginPage } from '../pages/Auth/LoginPage';
+import { RegisterPage } from '../pages/Auth/RegisterPage';
+import { ForgotPasswordPage } from '../pages/Auth/ForgotPasswordPage';
 import { DashboardPage } from '../pages/Admin/Dashboard/DashboardPage';
 
 export const AppRoutes: React.FC = () => {
@@ -12,7 +14,8 @@ export const AppRoutes: React.FC = () => {
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<div className="p-8 text-center text-xl">Register Page (WIP)</div>} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
       {/* Customer Routes with Main Layout */}
       <Route element={<MainLayout />}>
