@@ -99,24 +99,13 @@ public class AuthService : IAuthService
         user.UpdatedAt = DateTime.UtcNow;
         await _userRepository.UpdateAsync(user.Id, user);
 
-        // Send password reset email asynchronously (fire and forget with timeout)
-        var emailTask = _emailService.SendPasswordResetEmailAsync(
+        // Send password reset email - await properly so failures are reported to the user
+        await _emailService.SendPasswordResetEmailAsync(
             user.Email,
             user.FullName,
             tempPassword,
             $"https://phone-store.vercel.app/reset-password?email={user.Email}"
         );
-
-        // Wait max 5 seconds for email to send, but don't block the response
-        try
-        {
-            await Task.WhenAny(emailTask, Task.Delay(5000));
-        }
-        catch (Exception ex)
-        {
-            // Log but don't fail the request
-            Console.WriteLine($"Email send task failed or timed out: {ex.Message}");
-        }
 
         return $"Password reset instructions have been sent to {dto.Email}. Please check your inbox.";
     }

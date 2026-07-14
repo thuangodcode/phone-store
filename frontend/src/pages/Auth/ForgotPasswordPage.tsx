@@ -35,11 +35,8 @@ export const ForgotPasswordPage: React.FC = () => {
       setIsSent(true);
       toast.success('Password reset instructions sent to your email.');
     } catch (err: any) {
-      if (err?.name === 'AbortError') {
-        toast.error('Request timed out. Please try again.');
-      } else {
-        toast.error(err?.message || 'Failed to send reset instructions');
-      }
+      const message = err?.message || err?.toString?.() || 'Failed to send reset instructions';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

@@ -22,43 +22,33 @@ public class EmailService : IEmailService
 
     public async Task SendPasswordResetEmailAsync(string recipientEmail, string recipientName, string resetToken, string resetLink)
     {
-        try
+        if (string.IsNullOrWhiteSpace(_emailSettings.SenderEmail) || string.IsNullOrWhiteSpace(_emailSettings.SenderPassword))
         {
-            if (string.IsNullOrWhiteSpace(_emailSettings.SenderEmail) || string.IsNullOrWhiteSpace(_emailSettings.SenderPassword))
-            {
-                _logger.LogWarning("Email service is not configured. Skipping password reset email.");
-                return;
-            }
+            _logger.LogWarning("Email service is not configured. Cannot send password reset email.");
+            throw new Exception("Email service is not configured. Please contact support.");
+        }
 
-            var subject = "PhoneStore - Password Reset Request";
-            var htmlBody = $@"
-            <html>
-                <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
-                    <div style='max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;'>
-                        <h2 style='color: #0066cc; text-align: center;'>Password Reset Request</h2>
-                        <p>Hello <strong>{recipientName}</strong>,</p>
-                        <p>We received a request to reset your password. Click the button below to continue:</p>
-                        <div style='text-align: center; margin: 30px 0;'>
-                            <a href='{resetLink}' style='display: inline-block; background-color: #0066cc; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;'>
-                                Reset Password
-                            </a>
-                        </div>
-                        <p>Or copy and paste this link in your browser:</p>
-                        <p style='background-color: #f5f5f5; padding: 10px; border-radius: 5px; word-break: break-all;'>{resetLink}</p>
-                        <p><strong>Security Notice:</strong> This link will expire in 24 hours.</p>
-                        <hr style='border: none; border-top: 1px solid #ddd; margin: 30px 0;'>
-                        <p style='font-size: 12px; color: #666; text-align: center;'>© 2024 PhoneStore. All rights reserved.</p>
+        var subject = "PhoneStore - Password Reset Request";
+        var htmlBody = $@"
+        <html>
+            <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                <div style='max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;'>
+                    <h2 style='color: #0066cc; text-align: center;'>Password Reset Request</h2>
+                    <p>Hello <strong>{recipientName}</strong>,</p>
+                    <p>We received a request to reset your password. Your new temporary password is:</p>
+                    <div style='text-align: center; margin: 20px 0;'>
+                        <span style='display: inline-block; background-color: #f5f5f5; padding: 12px 24px; font-size: 18px; font-weight: bold; letter-spacing: 2px; border-radius: 5px; border: 1px solid #ddd;'>{resetToken}</span>
                     </div>
-                </body>
-            </html>";
+                    <p>Please use this password to log in and change your password immediately.</p>
+                    <p><strong>Security Notice:</strong> If you did not request this, please ignore this email.</p>
+                    <hr style='border: none; border-top: 1px solid #ddd; margin: 30px 0;'>
+                    <p style='font-size: 12px; color: #666; text-align: center;'>© 2024 PhoneStore. All rights reserved.</p>
+                </div>
+            </body>
+        </html>";
 
-            await SendEmailAsyncInternal(recipientEmail, recipientName, subject, htmlBody);
-            _logger.LogInformation("Password reset email sent to {RecipientEmail}", recipientEmail);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send password reset email to {RecipientEmail}", recipientEmail);
-        }
+        await SendEmailAsyncInternal(recipientEmail, recipientName, subject, htmlBody);
+        _logger.LogInformation("Password reset email sent to {RecipientEmail}", recipientEmail);
     }
 
     public async Task SendWelcomeEmailAsync(string recipientEmail, string recipientName)
