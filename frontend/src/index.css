@@ -14,3 +14,12 @@
   background-color: #f8fafc;
   color: #0f172a;
 }
+
+button:not(:disabled),
+a,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+[role="button"] {
+  cursor: pointer;
+}

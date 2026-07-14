@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../../api/adminApi';
 import type { Order } from '../../../types';
 import { OrderStatusModal } from './OrderStatusModal';
+import { ActionButton, RefreshIcon } from '../../../components/AdminActionButtons';
 import { toast } from 'react-toastify';
 
 export const AdminOrdersPage: React.FC = () => {
@@ -74,7 +75,9 @@ export const AdminOrdersPage: React.FC = () => {
                     </td>
                     <td className="p-4 text-gray-600">{new Date(order.createdAt).toLocaleDateString()}</td>
                     <td className="p-4 text-right">
-                      <button onClick={() => handleStatusChange(order)} className="text-blue-600 hover:text-blue-800 font-medium">Update Status</button>
+                      <div className="flex justify-end">
+                        <ActionButton label="Update Status" onClick={() => handleStatusChange(order)} icon={<RefreshIcon />} variant="primary" />
+                      </div>
                     </td>
                   </tr>
                 ))

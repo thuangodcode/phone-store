@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { User } from '../types';
 
 interface AuthContextType {
@@ -8,25 +8,33 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isInitialized: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) return null;
+    try {
+      return JSON.parse(storedUser);
+    } catch (e) {
+      console.error('Failed to parse user from local storage', e);
+      return null;
+    }
+  });
+
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('token');
+  });
+
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
-    if (storedUser && storedToken) {
-      try {
-        setUser(JSON.parse(storedUser));
-        setToken(storedToken);
-      } catch (e) {
-        console.error("Failed to parse user from local storage");
-      }
-    }
+    setIsInitialized(true);
   }, []);
 
   const login = (userData: User, authToken: string) => {
@@ -47,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isAdmin = user?.role === 'Admin';
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated, isAdmin }}>
+    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated, isAdmin, isInitialized }}>
       {children}
     </AuthContext.Provider>
   );

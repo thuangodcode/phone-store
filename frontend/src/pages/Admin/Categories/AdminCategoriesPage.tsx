@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../../api/adminApi';
 import type { Category } from '../../../types';
 import { CategoryFormModal } from './CategoryFormModal';
+import { ActionButton, EditIcon, TrashIcon } from '../../../components/AdminActionButtons';
 import { toast } from 'react-toastify';
 
 export const AdminCategoriesPage: React.FC = () => {
@@ -84,8 +85,10 @@ export const AdminCategoriesPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="p-4 text-right">
-                      <button onClick={() => handleEdit(category)} className="text-blue-600 hover:text-blue-800 font-medium mr-3">Edit</button>
-                      <button onClick={() => handleDelete(category.id)} className="text-red-600 hover:text-red-800 font-medium">Delete</button>
+                      <div className="inline-flex items-center justify-end gap-2">
+                        <ActionButton label="Edit" onClick={() => handleEdit(category)} icon={<EditIcon />} variant="secondary" />
+                        <ActionButton label="Delete" onClick={() => handleDelete(category.id)} icon={<TrashIcon />} variant="danger" />
+                      </div>
                     </td>
                   </tr>
                 ))

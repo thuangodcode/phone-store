@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../../api/adminApi';
 import type { User } from '../../../types';
+import { ActionButton, RefreshIcon, TrashIcon } from '../../../components/AdminActionButtons';
 import { toast } from 'react-toastify';
 
 export const AdminUsersPage: React.FC = () => {
@@ -83,10 +84,15 @@ export const AdminUsersPage: React.FC = () => {
                     </td>
                     <td className="p-4 text-gray-600">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}</td>
                     <td className="p-4 text-right">
-                      <button onClick={() => handleToggleStatus(user)} className="text-blue-600 hover:text-blue-800 font-medium mr-3">
-                        {user.isActive ? 'Deactivate' : 'Activate'}
-                      </button>
-                      <button onClick={() => handleDelete(user.id, user.fullName)} className="text-red-600 hover:text-red-800 font-medium">Delete</button>
+                      <div className="inline-flex items-center justify-end gap-2">
+                        <ActionButton
+                          label={user.isActive ? 'Deactivate' : 'Activate'}
+                          onClick={() => handleToggleStatus(user)}
+                          icon={<RefreshIcon />}
+                          variant="secondary"
+                        />
+                        <ActionButton label="Delete" onClick={() => handleDelete(user.id, user.fullName)} icon={<TrashIcon />} variant="danger" />
+                      </div>
                     </td>
                   </tr>
                 ))
