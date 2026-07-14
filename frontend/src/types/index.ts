@@ -23,6 +23,18 @@ export interface ChangePasswordDto {
   confirmNewPassword: string;
 }
 
+export interface ProductStorageVariantDto {
+  storage: string;
+  price: number;
+  salePrice: number;
+}
+
+export interface ProductColorVariantDto {
+  name: string;
+  imageUrl: string;
+  priceModifier: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -39,6 +51,9 @@ export interface Product {
   averageRating: number;
   totalReviews: number;
   specifications: Record<string, string>;
+  storageVariants: ProductStorageVariantDto[];
+  colorVariants: ProductColorVariantDto[];
+  promotions: string[];
   isActive?: boolean;
   createdAt: string;
 }
@@ -53,6 +68,9 @@ export interface CreateProductDto {
   images: string[];
   stock: number;
   specifications: Record<string, string>;
+  storageVariants?: ProductStorageVariantDto[];
+  colorVariants?: ProductColorVariantDto[];
+  promotions?: string[];
 }
 
 export interface UpdateProductDto extends CreateProductDto {
@@ -103,6 +121,8 @@ export interface OrderItem {
   productImage: string;
   quantity: number;
   price: number;
+  storage?: string;
+  color?: string;
 }
 
 export interface Order {

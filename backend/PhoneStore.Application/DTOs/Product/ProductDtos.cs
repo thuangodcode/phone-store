@@ -13,12 +13,29 @@ public class ProductDto
     public string CategoryName { get; set; } = string.Empty;
     public List<string> Images { get; set; } = new();
     public ProductSpecDto Specifications { get; set; } = new();
+    public List<ProductStorageVariantDto> StorageVariants { get; set; } = new();
+    public List<ProductColorVariantDto> ColorVariants { get; set; } = new();
+    public List<string> Promotions { get; set; } = new();
     public int Stock { get; set; }
     public int Sold { get; set; }
     public double AverageRating { get; set; }
     public int TotalReviews { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
+}
+
+public class ProductStorageVariantDto
+{
+    public string Storage { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public decimal SalePrice { get; set; }
+}
+
+public class ProductColorVariantDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string ImageUrl { get; set; } = string.Empty;
+    public decimal PriceModifier { get; set; }
 }
 
 public class ProductSpecDto
@@ -42,6 +59,9 @@ public class CreateProductDto
     public string CategoryId { get; set; } = null!;
     public List<string> Images { get; set; } = new();
     public ProductSpecDto Specifications { get; set; } = new();
+    public List<ProductStorageVariantDto> StorageVariants { get; set; } = new();
+    public List<ProductColorVariantDto> ColorVariants { get; set; } = new();
+    public List<string> Promotions { get; set; } = new();
     public int Stock { get; set; }
 }
 
@@ -55,6 +75,9 @@ public class UpdateProductDto
     public string CategoryId { get; set; } = null!;
     public List<string> Images { get; set; } = new();
     public ProductSpecDto Specifications { get; set; } = new();
+    public List<ProductStorageVariantDto> StorageVariants { get; set; } = new();
+    public List<ProductColorVariantDto> ColorVariants { get; set; } = new();
+    public List<string> Promotions { get; set; } = new();
     public int Stock { get; set; }
     public bool IsActive { get; set; }
 }

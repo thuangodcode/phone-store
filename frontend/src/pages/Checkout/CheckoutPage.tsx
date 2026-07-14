@@ -10,6 +10,8 @@ interface CartItem {
   productImage: string;
   quantity: number;
   price: number;
+  storage?: string;
+  color?: string;
 }
 
 export const CheckoutPage: React.FC = () => {
@@ -98,8 +100,8 @@ export const CheckoutPage: React.FC = () => {
       };
 
       // 1. Create Order
-      const orderResponse = await axiosClient.post('/orders', payload);
-      const order = orderResponse.data?.data;
+      const orderResponse: any = await axiosClient.post('/orders', payload);
+      const order = orderResponse.data;
       
       if (!order) throw new Error("Order creation failed");
 
@@ -212,6 +214,10 @@ export const CheckoutPage: React.FC = () => {
                    </div>
                    <div className="flex-1">
                       <h4 className="font-semibold text-sm line-clamp-2">{item.productName}</h4>
+                      <div className="text-xs text-gray-500 mb-1">
+                        {item.storage && <span className="mr-2">{item.storage}</span>}
+                        {item.color && <span>- {item.color}</span>}
+                      </div>
                       <p className="text-xs text-gray-500">Số lượng: {item.quantity}</p>
                    </div>
                    <div className="font-bold text-sm">

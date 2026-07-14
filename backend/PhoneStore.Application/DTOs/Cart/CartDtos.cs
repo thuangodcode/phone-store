@@ -17,15 +17,21 @@ public class CartItemDto
     public decimal SalePrice { get; set; }
     public int Quantity { get; set; }
     public int Stock { get; set; }
+    public string Storage { get; set; } = string.Empty;
+    public string Color { get; set; } = string.Empty;
 }
 
 public class AddToCartDto
 {
     public string ProductId { get; set; } = null!;
     public int Quantity { get; set; } = 1;
+    public string Storage { get; set; } = string.Empty;
+    public string Color { get; set; } = string.Empty;
 }
 
 public class UpdateCartItemDto
 {
     public int Quantity { get; set; }
+    public string Storage { get; set; } = string.Empty;
+    public string Color { get; set; } = string.Empty;
 }

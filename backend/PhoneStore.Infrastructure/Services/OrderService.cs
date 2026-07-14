@@ -57,14 +57,36 @@ public class OrderService : IOrderService
                 throw new Exception($"Not enough stock for {product.Name}.");
 
             var price = product.SalePrice > 0 ? product.SalePrice : product.Price;
+            if (!string.IsNullOrEmpty(cartItem.Storage))
+            {
+                var storageVariant = product.StorageVariants.FirstOrDefault(v => v.Storage == cartItem.Storage);
+                if (storageVariant != null)
+                {
+                    price = storageVariant.SalePrice > 0 ? storageVariant.SalePrice : storageVariant.Price;
+                }
+            }
+
+            var image = product.Images.FirstOrDefault() ?? string.Empty;
+            if (!string.IsNullOrEmpty(cartItem.Color))
+            {
+                var colorVariant = product.ColorVariants.FirstOrDefault(v => v.Name == cartItem.Color);
+                if (colorVariant != null)
+                {
+                    price += colorVariant.PriceModifier;
+                    if (!string.IsNullOrEmpty(colorVariant.ImageUrl))
+                        image = colorVariant.ImageUrl;
+                }
+            }
 
             orderItems.Add(new OrderItem
             {
                 ProductId = product.Id,
                 ProductName = product.Name,
-                ProductImage = product.Images.FirstOrDefault() ?? string.Empty,
+                ProductImage = image,
                 Quantity = cartItem.Quantity,
-                Price = price
+                Price = price,
+                Storage = cartItem.Storage,
+                Color = cartItem.Color
             });
 
             totalAmount += price * cartItem.Quantity;

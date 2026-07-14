@@ -80,4 +80,10 @@ public class OrderItem
     [BsonElement("price")]
     [BsonRepresentation(BsonType.Decimal128)]
     public decimal Price { get; set; }
+
+    [BsonElement("storage")]
+    public string Storage { get; set; } = string.Empty;
+
+    [BsonElement("color")]
+    public string Color { get; set; } = string.Empty;
 }

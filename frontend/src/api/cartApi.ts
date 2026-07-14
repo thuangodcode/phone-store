@@ -7,13 +7,13 @@ export const cartApi = {
     return res.data;
   },
 
-  addToCart: async (productId: string, quantity: number = 1) => {
-    const res = await axiosClient.post('/cart', { productId, quantity }) as unknown as ApiResponse<any>;
+  addToCart: async (productId: string, quantity: number = 1, storage?: string, color?: string) => {
+    const res = await axiosClient.post('/cart', { productId, quantity, storage, color }) as unknown as ApiResponse<any>;
     return res.data;
   },
 
-  updateCartItem: async (productId: string, quantity: number) => {
-    const res = await axiosClient.put(`/cart/${productId}`, { quantity }) as unknown as ApiResponse<any>;
+  updateCartItem: async (productId: string, quantity: number, storage?: string, color?: string) => {
+    const res = await axiosClient.put(`/cart/${productId}`, { quantity, storage, color }) as unknown as ApiResponse<any>;
     return res.data;
   },
 

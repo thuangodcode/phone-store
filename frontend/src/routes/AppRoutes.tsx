@@ -17,6 +17,7 @@ import { AdminCategoriesPage } from '../pages/Admin/Categories/AdminCategoriesPa
 import { AdminOrdersPage } from '../pages/Admin/Orders/AdminOrdersPage';
 import { AdminUsersPage } from '../pages/Admin/Users/AdminUsersPage';
 import { AdminVouchersPage } from '../pages/Admin/Vouchers/AdminVouchersPage';
+import { StaffProductsPage } from '../pages/Staff/Products/StaffProductsPage';
 import { ProfilePage } from '../pages/Profile/ProfilePage';
 
 export const AppRoutes: React.FC = () => {
@@ -50,6 +51,7 @@ export const AppRoutes: React.FC = () => {
         <Route element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="orders" element={<AdminOrdersPage />} />
+          <Route path="staff-products" element={<StaffProductsPage />} />
           {/* Admin Only Routes */}
           <Route element={<AdminRoute />}>
             <Route path="products" element={<AdminProductsPage />} />

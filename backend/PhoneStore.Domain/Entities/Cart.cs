@@ -28,4 +28,10 @@ public class CartItem
 
     [BsonElement("quantity")]
     public int Quantity { get; set; }
+
+    [BsonElement("storage")]
+    public string Storage { get; set; } = string.Empty;
+
+    [BsonElement("color")]
+    public string Color { get; set; } = string.Empty;
 }

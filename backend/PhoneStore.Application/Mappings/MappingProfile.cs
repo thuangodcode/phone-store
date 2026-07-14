@@ -24,6 +24,8 @@ public class MappingProfile : Profile
         CreateMap<Product, ProductDto>();
         CreateMap<CreateProductDto, Product>();
         CreateMap<ProductSpecification, ProductSpecDto>().ReverseMap();
+        CreateMap<ProductStorageVariant, ProductStorageVariantDto>().ReverseMap();
+        CreateMap<ProductColorVariant, ProductColorVariantDto>().ReverseMap();
 
         // Brand
         CreateMap<Brand, BrandDto>();

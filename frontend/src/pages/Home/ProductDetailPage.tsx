@@ -4,7 +4,7 @@ import axiosClient from '../../api/axiosClient';
 import { cartApi } from '../../api/cartApi';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
-import type { Product } from '../../types';
+import type { Product, ProductStorageVariantDto, ProductColorVariantDto } from '../../types';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,15 +14,24 @@ export const ProductDetailPage: React.FC = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   
-  // Static state for UI purposes
-  const [selectedStorage, setSelectedStorage] = useState('256GB');
-  const [selectedColor, setSelectedColor] = useState('Titan Tự Nhiên');
+  const [selectedStorage, setSelectedStorage] = useState<ProductStorageVariantDto | null>(null);
+  const [selectedColor, setSelectedColor] = useState<ProductColorVariantDto | null>(null);
+  const [mainImage, setMainImage] = useState<string>('');
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const res: any = await axiosClient.get(`/products/${id}`);
-        setProduct(res.data);
+        const p: Product = res.data;
+        setProduct(p);
+        
+        if (p.storageVariants && p.storageVariants.length > 0) {
+          setSelectedStorage(p.storageVariants[0]);
+        }
+        if (p.colorVariants && p.colorVariants.length > 0) {
+          setSelectedColor(p.colorVariants[0]);
+        }
+        setMainImage(p.images[0] || 'https://via.placeholder.com/500');
       } catch (error) {
         toast.error('Không thể tải thông tin sản phẩm');
       } finally {
@@ -32,6 +41,14 @@ export const ProductDetailPage: React.FC = () => {
     if (id) fetchProduct();
   }, [id]);
 
+  useEffect(() => {
+    if (selectedColor && selectedColor.imageUrl) {
+      setMainImage(selectedColor.imageUrl);
+    } else if (product && product.images && product.images.length > 0) {
+      setMainImage(product.images[0]);
+    }
+  }, [selectedColor, product]);
+
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
       toast.info('Vui lòng đăng nhập để mua hàng');
@@ -39,7 +56,7 @@ export const ProductDetailPage: React.FC = () => {
       return;
     }
     try {
-      await cartApi.addToCart(product!.id, 1);
+      await cartApi.addToCart(product!.id, 1, selectedStorage?.storage, selectedColor?.name);
       toast.success('Đã thêm sản phẩm vào giỏ hàng');
     } catch (error) {
       toast.error('Lỗi khi thêm vào giỏ hàng');
@@ -53,7 +70,7 @@ export const ProductDetailPage: React.FC = () => {
       return;
     }
     try {
-      await cartApi.addToCart(product!.id, 1);
+      await cartApi.addToCart(product!.id, 1, selectedStorage?.storage, selectedColor?.name);
       navigate('/checkout');
     } catch (error) {
       toast.error('Lỗi khi thao tác');
@@ -63,11 +80,25 @@ export const ProductDetailPage: React.FC = () => {
   if (loading) return <div className="text-center py-20">Đang tải...</div>;
   if (!product) return <div className="text-center py-20 text-red-500">Sản phẩm không tồn tại.</div>;
 
-  const isSale = product.salePrice > 0 && product.salePrice < product.price;
-  const displayPrice = isSale ? product.salePrice : product.price;
+  // Calculate Price
+  let basePrice = product.price;
+  let salePrice = product.salePrice > 0 ? product.salePrice : product.price;
+
+  if (selectedStorage) {
+    basePrice = selectedStorage.price;
+    salePrice = selectedStorage.salePrice > 0 ? selectedStorage.salePrice : selectedStorage.price;
+  }
+
+  if (selectedColor) {
+    basePrice += selectedColor.priceModifier;
+    salePrice += selectedColor.priceModifier;
+  }
+
+  const isSale = salePrice < basePrice;
+  const displayPrice = isSale ? salePrice : basePrice;
   
   const formattedPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(displayPrice);
-  const formattedOldPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price);
+  const formattedOldPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(basePrice);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl font-sans">
@@ -89,14 +120,18 @@ export const ProductDetailPage: React.FC = () => {
         <div className="md:col-span-5">
           <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm mb-4">
             <img 
-              src={product.images[0] || 'https://via.placeholder.com/500'} 
+              src={mainImage} 
               alt={product.name} 
-              className="w-full h-[400px] object-contain rounded-lg"
+              className="w-full h-[400px] object-contain rounded-lg transition-all duration-300"
             />
           </div>
           <div className="flex gap-2 overflow-x-auto">
             {product.images.map((img, idx) => (
-              <div key={idx} className="w-20 h-20 border-2 rounded-lg cursor-pointer hover:border-red-500 overflow-hidden flex-shrink-0 border-transparent">
+              <div 
+                key={idx} 
+                onClick={() => setMainImage(img)}
+                className={`w-20 h-20 border-2 rounded-lg cursor-pointer hover:border-red-500 overflow-hidden flex-shrink-0 ${mainImage === img ? 'border-red-500' : 'border-transparent'}`}
+              >
                 <img src={img} alt="thumbnail" className="w-full h-full object-cover" />
               </div>
             ))}
@@ -111,55 +146,74 @@ export const ProductDetailPage: React.FC = () => {
             {isSale && <span className="text-lg text-gray-500 line-through mb-1">{formattedOldPrice}</span>}
           </div>
 
-          {/* Fake Variants (Storage) */}
-          <div>
-            <p className="font-semibold mb-2">Chọn phiên bản (Mô phỏng):</p>
-            <div className="grid grid-cols-3 gap-2">
-              {['256GB', '512GB', '1TB'].map(storage => (
-                <button 
-                  key={storage}
-                  onClick={() => setSelectedStorage(storage)}
-                  className={`border py-2 px-1 rounded-lg text-sm font-medium transition-colors ${selectedStorage === storage ? 'border-red-500 text-red-600 bg-red-50' : 'border-gray-300 hover:border-red-300'}`}
-                >
-                  {storage}
-                  <div className="text-xs text-gray-500">{formattedPrice}</div>
-                </button>
-              ))}
+          {/* Storage Variants */}
+          {product.storageVariants && product.storageVariants.length > 0 && (
+            <div>
+              <p className="font-semibold mb-2">Chọn phiên bản:</p>
+              <div className="grid grid-cols-3 gap-2">
+                {product.storageVariants.map(storage => {
+                   const sPrice = storage.salePrice > 0 ? storage.salePrice : storage.price;
+                   const fPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(sPrice);
+                   const isSelected = selectedStorage?.storage === storage.storage;
+                   return (
+                    <button 
+                      key={storage.storage}
+                      onClick={() => setSelectedStorage(storage)}
+                      className={`border py-2 px-1 rounded-lg text-sm font-medium transition-colors ${isSelected ? 'border-red-500 text-red-600 bg-red-50' : 'border-gray-300 hover:border-red-300'}`}
+                    >
+                      {storage.storage}
+                      <div className="text-xs text-gray-500">{fPrice}</div>
+                    </button>
+                   );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Fake Colors */}
-          <div>
-            <p className="font-semibold mb-2">Chọn màu sắc (Mô phỏng):</p>
-            <div className="grid grid-cols-3 gap-2">
-              {['Titan Tự Nhiên', 'Titan Trắng', 'Titan Đen'].map(color => (
-                <button 
-                  key={color}
-                  onClick={() => setSelectedColor(color)}
-                  className={`border py-2 px-1 rounded-lg text-sm font-medium transition-colors ${selectedColor === color ? 'border-red-500 text-red-600 bg-red-50' : 'border-gray-300 hover:border-red-300'}`}
-                >
-                  <div className="truncate">{color}</div>
-                  <div className="text-xs text-gray-500">{formattedPrice}</div>
-                </button>
-              ))}
+          {/* Color Variants */}
+          {product.colorVariants && product.colorVariants.length > 0 && (
+            <div>
+              <p className="font-semibold mb-2">Chọn màu sắc:</p>
+              <div className="grid grid-cols-3 gap-2">
+                {product.colorVariants.map(color => {
+                   let cPrice = selectedStorage 
+                        ? (selectedStorage.salePrice > 0 ? selectedStorage.salePrice : selectedStorage.price)
+                        : (product.salePrice > 0 ? product.salePrice : product.price);
+                   cPrice += color.priceModifier;
+                   const fPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(cPrice);
+                   const isSelected = selectedColor?.name === color.name;
+                   
+                   return (
+                    <button 
+                      key={color.name}
+                      onClick={() => setSelectedColor(color)}
+                      className={`border flex flex-col items-center justify-center py-2 px-1 rounded-lg text-sm font-medium transition-colors ${isSelected ? 'border-red-500 text-red-600 bg-red-50' : 'border-gray-300 hover:border-red-300'}`}
+                    >
+                      <div className="truncate w-full text-center">{color.name}</div>
+                      <div className="text-xs text-gray-500">{fPrice}</div>
+                    </button>
+                   );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Promos */}
-          <div className="border border-red-200 rounded-xl overflow-hidden mt-6">
-            <div className="bg-red-100 px-4 py-2 text-red-700 font-bold flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clipRule="evenodd" />
-              </svg>
-              Khuyến mãi đi kèm
+          {product.promotions && product.promotions.length > 0 && (
+            <div className="border border-red-200 rounded-xl overflow-hidden mt-6">
+              <div className="bg-red-100 px-4 py-2 text-red-700 font-bold flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clipRule="evenodd" />
+                </svg>
+                Khuyến mãi đi kèm
+              </div>
+              <div className="p-4 bg-white text-sm space-y-3">
+                {product.promotions.map((promo, idx) => (
+                  <p key={idx}>{idx + 1}. {promo}</p>
+                ))}
+              </div>
             </div>
-            <div className="p-4 bg-white text-sm space-y-3">
-              <p>1. Tặng Voucher 500,000đ khi thu cũ đổi mới.</p>
-              <p>2. Giảm 50% khi mua kèm phụ kiện (Ốp lưng, cáp sạc).</p>
-              <p>3. Trả góp 0% lãi suất qua thẻ tín dụng.</p>
-              <p className="text-gray-500 italic">*Khuyến mãi chỉ mang tính chất minh họa.</p>
-            </div>
-          </div>
+          )}
 
           {/* Action Buttons */}
           <div className="grid grid-cols-2 gap-4 mt-6">

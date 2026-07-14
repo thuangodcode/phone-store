@@ -37,6 +37,15 @@ public class Product
     [BsonElement("specifications")]
     public ProductSpecification Specifications { get; set; } = new();
 
+    [BsonElement("storageVariants")]
+    public List<ProductStorageVariant> StorageVariants { get; set; } = new();
+
+    [BsonElement("colorVariants")]
+    public List<ProductColorVariant> ColorVariants { get; set; } = new();
+
+    [BsonElement("promotions")]
+    public List<string> Promotions { get; set; } = new();
+
     [BsonElement("stock")]
     public int Stock { get; set; }
 
@@ -81,4 +90,31 @@ public class ProductSpecification
 
     [BsonElement("color")]
     public string Color { get; set; } = string.Empty;
+}
+
+public class ProductStorageVariant
+{
+    [BsonElement("storage")]
+    public string Storage { get; set; } = string.Empty;
+
+    [BsonElement("price")]
+    [BsonRepresentation(BsonType.Decimal128)]
+    public decimal Price { get; set; }
+
+    [BsonElement("salePrice")]
+    [BsonRepresentation(BsonType.Decimal128)]
+    public decimal SalePrice { get; set; }
+}
+
+public class ProductColorVariant
+{
+    [BsonElement("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [BsonElement("imageUrl")]
+    public string ImageUrl { get; set; } = string.Empty;
+
+    [BsonElement("priceModifier")]
+    [BsonRepresentation(BsonType.Decimal128)]
+    public decimal PriceModifier { get; set; }
 }

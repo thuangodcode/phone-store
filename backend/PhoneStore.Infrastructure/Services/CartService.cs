@@ -47,7 +47,7 @@ public class CartService : ICartService
             await _cartRepository.CreateAsync(cart);
         }
 
-        var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId);
+        var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId && i.Storage == dto.Storage && i.Color == dto.Color);
         if (existingItem != null)
         {
             existingItem.Quantity += dto.Quantity;
@@ -59,7 +59,9 @@ public class CartService : ICartService
             cart.Items.Add(new CartItem
             {
                 ProductId = dto.ProductId,
-                Quantity = dto.Quantity
+                Quantity = dto.Quantity,
+                Storage = dto.Storage,
+                Color = dto.Color
             });
         }
 
@@ -75,7 +77,7 @@ public class CartService : ICartService
         if (cart == null)
             throw new Exception("Cart not found.");
 
-        var item = cart.Items.FirstOrDefault(i => i.ProductId == productId);
+        var item = cart.Items.FirstOrDefault(i => i.ProductId == productId && i.Storage == dto.Storage && i.Color == dto.Color);
         if (item == null)
             throw new Exception("Item not found in cart.");
 
@@ -137,15 +139,45 @@ public class CartService : ICartService
             var product = await _productRepository.GetByIdAsync(item.ProductId);
             if (product == null) continue;
 
+            var basePrice = product.Price;
+            var salePrice = product.SalePrice > 0 ? product.SalePrice : product.Price;
+
+            if (!string.IsNullOrEmpty(item.Storage))
+            {
+                var storageVariant = product.StorageVariants.FirstOrDefault(v => v.Storage == item.Storage);
+                if (storageVariant != null)
+                {
+                    basePrice = storageVariant.Price;
+                    salePrice = storageVariant.SalePrice > 0 ? storageVariant.SalePrice : storageVariant.Price;
+                }
+            }
+
+            var image = product.Images.FirstOrDefault() ?? string.Empty;
+            if (!string.IsNullOrEmpty(item.Color))
+            {
+                var colorVariant = product.ColorVariants.FirstOrDefault(v => v.Name == item.Color);
+                if (colorVariant != null)
+                {
+                    salePrice += colorVariant.PriceModifier;
+                    basePrice += colorVariant.PriceModifier;
+                    if (!string.IsNullOrEmpty(colorVariant.ImageUrl))
+                    {
+                        image = colorVariant.ImageUrl;
+                    }
+                }
+            }
+
             var cartItemDto = new CartItemDto
             {
                 ProductId = item.ProductId,
                 ProductName = product.Name,
-                ProductImage = product.Images.FirstOrDefault() ?? string.Empty,
-                Price = product.Price,
-                SalePrice = product.SalePrice > 0 ? product.SalePrice : product.Price,
+                ProductImage = image,
+                Price = basePrice,
+                SalePrice = salePrice,
                 Quantity = item.Quantity,
-                Stock = product.Stock
+                Stock = product.Stock,
+                Storage = item.Storage,
+                Color = item.Color
             };
 
             totalAmount += cartItemDto.SalePrice * item.Quantity;

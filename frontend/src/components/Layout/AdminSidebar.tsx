@@ -18,6 +18,7 @@ export const AdminSidebar: React.FC = () => {
   const links = [
     { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} />, adminOnly: true },
     { name: 'Products', path: '/admin/products', icon: <Smartphone size={20} />, adminOnly: true },
+    { name: 'Products (Staff)', path: '/admin/staff-products', icon: <Smartphone size={20} />, adminOnly: false, staffOnly: true },
     { name: 'Brands', path: '/admin/brands', icon: <Tags size={20} />, adminOnly: true },
     { name: 'Categories', path: '/admin/categories', icon: <Layers size={20} />, adminOnly: true },
     { name: 'Orders', path: '/admin/orders', icon: <ShoppingCart size={20} />, adminOnly: false },
@@ -25,7 +26,11 @@ export const AdminSidebar: React.FC = () => {
     { name: 'Vouchers', path: '/admin/vouchers', icon: <Ticket size={20} />, adminOnly: true },
   ];
 
-  const visibleLinks = links.filter(link => !isStaff || !link.adminOnly);
+  const visibleLinks = links.filter(link => {
+    if (isStaff && link.adminOnly) return false;
+    if (!isStaff && link.staffOnly) return false;
+    return true;
+  });
 
   return (
     <aside className="w-64 bg-gray-900 text-white flex-shrink-0 min-h-screen flex flex-col">

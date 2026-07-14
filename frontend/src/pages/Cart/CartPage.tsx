@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
+import { cartApi } from '../../api/cartApi';
 
 interface CartItem {
   productId: string;
@@ -8,6 +9,8 @@ interface CartItem {
   productImage: string;
   quantity: number;
   price: number;
+  storage?: string;
+  color?: string;
 }
 
 interface Cart {
@@ -34,22 +37,19 @@ export const CartPage: React.FC = () => {
     fetchCart();
   }, []);
 
-  const updateQuantity = async (productId: string, quantity: number) => {
-    if (quantity <= 0) {
-      await removeFromCart(productId);
-      return;
-    }
+  const updateQuantity = async (productId: string, quantity: number, storage?: string, color?: string) => {
     try {
-      await axiosClient.put(`/cart/${productId}`, { quantity });
+      await cartApi.updateCartItem(productId, quantity, storage, color);
       fetchCart();
     } catch (error) {
       console.error('Failed to update quantity', error);
     }
   };
 
-  const removeFromCart = async (productId: string) => {
+  const removeFromCart = async (productId: string, storage?: string, color?: string) => {
     try {
-      await axiosClient.delete(`/cart/${productId}`);
+      // Use update with 0 quantity to remove specific variant
+      await cartApi.updateCartItem(productId, 0, storage, color);
       fetchCart();
     } catch (error) {
       console.error('Failed to remove item', error);
@@ -76,18 +76,22 @@ export const CartPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
             {items.map(item => (
-              <div key={item.productId} className="flex flex-col sm:flex-row items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 gap-4">
+              <div key={`${item.productId}-${item.storage}-${item.color}`} className="flex flex-col sm:flex-row items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 gap-4">
                 <img src={item.productImage || 'https://via.placeholder.com/150'} alt={item.productName} className="w-24 h-24 object-contain" />
                 <div className="flex-1 text-center sm:text-left">
                   <h3 className="font-semibold text-lg">{item.productName}</h3>
-                  <p className="text-blue-600 font-bold">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}</p>
+                  <div className="text-sm text-gray-500 mb-1">
+                    {item.storage && <span className="mr-3">Dung lượng: {item.storage}</span>}
+                    {item.color && <span>Màu sắc: {item.color}</span>}
+                  </div>
+                  <p className="text-red-600 font-bold">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">-</button>
+                  <button onClick={() => updateQuantity(item.productId, item.quantity - 1, item.storage, item.color)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">-</button>
                   <span className="w-8 text-center font-semibold">{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.productId, item.quantity + 1)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">+</button>
+                  <button onClick={() => updateQuantity(item.productId, item.quantity + 1, item.storage, item.color)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">+</button>
                 </div>
-                <button onClick={() => removeFromCart(item.productId)} className="text-red-500 hover:text-red-700 font-medium">Xoá</button>
+                <button onClick={() => removeFromCart(item.productId, item.storage, item.color)} className="text-red-500 hover:text-red-700 font-medium">Xoá</button>
               </div>
             ))}
           </div>
@@ -96,7 +100,7 @@ export const CartPage: React.FC = () => {
             <h2 className="text-xl font-bold mb-4">Tổng quan đơn hàng</h2>
             <div className="flex justify-between mb-4">
               <span className="text-gray-600">Tổng tiền:</span>
-              <span className="font-bold text-xl text-blue-600">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalAmount)}</span>
+              <span className="font-bold text-xl text-red-600">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalAmount)}</span>
             </div>
             <button 
               onClick={() => navigate('/checkout')}
