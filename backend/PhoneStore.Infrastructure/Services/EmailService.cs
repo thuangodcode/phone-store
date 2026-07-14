@@ -12,7 +12,7 @@ public class EmailService : IEmailService
 {
     private readonly EmailSettings _emailSettings;
     private readonly ILogger<EmailService> _logger;
-    private const int EmailTimeoutSeconds = 20;
+    private const int EmailTimeoutSeconds = 25;
 
     public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
     {
@@ -141,11 +141,16 @@ public class EmailService : IEmailService
 
             using var client = new SmtpClient();
             
-            _logger.LogInformation("Connecting to SMTP server...");
+            // Use SslOnConnect for port 465, StartTls for port 587
+            var sslOptions = _emailSettings.SmtpPort == 465 
+                ? SecureSocketOptions.SslOnConnect 
+                : SecureSocketOptions.StartTls;
+            _logger.LogInformation("Connecting to SMTP server (port {Port}, {SslMode})...", 
+                _emailSettings.SmtpPort, sslOptions);
             await client.ConnectAsync(
                 _emailSettings.SmtpServer, 
                 _emailSettings.SmtpPort, 
-                SecureSocketOptions.StartTls, 
+                sslOptions, 
                 cts.Token
             );
 
