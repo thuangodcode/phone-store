@@ -53,11 +53,24 @@ export const RegisterPage: React.FC = () => {
 
     try {
       setIsLoading(true);
-      await axiosClient.post('/auth/register', { fullName, email, password, confirmPassword, phone });
+      
+      // Set a timeout for the request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      await axiosClient.post('/auth/register', { fullName, email, password, confirmPassword, phone }, {
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
       toast.success('Registration successful! Please login.');
       navigate('/login');
     } catch (err: any) {
-      toast.error(err?.message || 'Registration failed');
+      if (err?.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.');
+      } else {
+        toast.error(err?.message || 'Registration failed');
+      }
     } finally {
       setIsLoading(false);
     }

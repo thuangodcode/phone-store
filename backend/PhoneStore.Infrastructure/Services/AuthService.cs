@@ -47,15 +47,16 @@ public class AuthService : IAuthService
 
         await _userRepository.CreateAsync(user);
 
-        // Send welcome email
+        // Send welcome email asynchronously (fire and forget with timeout)
+        var emailTask = _emailService.SendWelcomeEmailAsync(user.Email, user.FullName);
         try
         {
-            await _emailService.SendWelcomeEmailAsync(user.Email, user.FullName);
+            await Task.WhenAny(emailTask, Task.Delay(5000));
         }
         catch (Exception ex)
         {
-            // Log error but don't fail the registration
-            Console.WriteLine($"Failed to send welcome email: {ex.Message}");
+            // Log but don't fail the registration
+            Console.WriteLine($"Email send task failed or timed out: {ex.Message}");
         }
 
         var token = GenerateJwtToken(user);
@@ -98,21 +99,23 @@ public class AuthService : IAuthService
         user.UpdatedAt = DateTime.UtcNow;
         await _userRepository.UpdateAsync(user.Id, user);
 
-        // Send password reset email
+        // Send password reset email asynchronously (fire and forget with timeout)
+        var emailTask = _emailService.SendPasswordResetEmailAsync(
+            user.Email,
+            user.FullName,
+            tempPassword,
+            $"https://phone-store.vercel.app/reset-password?email={user.Email}"
+        );
+
+        // Wait max 5 seconds for email to send, but don't block the response
         try
         {
-            var resetLink = $"https://phone-store.vercel.app/reset-password?email={user.Email}";
-            await _emailService.SendPasswordResetEmailAsync(
-                user.Email,
-                user.FullName,
-                tempPassword,
-                resetLink
-            );
+            await Task.WhenAny(emailTask, Task.Delay(5000));
         }
         catch (Exception ex)
         {
-            // Log error but don't fail the request
-            Console.WriteLine($"Failed to send email: {ex.Message}");
+            // Log but don't fail the request
+            Console.WriteLine($"Email send task failed or timed out: {ex.Message}");
         }
 
         return $"Password reset instructions have been sent to {dto.Email}. Please check your inbox.";

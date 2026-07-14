@@ -63,7 +63,17 @@ export const LoginPage: React.FC = () => {
 
     try {
       setIsLoading(true);
-      const res = await axiosClient.post('/auth/login', { email, password });
+      
+      // Set a timeout for the request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      const res = await axiosClient.post('/auth/login', { email, password }, {
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
       if (res.data) {
         login(res.data.user, res.data.token);
         toast.success('Login successful!');
@@ -74,7 +84,11 @@ export const LoginPage: React.FC = () => {
         }
       }
     } catch (err: any) {
-      toast.error(err?.message || 'Login failed');
+      if (err?.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.');
+      } else {
+        toast.error(err?.message || 'Login failed');
+      }
     } finally {
       setIsLoading(false);
     }
