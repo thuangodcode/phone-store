@@ -135,12 +135,38 @@ public class OrderService : IOrderService
         return await MapOrderToDto(order);
     }
 
-    public async Task<PagedResultDto<OrderDto>> GetOrdersAsync(string? userId, int page, int pageSize)
+    public async Task<PagedResultDto<OrderDto>> GetOrdersAsync(string? userId, int page, int pageSize, string? search = null, string? status = null, string? paymentStatus = null)
     {
         var builder = Builders<Order>.Filter;
-        var filter = userId != null
-            ? builder.Eq(o => o.UserId, userId)
-            : builder.Empty;
+        var filter = builder.Empty;
+
+        if (userId != null)
+        {
+            filter &= builder.Eq(o => o.UserId, userId);
+        }
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            filter &= builder.Eq(o => o.Status, status);
+        }
+
+        if (!string.IsNullOrEmpty(paymentStatus))
+        {
+            filter &= builder.Eq(o => o.PaymentStatus, paymentStatus);
+        }
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            // Search by order code (if it's numeric) or receiver name
+            if (long.TryParse(search, out long orderCode))
+            {
+                filter &= builder.Eq(o => o.OrderCode, orderCode);
+            }
+            else
+            {
+                filter &= builder.Regex(o => o.ReceiverName, new MongoDB.Bson.BsonRegularExpression(search, "i"));
+            }
+        }
 
         var totalCount = await _context.Orders.CountDocumentsAsync(filter);
         var orders = await _context.Orders

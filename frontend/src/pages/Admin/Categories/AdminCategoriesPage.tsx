@@ -11,13 +11,18 @@ export const AdminCategoriesPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
+  // Filters & Pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [search, setSearch] = useState('');
+
   const fetchCategories = async () => {
     try {
       setIsLoading(true);
       const data = await adminApi.getCategories();
       setCategories(data);
     } catch (error) {
-      toast.error('Failed to fetch categories');
+      toast.error('Lỗi khi tải danh sách danh mục');
     } finally {
       setIsLoading(false);
     }
@@ -38,56 +43,82 @@ export const AdminCategoriesPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
+    if (window.confirm('Bạn có chắc chắn muốn xóa danh mục này không?')) {
       try {
         await adminApi.deleteCategory(id);
-        toast.success('Category deleted successfully');
+        toast.success('Xóa danh mục thành công');
         fetchCategories();
       } catch (error) {
-        toast.error('Failed to delete category');
+        toast.error('Lỗi khi xóa danh mục');
       }
     }
   };
 
+  // Client-side filtering
+  const filteredCategories = categories.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || (c.description && c.description.toLowerCase().includes(search.toLowerCase())));
+  const totalPages = Math.ceil(filteredCategories.length / pageSize) || 1;
+  const paginatedCategories = filteredCategories.slice((page - 1) * pageSize, page * pageSize);
+
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Manage Categories</h1>
-        <button onClick={handleCreate} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium">
-          + Add New Category
+    <div className="p-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h1 className="text-2xl font-bold text-gray-800">Quản lý Danh mục</h1>
+        <button onClick={handleCreate} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
+          + Thêm Danh mục
         </button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-4 mb-6">
+        <input
+          type="text"
+          placeholder="Tìm tên hoặc mô tả..."
+          className="border rounded px-3 py-2 w-full md:w-64 bg-white"
+          value={search}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+        />
+
+        <select 
+          className="border rounded px-3 py-2 bg-white"
+          value={pageSize}
+          onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+        >
+          <option value={10}>10 dòng / trang</option>
+          <option value={20}>20 dòng / trang</option>
+          <option value={50}>50 dòng / trang</option>
+        </select>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse min-w-[600px]">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="p-4 font-medium text-gray-600">Name</th>
-                <th className="p-4 font-medium text-gray-600">Description</th>
-                <th className="p-4 font-medium text-gray-600">Status</th>
-                <th className="p-4 font-medium text-gray-600 text-right">Actions</th>
+                <th className="p-4 font-medium text-gray-600">Tên Danh mục</th>
+                <th className="p-4 font-medium text-gray-600">Mô tả</th>
+                <th className="p-4 font-medium text-gray-600">Trạng thái</th>
+                <th className="p-4 font-medium text-gray-600 text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {isLoading ? (
-                <tr><td colSpan={4} className="p-8 text-center text-gray-500">Loading categories...</td></tr>
-              ) : categories.length === 0 ? (
-                <tr><td colSpan={4} className="p-8 text-center text-gray-500">No categories found.</td></tr>
+                <tr><td colSpan={4} className="p-8 text-center text-gray-500">Đang tải dữ liệu...</td></tr>
+              ) : paginatedCategories.length === 0 ? (
+                <tr><td colSpan={4} className="p-8 text-center text-gray-500">Không tìm thấy danh mục nào.</td></tr>
               ) : (
-                categories.map((category) => (
+                paginatedCategories.map((category) => (
                   <tr key={category.id} className="hover:bg-gray-50">
                     <td className="p-4 font-medium text-gray-900">{category.name}</td>
                     <td className="p-4 text-gray-600">{category.description || '—'}</td>
                     <td className="p-4">
                       <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${category.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                        {category.isActive ? 'Active' : 'Inactive'}
+                        {category.isActive ? 'Hoạt động' : 'Bị ẩn'}
                       </span>
                     </td>
                     <td className="p-4 text-right">
                       <div className="inline-flex items-center justify-end gap-2">
-                        <ActionButton label="Edit" onClick={() => handleEdit(category)} icon={<EditIcon />} variant="secondary" />
-                        <ActionButton label="Delete" onClick={() => handleDelete(category.id)} icon={<TrashIcon />} variant="danger" />
+                        <ActionButton label="Sửa" onClick={() => handleEdit(category)} icon={<EditIcon />} variant="secondary" />
+                        <ActionButton label="Xóa" onClick={() => handleDelete(category.id)} icon={<TrashIcon />} variant="danger" />
                       </div>
                     </td>
                   </tr>
@@ -96,6 +127,31 @@ export const AdminCategoriesPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {!isLoading && filteredCategories.length > 0 && (
+          <div className="p-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+            <span className="text-sm text-gray-600">
+              Hiển thị {((page - 1) * pageSize) + 1} đến {Math.min(page * pageSize, filteredCategories.length)} trong số {filteredCategories.length} kết quả
+            </span>
+            <div className="flex gap-1">
+              <button 
+                disabled={page === 1}
+                onClick={() => setPage(p => p - 1)}
+                className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 transition-colors"
+              >
+                Trước
+              </button>
+              <button 
+                disabled={page === totalPages}
+                onClick={() => setPage(p => p + 1)}
+                className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50 transition-colors"
+              >
+                Sau
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <CategoryFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} category={editingCategory} onSuccess={fetchCategories} />

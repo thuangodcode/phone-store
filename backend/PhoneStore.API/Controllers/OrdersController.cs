@@ -32,10 +32,15 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<PagedResultDto<OrderDto>>>> GetOrders([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<ActionResult<ApiResponse<PagedResultDto<OrderDto>>>> GetOrders(
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null,
+        [FromQuery] string? status = null,
+        [FromQuery] string? paymentStatus = null)
     {
         var userId = IsAdminOrStaff() ? null : GetUserId();
-        var result = await _orderService.GetOrdersAsync(userId, page, pageSize);
+        var result = await _orderService.GetOrdersAsync(userId, page, pageSize, search, status, paymentStatus);
         return Ok(ApiResponse<PagedResultDto<OrderDto>>.SuccessResponse(result));
     }
 

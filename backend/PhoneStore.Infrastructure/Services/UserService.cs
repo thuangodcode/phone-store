@@ -31,6 +31,27 @@ public class UserService : IUserService
         return _mapper.Map<UserDto>(user);
     }
 
+    public async Task<UserDto> AdminCreateUserAsync(AdminCreateUserDto dto)
+    {
+        var existingUser = await _userRepository.FindOneAsync(u => u.Email == dto.Email);
+        if (existingUser != null)
+            throw new Exception("Email already exists.");
+
+        var user = new User
+        {
+            FullName = dto.FullName,
+            Email = dto.Email,
+            Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            Phone = dto.Phone,
+            Address = dto.Address,
+            Role = dto.Role,
+            IsActive = true
+        };
+
+        await _userRepository.CreateAsync(user);
+        return _mapper.Map<UserDto>(user);
+    }
+
     public async Task<UserDto> UpdateProfileAsync(string id, UpdateProfileDto dto)
     {
         var user = await _userRepository.GetByIdAsync(id);

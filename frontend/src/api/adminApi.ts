@@ -27,8 +27,13 @@ export const adminApi = {
   },
 
   // Products
-  getProducts: async (page = 1, pageSize = 100, includeInactive = false): Promise<{ items: Product[]; totalCount: number }> => {
-    const res = await axiosClient.get(`/products?page=${page}&pageSize=${pageSize}&includeInactive=${includeInactive}`) as unknown as ApiResponse<{ items: Product[]; totalCount: number }>;
+  getProducts: async (page = 1, pageSize = 100, includeInactive = false, search = '', brandId = '', categoryId = ''): Promise<{ items: Product[]; totalCount: number }> => {
+    let url = `/products?page=${page}&pageSize=${pageSize}&includeInactive=${includeInactive}`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (brandId) url += `&brandId=${encodeURIComponent(brandId)}`;
+    if (categoryId) url += `&categoryId=${encodeURIComponent(categoryId)}`;
+
+    const res = await axiosClient.get(url) as unknown as ApiResponse<{ items: Product[]; totalCount: number }>;
     return res.data;
   },
 
@@ -90,9 +95,14 @@ export const adminApi = {
   },
 
   // Orders
-  getOrders: async (): Promise<Order[]> => {
-    const res = await axiosClient.get('/orders') as unknown as ApiResponse<Order[]>;
-    return res.data || [];
+  getOrders: async (page = 1, pageSize = 10, search = '', status = '', paymentStatus = ''): Promise<{ items: Order[]; totalCount: number }> => {
+    let url = `/orders?page=${page}&pageSize=${pageSize}`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (status) url += `&status=${encodeURIComponent(status)}`;
+    if (paymentStatus) url += `&paymentStatus=${encodeURIComponent(paymentStatus)}`;
+    
+    const res = await axiosClient.get(url) as unknown as ApiResponse<{ items: Order[]; totalCount: number }>;
+    return res.data;
   },
 
   updateOrderStatus: async (id: string, data: UpdateOrderStatusDto): Promise<Order> => {
@@ -109,6 +119,11 @@ export const adminApi = {
   getUsers: async (): Promise<User[]> => {
     const res = await axiosClient.get('/users') as unknown as ApiResponse<User[]>;
     return res.data || [];
+  },
+
+  createUser: async (data: any): Promise<User> => {
+    const res = await axiosClient.post('/users/admin-create', data) as unknown as ApiResponse<User>;
+    return res.data;
   },
 
   deleteUser: async (id: string): Promise<boolean> => {

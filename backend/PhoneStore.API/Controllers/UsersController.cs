@@ -27,6 +27,21 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse<List<UserDto>>.SuccessResponse(result));
     }
 
+    [Authorize(Roles = UserRole.Admin)]
+    [HttpPost("admin-create")]
+    public async Task<ActionResult<ApiResponse<UserDto>>> AdminCreateUser([FromBody] AdminCreateUserDto dto)
+    {
+        try
+        {
+            var result = await _userService.AdminCreateUserAsync(dto);
+            return Ok(ApiResponse<UserDto>.SuccessResponse(result, "User created successfully"));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResponse<UserDto>.ErrorResponse(ex.Message));
+        }
+    }
+
     [Authorize]
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<UserDto>>> GetUserById(string id)

@@ -6,7 +6,7 @@ namespace PhoneStore.Application.Interfaces;
 public interface IOrderService
 {
     Task<OrderDto> CreateOrderAsync(string userId, CreateOrderDto dto);
-    Task<PagedResultDto<OrderDto>> GetOrdersAsync(string? userId, int page, int pageSize);
+    Task<PagedResultDto<OrderDto>> GetOrdersAsync(string? userId, int page, int pageSize, string? search = null, string? status = null, string? paymentStatus = null);
     Task<OrderDto> GetOrderByIdAsync(string id, string? userId = null);
     Task<OrderDto> UpdateOrderStatusAsync(string id, UpdateOrderStatusDto dto);
     Task<OrderDto> CancelOrderAsync(string id, string userId);
