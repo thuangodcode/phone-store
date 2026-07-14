@@ -21,8 +21,8 @@ export const CartPage: React.FC = () => {
 
   const fetchCart = async () => {
     try {
-      const response = await axiosClient.get('/cart');
-      setCart(response.data?.data || { items: [] });
+      const response: any = await axiosClient.get('/cart');
+      setCart(response.data || { items: [] });
     } catch (error) {
       console.error('Failed to fetch cart', error);
     } finally {

@@ -21,8 +21,8 @@ export const ProductDetailPage: React.FC = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await axiosClient.get(`/products/${id}`);
-        setProduct(res.data?.data);
+        const res: any = await axiosClient.get(`/products/${id}`);
+        setProduct(res.data);
       } catch (error) {
         toast.error('Không thể tải thông tin sản phẩm');
       } finally {

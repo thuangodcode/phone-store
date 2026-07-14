@@ -36,8 +36,8 @@ export const CheckoutPage: React.FC = () => {
     const fetchCart = async () => {
       try {
         const data = await cartApi.getCart();
-        if (data && data.data && data.data.items) {
-           setCartItems(data.data.items);
+        if (data && data.items) {
+           setCartItems(data.items);
         }
       } catch (error) {
         toast.error('Lỗi tải giỏ hàng');
