@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import { cartApi } from '../../api/cartApi';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
 import { toast } from 'react-toastify';
 import type { Product, ProductStorageVariantDto, ProductColorVariantDto } from '../../types';
 
@@ -10,6 +11,7 @@ export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { fetchCart } = useCart();
   
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,6 +59,7 @@ export const ProductDetailPage: React.FC = () => {
     }
     try {
       await cartApi.addToCart(product!.id, 1, selectedStorage?.storage, selectedColor?.name);
+      await fetchCart();
       toast.success('Đã thêm sản phẩm vào giỏ hàng');
     } catch (error) {
       toast.error('Lỗi khi thêm vào giỏ hàng');
@@ -71,6 +74,7 @@ export const ProductDetailPage: React.FC = () => {
     }
     try {
       await cartApi.addToCart(product!.id, 1, selectedStorage?.storage, selectedColor?.name);
+      await fetchCart();
       navigate('/checkout');
     } catch (error) {
       toast.error('Lỗi khi thao tác');

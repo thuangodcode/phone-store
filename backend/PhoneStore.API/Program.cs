@@ -9,11 +9,13 @@ using PhoneStore.Infrastructure.Data;
 using PhoneStore.Infrastructure.Repositories;
 using PhoneStore.Infrastructure.Services;
 using PhoneStore.API.Middlewares;
+using PhoneStore.API.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 
 // Configure MongoDB Settings
@@ -40,7 +42,9 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Orders)
 builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Reviews);
 builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Vouchers);
 builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Wishlists);
-
+builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Articles);
+builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().ChatMessages);
+builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().ChatSessions);
 
 // Register Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -53,6 +57,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IVoucherService, VoucherService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
+builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddSingleton<IPayOSService, PayOSService>();
@@ -81,9 +86,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(origin => true)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -143,5 +149,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ReviewHub>("/reviewHub");
+app.MapHub<ChatHub>("/chatHub");
 
 app.Run();

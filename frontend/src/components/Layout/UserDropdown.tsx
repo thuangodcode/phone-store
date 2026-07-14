@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { ShoppingCart, Heart, LogOut, User } from 'lucide-react';
+import { ShoppingCart, Heart, LogOut, User, ClipboardList } from 'lucide-react';
 
 export const UserDropdown: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -69,6 +69,14 @@ export const UserDropdown: React.FC = () => {
             >
               <User size={18} />
               <span>Hồ sơ</span>
+            </button>
+
+            <button
+              onClick={() => handleNavigation('/history')}
+              className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50 text-gray-700 font-medium transition-colors"
+            >
+              <ClipboardList size={18} />
+              <span>Lịch sử mua hàng</span>
             </button>
 
             <button

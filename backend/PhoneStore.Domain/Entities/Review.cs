@@ -35,4 +35,7 @@ public class Review
 
     [BsonElement("updatedAt")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    [BsonElement("replies")]
+    public List<ReviewReply> Replies { get; set; } = new();
 }

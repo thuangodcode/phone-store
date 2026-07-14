@@ -48,3 +48,4 @@ public class MappingProfile : Profile
         CreateMap<CreateVoucherDto, Voucher>();
     }
 }
+        CreateMap<PhoneStore.Domain.Entities.ReviewReply, PhoneStore.Application.DTOs.Review.ReviewReplyDto>();

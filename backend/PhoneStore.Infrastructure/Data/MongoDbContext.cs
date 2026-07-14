@@ -22,4 +22,7 @@ public class MongoDbContext
     public IMongoCollection<Review> Reviews => _database.GetCollection<Review>("reviews");
     public IMongoCollection<Voucher> Vouchers => _database.GetCollection<Voucher>("vouchers");
     public IMongoCollection<Wishlist> Wishlists => _database.GetCollection<Wishlist>("wishlists");
+    public IMongoCollection<Article> Articles => _database.GetCollection<Article>("articles");
+    public IMongoCollection<ChatMessage> ChatMessages => _database.GetCollection<ChatMessage>("chat_messages");
+    public IMongoCollection<ChatSession> ChatSessions => _database.GetCollection<ChatSession>("chat_sessions");
 }

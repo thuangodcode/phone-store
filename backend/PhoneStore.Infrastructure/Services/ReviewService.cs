@@ -1,133 +1,73 @@
 using AutoMapper;
+using MongoDB.Driver;
 using PhoneStore.Application.DTOs.Review;
 using PhoneStore.Application.Interfaces;
 using PhoneStore.Domain.Entities;
-using PhoneStore.Domain.Enums;
-using PhoneStore.Domain.Interfaces;
+using PhoneStore.Infrastructure.Data;
 
 namespace PhoneStore.Infrastructure.Services;
 
 public class ReviewService : IReviewService
 {
-    private readonly IRepository<Review> _reviewRepository;
-    private readonly IRepository<Product> _productRepository;
-    private readonly IRepository<Order> _orderRepository;
-    private readonly IRepository<User> _userRepository;
+    private readonly MongoDbContext _context;
     private readonly IMapper _mapper;
 
-    public ReviewService(
-        IRepository<Review> reviewRepository,
-        IRepository<Product> productRepository,
-        IRepository<Order> orderRepository,
-        IRepository<User> userRepository,
-        IMapper mapper)
+    public ReviewService(MongoDbContext context, IMapper mapper)
     {
-        _reviewRepository = reviewRepository;
-        _productRepository = productRepository;
-        _orderRepository = orderRepository;
-        _userRepository = userRepository;
+        _context = context;
         _mapper = mapper;
     }
 
-    public async Task<List<ReviewDto>> GetProductReviewsAsync(string productId)
+    public async Task<IEnumerable<ReviewDto>> GetByProductIdAsync(string productId)
     {
-        var reviews = await _reviewRepository.FindAsync(r => r.ProductId == productId);
-        return _mapper.Map<List<ReviewDto>>(reviews.OrderByDescending(r => r.CreatedAt).ToList());
+        var reviews = await _context.Reviews.Find(r => r.ProductId == productId).SortByDescending(r => r.CreatedAt).ToListAsync();
+        return _mapper.Map<IEnumerable<ReviewDto>>(reviews);
     }
 
-    public async Task<ReviewDto> CreateReviewAsync(string userId, CreateReviewDto dto)
+    public async Task<ReviewDto> CreateAsync(string userId, string userName, CreateReviewDto dto)
     {
-        // Verify the order exists and belongs to the user
-        var order = await _orderRepository.GetByIdAsync(dto.OrderId);
-        if (order == null)
-            throw new Exception("Order not found.");
-
-        if (order.UserId != userId)
-            throw new Exception("Access denied.");
-
-        if (order.Status != OrderStatus.Delivered)
-            throw new Exception("Can only review delivered orders.");
-
-        // Check if user already reviewed this product for this order
-        var existingReview = await _reviewRepository.FindOneAsync(
-            r => r.UserId == userId && r.ProductId == dto.ProductId && r.OrderId == dto.OrderId);
-        if (existingReview != null)
-            throw new Exception("You already reviewed this product for this order.");
-
-        // Validate rating
-        if (dto.Rating < 1 || dto.Rating > 5)
-            throw new Exception("Rating must be between 1 and 5.");
-
-        var user = await _userRepository.GetByIdAsync(userId);
-
         var review = _mapper.Map<Review>(dto);
         review.UserId = userId;
-        review.UserName = user?.FullName ?? "Anonymous";
+        review.UserName = userName;
         review.CreatedAt = DateTime.UtcNow;
         review.UpdatedAt = DateTime.UtcNow;
 
-        await _reviewRepository.CreateAsync(review);
-
-        // Update product average rating
-        await UpdateProductRating(dto.ProductId);
-
+        await _context.Reviews.InsertOneAsync(review);
         return _mapper.Map<ReviewDto>(review);
     }
 
-    public async Task<ReviewDto> UpdateReviewAsync(string id, string userId, UpdateReviewDto dto)
+    public async Task<bool> UpdateAsync(string id, string userId, UpdateReviewDto dto)
     {
-        var review = await _reviewRepository.GetByIdAsync(id);
-        if (review == null)
-            throw new Exception("Review not found.");
+        var update = Builders<Review>.Update
+            .Set(r => r.Rating, dto.Rating)
+            .Set(r => r.Comment, dto.Comment)
+            .Set(r => r.UpdatedAt, DateTime.UtcNow);
 
-        if (review.UserId != userId)
-            throw new Exception("Access denied.");
-
-        if (dto.Rating < 1 || dto.Rating > 5)
-            throw new Exception("Rating must be between 1 and 5.");
-
-        review.Rating = dto.Rating;
-        review.Comment = dto.Comment;
-        review.UpdatedAt = DateTime.UtcNow;
-
-        await _reviewRepository.UpdateAsync(id, review);
-        await UpdateProductRating(review.ProductId);
-
-        return _mapper.Map<ReviewDto>(review);
+        var result = await _context.Reviews.UpdateOneAsync(r => r.Id == id && r.UserId == userId, update);
+        return result.ModifiedCount > 0;
     }
 
-    public async Task DeleteReviewAsync(string id, string userId)
+    public async Task<bool> DeleteAsync(string id, string userId)
     {
-        var review = await _reviewRepository.GetByIdAsync(id);
-        if (review == null)
-            throw new Exception("Review not found.");
-
-        if (review.UserId != userId)
-            throw new Exception("Access denied.");
-
-        var productId = review.ProductId;
-        await _reviewRepository.DeleteAsync(id);
-        await UpdateProductRating(productId);
+        var result = await _context.Reviews.DeleteOneAsync(r => r.Id == id && r.UserId == userId);
+        return result.DeletedCount > 0;
     }
 
-    private async Task UpdateProductRating(string productId)
+    public async Task<ReviewDto> AddReplyAsync(string reviewId, string userId, string userName, string comment)
     {
-        var reviews = (await _reviewRepository.FindAsync(r => r.ProductId == productId)).ToList();
-        var product = await _productRepository.GetByIdAsync(productId);
-        if (product == null) return;
-
-        if (reviews.Any())
+        var reply = new ReviewReply
         {
-            product.AverageRating = reviews.Average(r => r.Rating);
-            product.TotalReviews = reviews.Count;
-        }
-        else
-        {
-            product.AverageRating = 0;
-            product.TotalReviews = 0;
-        }
+            UserId = userId,
+            UserName = userName,
+            Comment = comment,
+            CreatedAt = DateTime.UtcNow
+        };
 
-        product.UpdatedAt = DateTime.UtcNow;
-        await _productRepository.UpdateAsync(productId, product);
+        var update = Builders<Review>.Update.Push(r => r.Replies, reply);
+        await _context.Reviews.UpdateOneAsync(r => r.Id == reviewId, update);
+        
+        var updatedReview = await _context.Reviews.Find(r => r.Id == reviewId).FirstOrDefaultAsync();
+        return _mapper.Map<ReviewDto>(updatedReview);
     }
 }
+

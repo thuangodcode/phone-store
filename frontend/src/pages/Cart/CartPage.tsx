@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import { cartApi } from '../../api/cartApi';
+import { useCart } from '../../contexts/CartContext';
 
 interface CartItem {
   productId: string;
@@ -21,6 +22,7 @@ export const CartPage: React.FC = () => {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { fetchCart: globalFetchCart } = useCart();
 
   const fetchCart = async () => {
     try {
@@ -41,6 +43,7 @@ export const CartPage: React.FC = () => {
     try {
       await cartApi.updateCartItem(productId, quantity, storage, color);
       fetchCart();
+      globalFetchCart();
     } catch (error) {
       console.error('Failed to update quantity', error);
     }
@@ -51,6 +54,7 @@ export const CartPage: React.FC = () => {
       // Use update with 0 quantity to remove specific variant
       await cartApi.updateCartItem(productId, 0, storage, color);
       fetchCart();
+      globalFetchCart();
     } catch (error) {
       console.error('Failed to remove item', error);
     }

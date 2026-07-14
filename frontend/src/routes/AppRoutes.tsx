@@ -9,6 +9,8 @@ import { CartPage } from '../pages/Cart/CartPage';
 import { CheckoutPage } from '../pages/Checkout/CheckoutPage';
 import { LoginPage } from '../pages/Auth/LoginPage';
 import { RegisterPage } from '../pages/Auth/RegisterPage';
+import { MapsPage } from '../pages/Home/MapsPage';
+import { PromotionsPage } from '../pages/Home/PromotionsPage';
 import { ForgotPasswordPage } from '../pages/Auth/ForgotPasswordPage';
 import { DashboardPage } from '../pages/Admin/Dashboard/DashboardPage';
 import { AdminProductsPage } from '../pages/Admin/Products/AdminProductsPage';
@@ -18,6 +20,8 @@ import { AdminOrdersPage } from '../pages/Admin/Orders/AdminOrdersPage';
 import { AdminUsersPage } from '../pages/Admin/Users/AdminUsersPage';
 import { AdminVouchersPage } from '../pages/Admin/Vouchers/AdminVouchersPage';
 import { StaffProductsPage } from '../pages/Staff/Products/StaffProductsPage';
+import { StaffPromotionsPage } from '../pages/Staff/Promotions/StaffPromotionsPage';
+import { StaffChatPage } from '../pages/Staff/Chat/StaffChatPage';
 import { ProfilePage } from '../pages/Profile/ProfilePage';
 import { CustomerOrdersPage } from '../pages/Profile/CustomerOrdersPage';
 
@@ -34,6 +38,8 @@ export const AppRoutes: React.FC = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/products" element={<div className="p-8 text-center text-xl">Products Page (WIP)</div>} />
         <Route path="/products/:id" element={<ProductDetailPage />} />
+        <Route path="/maps" element={<MapsPage />} />
+        <Route path="/promotions" element={<PromotionsPage />} />
         
         {/* Protected Customer Routes */}
         <Route element={<ProtectedRoute />}>
@@ -51,6 +57,8 @@ export const AppRoutes: React.FC = () => {
           <Route index element={<DashboardPage />} />
           <Route path="orders" element={<AdminOrdersPage />} />
           <Route path="staff-products" element={<StaffProductsPage />} />
+          <Route path="promotions" element={<StaffPromotionsPage />} />
+          <Route path="chat" element={<StaffChatPage />} />
           {/* Admin Only Routes */}
           <Route element={<AdminRoute />}>
             <Route path="products" element={<AdminProductsPage />} />

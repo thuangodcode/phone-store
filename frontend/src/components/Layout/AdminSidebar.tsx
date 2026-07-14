@@ -8,7 +8,9 @@ import {
   Layers, 
   ShoppingCart, 
   Users, 
-  Ticket 
+  Ticket,
+  FileText,
+  MessageSquare
 } from 'lucide-react';
 
 export const AdminSidebar: React.FC = () => {
@@ -22,6 +24,8 @@ export const AdminSidebar: React.FC = () => {
     { name: 'Brands', path: '/admin/brands', icon: <Tags size={20} />, adminOnly: true },
     { name: 'Categories', path: '/admin/categories', icon: <Layers size={20} />, adminOnly: true },
     { name: 'Orders', path: '/admin/orders', icon: <ShoppingCart size={20} />, adminOnly: false },
+    { name: 'Promotions', path: '/admin/promotions', icon: <FileText size={20} />, adminOnly: false, staffOnly: true },
+    { name: 'Live Chat', path: '/admin/chat', icon: <MessageSquare size={20} />, adminOnly: false, staffOnly: true },
     { name: 'Users', path: '/admin/users', icon: <Users size={20} />, adminOnly: true },
     { name: 'Vouchers', path: '/admin/vouchers', icon: <Ticket size={20} />, adminOnly: true },
   ];

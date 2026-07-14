@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import { cartApi } from '../../api/cartApi';
+import { useCart } from '../../contexts/CartContext';
 import { toast } from 'react-toastify';
 
 interface CartItem {
@@ -16,9 +17,9 @@ interface CartItem {
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
-  
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loadingCart, setLoadingCart] = useState(true);
+  const { fetchCart: globalFetchCart } = useCart();
   
   const [formData, setFormData] = useState({
     receiverName: '',
@@ -104,6 +105,9 @@ export const CheckoutPage: React.FC = () => {
       const order = orderResponse.data;
       
       if (!order) throw new Error("Order creation failed");
+
+      // Cart is cleared in backend, so update frontend context
+      await globalFetchCart();
 
       if (formData.paymentMethod === 'PayOS') {
         // 2. Generate PayOS Link

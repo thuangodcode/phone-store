@@ -3,7 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import type { Product } from '../../types';
 import { cartApi } from '../../api/cartApi';
+import { wishlistApi } from '../../api/wishlistApi';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
 
 interface ProductCardProps {
   product: Product;
@@ -24,6 +26,34 @@ const StarIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { fetchCart } = useCart();
+  const [isWishlisted, setIsWishlisted] = React.useState(false);
+
+  // Ideally, you'd check if the product is in the user's wishlist globally,
+  // but for immediate feedback we use local state initially.
+  
+  const handleWishlist = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      toast.info('Vui lòng đăng nhập để thêm vào danh sách yêu thích');
+      navigate('/login');
+      return;
+    }
+    
+    try {
+      if (isWishlisted) {
+        await wishlistApi.removeFromWishlist(product.id);
+        setIsWishlisted(false);
+        toast.success('Đã xoá khỏi danh sách yêu thích');
+      } else {
+        await wishlistApi.addToWishlist(product.id);
+        setIsWishlisted(true);
+        toast.success('Đã thêm vào danh sách yêu thích');
+      }
+    } catch (error) {
+      toast.error('Có lỗi xảy ra');
+    }
+  };
   
   const isSale = product.salePrice > 0 && product.salePrice < product.price;
   const displayPrice = isSale ? product.salePrice : product.price;
@@ -42,6 +72,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     
     try {
       await cartApi.addToCart(product.id, 1);
+      await fetchCart();
       toast.success('Đã thêm sản phẩm vào giỏ hàng');
     } catch (error) {
       toast.error('Có lỗi xảy ra khi thêm vào giỏ hàng');
@@ -67,8 +98,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             )}
 
             <button 
-              className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-white/70 text-gray-600 p-1.5 sm:p-2.5 rounded-full transition-colors hover:text-red-500 hover:bg-white backdrop-blur-md border border-gray-200 shadow-sm z-10"
-              onClick={(e) => { e.preventDefault(); /* Handle Wishlist */ }}
+              className={`absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2.5 rounded-full transition-colors backdrop-blur-md border border-gray-200 shadow-sm z-10 ${isWishlisted ? 'bg-red-500 text-white border-red-500' : 'bg-white/70 text-gray-600 hover:text-red-500 hover:bg-white'}`}
+              onClick={handleWishlist}
             >
               <HeartIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
