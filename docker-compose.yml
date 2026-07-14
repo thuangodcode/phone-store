@@ -1,0 +1,50 @@
+version: '3.9'
+
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: phone-store-mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_DATABASE: PhoneStoreDB
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: phone-store-backend
+    container_name: phone-store-backend
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - '8080:8080'
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      MongoDbSettings__ConnectionString: mongodb://mongo:27017
+      MongoDbSettings__DatabaseName: PhoneStoreDB
+      Jwt__Secret: PhoneStoreSecretKey2024VeryLongSecretKey123!@#$%^&*
+      Jwt__Issuer: PhoneStoreAPI
+      Jwt__Audience: PhoneStoreClient
+      DOTNET_ENVIRONMENT: Production
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    image: phone-store-frontend
+    container_name: phone-store-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - '3000:80'
+
+volumes:
+  mongo-data:
