@@ -107,8 +107,8 @@ export const CheckoutPage: React.FC = () => {
 
       if (formData.paymentMethod === 'PayOS') {
         // 2. Generate PayOS Link
-        const paymentResponse = await axiosClient.post(`/payment/create-link/${order.id}?returnUrl=${window.location.origin}/payment-success&cancelUrl=${window.location.origin}/payment-cancel`);
-        const checkoutUrl = paymentResponse.data?.data;
+        const paymentResponse: any = await axiosClient.post(`/payment/create-link/${order.id}?returnUrl=${window.location.origin}/payment-success&cancelUrl=${window.location.origin}/payment-cancel`);
+        const checkoutUrl = paymentResponse.data;
         if (checkoutUrl) {
           window.location.href = checkoutUrl;
         } else {
