@@ -134,6 +134,8 @@ public class ProductService : IProductService
         product.CategoryId = updateDto.CategoryId;
         product.Images = updateDto.Images;
         product.Specifications = _mapper.Map<ProductSpecification>(updateDto.Specifications);
+        product.StorageVariants = _mapper.Map<List<ProductStorageVariant>>(updateDto.StorageVariants);
+        product.ColorVariants = _mapper.Map<List<ProductColorVariant>>(updateDto.ColorVariants);
         product.Stock = updateDto.Stock;
         product.IsActive = updateDto.IsActive;
         product.UpdatedAt = DateTime.UtcNow;
