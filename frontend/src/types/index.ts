@@ -10,6 +10,19 @@ export interface User {
   createdAt: string;
 }
 
+export interface UpdateProfileDto {
+  fullName: string;
+  phone: string;
+  address: string;
+  avatar: string;
+}
+
+export interface ChangePasswordDto {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
 export interface Product {
   id: string;
   name: string;

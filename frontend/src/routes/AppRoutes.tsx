@@ -14,6 +14,7 @@ import { AdminCategoriesPage } from '../pages/Admin/Categories/AdminCategoriesPa
 import { AdminOrdersPage } from '../pages/Admin/Orders/AdminOrdersPage';
 import { AdminUsersPage } from '../pages/Admin/Users/AdminUsersPage';
 import { AdminVouchersPage } from '../pages/Admin/Vouchers/AdminVouchersPage';
+import { ProfilePage } from '../pages/Profile/ProfilePage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -33,7 +34,7 @@ export const AppRoutes: React.FC = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/cart" element={<div className="p-8 text-center text-xl">Cart Page (WIP)</div>} />
           <Route path="/wishlist" element={<div className="p-8 text-center text-xl">Wishlist Page (WIP)</div>} />
-          <Route path="/profile" element={<div className="p-8 text-center text-xl">Profile Page (WIP)</div>} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/orders" element={<div className="p-8 text-center text-xl">Orders Page (WIP)</div>} />
         </Route>
       </Route>
