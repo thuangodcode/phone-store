@@ -25,15 +25,6 @@ public class ProductsController : ControllerBase
         return Ok(ApiResponse<PagedResultDto<ProductDto>>.SuccessResponse(result));
     }
 
-    [Authorize(Roles = UserRole.Admin)]
-    [HttpGet("admin")]
-    public async Task<ActionResult<ApiResponse<PagedResultDto<ProductDto>>>> GetAdminProducts([FromQuery] ProductFilterDto filter)
-    {
-        filter.IncludeInactive = true;
-        var result = await _productService.GetProductsAsync(filter);
-        return Ok(ApiResponse<PagedResultDto<ProductDto>>.SuccessResponse(result));
-    }
-
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<ProductDto>>> GetProductById(string id)
     {
