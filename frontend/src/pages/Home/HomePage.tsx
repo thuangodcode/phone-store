@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axiosClient from '../../api/axiosClient';
-import { Product } from '../../types';
+import type { Product } from '../../types';
 
 export const HomePage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
