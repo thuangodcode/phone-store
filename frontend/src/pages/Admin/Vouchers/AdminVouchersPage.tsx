@@ -4,6 +4,7 @@ import type { Voucher } from '../../../types';
 import { VoucherFormModal } from './VoucherFormModal';
 import { ActionButton, EditIcon, TrashIcon } from '../../../components/AdminActionButtons';
 import { toast } from 'react-toastify';
+import { CustomSelect } from '../../../components/Layout/CustomSelect';
 
 export const AdminVouchersPage: React.FC = () => {
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
@@ -73,20 +74,20 @@ export const AdminVouchersPage: React.FC = () => {
         <input
           type="text"
           placeholder="Tìm mã hoặc mô tả..."
-          className="border rounded px-3 py-2 w-full md:w-64 bg-white"
+          className="border border-zinc-200 rounded-lg px-4 py-2 w-full md:w-64 bg-white shadow-sm"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
         />
 
-        <select 
-          className="border rounded px-3 py-2 bg-white"
-          value={pageSize}
-          onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
-        >
-          <option value={10}>10 dòng / trang</option>
-          <option value={20}>20 dòng / trang</option>
-          <option value={50}>50 dòng / trang</option>
-        </select>
+        <CustomSelect
+          options={[
+            { value: '10', label: '10 dòng / trang' },
+            { value: '20', label: '20 dòng / trang' },
+            { value: '50', label: '50 dòng / trang' }
+          ]}
+          value={String(pageSize)}
+          onChange={(val) => { setPageSize(Number(val)); setPage(1); }}
+        />
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">

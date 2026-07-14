@@ -3,6 +3,7 @@ import { adminApi } from '../../../api/adminApi';
 import type { User } from '../../../types';
 import { ActionButton, RefreshIcon, TrashIcon } from '../../../components/AdminActionButtons';
 import { toast } from 'react-toastify';
+import { CustomSelect } from '../../../components/Layout/CustomSelect';
 
 export const AdminUsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -102,41 +103,41 @@ export const AdminUsersPage: React.FC = () => {
         <input
           type="text"
           placeholder="Tìm tên hoặc email..."
-          className="border rounded px-3 py-2 w-full md:w-64 bg-white"
+          className="border border-zinc-200 rounded-lg px-4 py-2 w-full md:w-64 bg-white shadow-sm"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
         />
 
-        <select 
-          className="border rounded px-3 py-2 bg-white"
+        <CustomSelect
+          options={[
+            { value: '', label: 'Tất cả vai trò' },
+            { value: 'Admin', label: 'Quản trị viên (Admin)' },
+            { value: 'Staff', label: 'Nhân viên (Staff)' },
+            { value: 'Customer', label: 'Người dùng (Customer)' }
+          ]}
           value={roleFilter}
-          onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-        >
-          <option value="">Tất cả vai trò</option>
-          <option value="Admin">Quản trị viên (Admin)</option>
-          <option value="Staff">Nhân viên (Staff)</option>
-          <option value="Customer">Người dùng (Customer)</option>
-        </select>
+          onChange={(val) => { setRoleFilter(val); setPage(1); }}
+        />
 
-        <select 
-          className="border rounded px-3 py-2 bg-white"
+        <CustomSelect
+          options={[
+            { value: '', label: 'Tất cả trạng thái' },
+            { value: 'active', label: 'Đang hoạt động' },
+            { value: 'inactive', label: 'Đã khóa' }
+          ]}
           value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-        >
-          <option value="">Tất cả trạng thái</option>
-          <option value="active">Đang hoạt động</option>
-          <option value="inactive">Đã khóa</option>
-        </select>
+          onChange={(val) => { setStatusFilter(val); setPage(1); }}
+        />
 
-        <select 
-          className="border rounded px-3 py-2 bg-white"
-          value={pageSize}
-          onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
-        >
-          <option value={10}>10 dòng / trang</option>
-          <option value={20}>20 dòng / trang</option>
-          <option value={50}>50 dòng / trang</option>
-        </select>
+        <CustomSelect
+          options={[
+            { value: '10', label: '10 dòng / trang' },
+            { value: '20', label: '20 dòng / trang' },
+            { value: '50', label: '50 dòng / trang' }
+          ]}
+          value={String(pageSize)}
+          onChange={(val) => { setPageSize(Number(val)); setPage(1); }}
+        />
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
