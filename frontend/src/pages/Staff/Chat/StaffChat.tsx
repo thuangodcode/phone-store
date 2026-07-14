@@ -26,8 +26,15 @@ export const StaffChatPage: React.FC = () => {
   useEffect(() => {
     fetchSessions();
 
+    const baseUrl = (import.meta.env.VITE_API_URL || 'https://phone-store-api-4bah.onrender.com/api').replace(/\/api$/, '');
+    const token = localStorage.getItem('token');
+    
     const conn = new signalR.HubConnectionBuilder()
-      .withUrl("https://localhost:7119/chatHub", { skipNegotiation: true, transport: signalR.HttpTransportType.WebSockets })
+      .withUrl(`${baseUrl}/chatHub`, { 
+        accessTokenFactory: () => token || '',
+        skipNegotiation: true, 
+        transport: signalR.HttpTransportType.WebSockets 
+      })
       .withAutomaticReconnect()
       .build();
 

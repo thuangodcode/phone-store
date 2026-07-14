@@ -23,8 +23,12 @@ export const CustomerChatWidget: React.FC = () => {
         const msgs = await chatApi.getMessages(sessionData.id);
         setMessages(msgs || []);
 
+        const baseUrl = (import.meta.env.VITE_API_URL || 'https://phone-store-api-4bah.onrender.com/api').replace(/\/api$/, '');
+        const token = localStorage.getItem('token');
+
         const conn = new signalR.HubConnectionBuilder()
-          .withUrl("https://localhost:7119/chatHub", {
+          .withUrl(`${baseUrl}/chatHub`, {
+             accessTokenFactory: () => token || '',
              skipNegotiation: true,
              transport: signalR.HttpTransportType.WebSockets
           })
