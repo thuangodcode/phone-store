@@ -1,8 +1,8 @@
-using MailKit.Net.Smtp;
-using MailKit.Security;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using MimeKit;
 using PhoneStore.Application.Interfaces;
 using PhoneStore.Infrastructure.Data;
 
@@ -12,20 +12,22 @@ public class EmailService : IEmailService
 {
     private readonly EmailSettings _emailSettings;
     private readonly ILogger<EmailService> _logger;
-    private const int EmailTimeoutSeconds = 25;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private const string ResendApiUrl = "https://api.resend.com/emails";
 
-    public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
+    public EmailService(IConfiguration configuration, ILogger<EmailService> logger, IHttpClientFactory httpClientFactory)
     {
         _emailSettings = new EmailSettings();
         configuration.GetSection("EmailSettings").Bind(_emailSettings);
         _logger = logger;
+        _httpClientFactory = httpClientFactory;
     }
 
     public async Task SendPasswordResetEmailAsync(string recipientEmail, string recipientName, string resetToken, string resetLink)
     {
-        if (string.IsNullOrWhiteSpace(_emailSettings.SenderEmail) || string.IsNullOrWhiteSpace(_emailSettings.SenderPassword))
+        if (string.IsNullOrWhiteSpace(_emailSettings.ResendApiKey))
         {
-            _logger.LogWarning("Email service is not configured. Cannot send password reset email.");
+            _logger.LogWarning("Resend API key is not configured. Cannot send password reset email.");
             throw new Exception("Email service is not configured. Please contact support.");
         }
 
@@ -48,7 +50,7 @@ public class EmailService : IEmailService
             </body>
         </html>";
 
-        await SendEmailAsyncInternal(recipientEmail, recipientName, subject, htmlBody);
+        await SendEmailViaResendAsync(recipientEmail, subject, htmlBody);
         _logger.LogInformation("Password reset email sent to {RecipientEmail}", recipientEmail);
     }
 
@@ -56,9 +58,9 @@ public class EmailService : IEmailService
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(_emailSettings.SenderEmail) || string.IsNullOrWhiteSpace(_emailSettings.SenderPassword))
+            if (string.IsNullOrWhiteSpace(_emailSettings.ResendApiKey))
             {
-                _logger.LogWarning("Email service is not configured. Skipping welcome email.");
+                _logger.LogWarning("Resend API key is not configured. Skipping welcome email.");
                 return;
             }
 
@@ -81,7 +83,7 @@ public class EmailService : IEmailService
                 </body>
             </html>";
 
-            await SendEmailAsyncInternal(recipientEmail, recipientName, subject, htmlBody);
+            await SendEmailViaResendAsync(recipientEmail, subject, htmlBody);
             _logger.LogInformation("Welcome email sent to {RecipientEmail}", recipientEmail);
         }
         catch (Exception ex)
@@ -94,9 +96,9 @@ public class EmailService : IEmailService
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(_emailSettings.SenderEmail) || string.IsNullOrWhiteSpace(_emailSettings.SenderPassword))
+            if (string.IsNullOrWhiteSpace(_emailSettings.ResendApiKey))
             {
-                _logger.LogWarning("Email service is not configured. Skipping order confirmation email.");
+                _logger.LogWarning("Resend API key is not configured. Skipping order confirmation email.");
                 return;
             }
 
@@ -115,7 +117,7 @@ public class EmailService : IEmailService
                 </body>
             </html>";
 
-            await SendEmailAsyncInternal(recipientEmail, recipientName, subject, htmlBody);
+            await SendEmailViaResendAsync(recipientEmail, subject, htmlBody);
             _logger.LogInformation("Order confirmation email sent to {RecipientEmail}", recipientEmail);
         }
         catch (Exception ex)
@@ -124,66 +126,58 @@ public class EmailService : IEmailService
         }
     }
 
-    private async Task SendEmailAsyncInternal(string recipientEmail, string recipientName, string subject, string htmlBody)
+    private async Task SendEmailViaResendAsync(string recipientEmail, string subject, string htmlBody)
     {
-        _logger.LogInformation("Attempting to send email to {RecipientEmail} via {SmtpServer}:{SmtpPort}",
-            recipientEmail, _emailSettings.SmtpServer, _emailSettings.SmtpPort);
+        _logger.LogInformation("Sending email to {RecipientEmail} via Resend API...", recipientEmail);
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(EmailTimeoutSeconds));
+        var client = _httpClientFactory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _emailSettings.ResendApiKey);
+        client.Timeout = TimeSpan.FromSeconds(15);
+
+        var senderAddress = !string.IsNullOrWhiteSpace(_emailSettings.SenderEmail) 
+            ? $"{_emailSettings.SenderName} <{_emailSettings.SenderEmail}>" 
+            : $"PhoneStore <onboarding@resend.dev>";
+
+        var payload = new
+        {
+            from = senderAddress,
+            to = new[] { recipientEmail },
+            subject = subject,
+            html = htmlBody
+        };
+
+        var jsonContent = new StringContent(
+            JsonSerializer.Serialize(payload),
+            Encoding.UTF8,
+            "application/json"
+        );
 
         try
         {
-            var message = new MimeMessage();
-            message.From.Add(new MailboxAddress(_emailSettings.SenderName, _emailSettings.SenderEmail));
-            message.To.Add(new MailboxAddress(recipientName, recipientEmail));
-            message.Subject = subject;
-            message.Body = new TextPart("html") { Text = htmlBody };
+            var response = await client.PostAsync(ResendApiUrl, jsonContent);
+            var responseBody = await response.Content.ReadAsStringAsync();
 
-            using var client = new SmtpClient();
-            
-            // Use SslOnConnect for port 465, StartTls for port 587
-            var sslOptions = _emailSettings.SmtpPort == 465 
-                ? SecureSocketOptions.SslOnConnect 
-                : SecureSocketOptions.StartTls;
-            _logger.LogInformation("Connecting to SMTP server (port {Port}, {SslMode})...", 
-                _emailSettings.SmtpPort, sslOptions);
-            await client.ConnectAsync(
-                _emailSettings.SmtpServer, 
-                _emailSettings.SmtpPort, 
-                sslOptions, 
-                cts.Token
-            );
-
-            _logger.LogInformation("Authenticating with SMTP server...");
-            await client.AuthenticateAsync(
-                _emailSettings.SenderEmail, 
-                _emailSettings.SenderPassword, 
-                cts.Token
-            );
-
-            _logger.LogInformation("Sending email...");
-            await client.SendAsync(message, cts.Token);
-            await client.DisconnectAsync(true, cts.Token);
-
-            _logger.LogInformation("Email successfully sent to {RecipientEmail}", recipientEmail);
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Email successfully sent to {RecipientEmail}. Response: {Response}", 
+                    recipientEmail, responseBody);
+            }
+            else
+            {
+                _logger.LogError("Resend API error for {RecipientEmail}. Status: {StatusCode}, Response: {Response}", 
+                    recipientEmail, response.StatusCode, responseBody);
+                throw new Exception($"Failed to send email. Resend API returned {response.StatusCode}: {responseBody}");
+            }
         }
-        catch (OperationCanceledException)
+        catch (TaskCanceledException)
         {
-            _logger.LogError("Email sending to {RecipientEmail} timed out after {Timeout}s", 
-                recipientEmail, EmailTimeoutSeconds);
-            throw new Exception($"Email sending timed out after {EmailTimeoutSeconds} seconds. Please try again.");
+            _logger.LogError("Email sending to {RecipientEmail} via Resend API timed out", recipientEmail);
+            throw new Exception("Email sending timed out. Please try again.");
         }
-        catch (MailKit.Security.AuthenticationException authEx)
+        catch (HttpRequestException httpEx)
         {
-            _logger.LogError(authEx, "SMTP authentication failed for {SenderEmail}. App Password may be invalid or expired.", 
-                _emailSettings.SenderEmail);
-            throw new Exception("Email authentication failed. The App Password may be invalid or expired.");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send email to {RecipientEmail}: {ErrorType} - {ErrorMessage}", 
-                recipientEmail, ex.GetType().Name, ex.Message);
-            throw new Exception($"Failed to send email: {ex.Message}");
+            _logger.LogError(httpEx, "HTTP error sending email to {RecipientEmail} via Resend API", recipientEmail);
+            throw new Exception($"Failed to send email: {httpEx.Message}");
         }
     }
 }
