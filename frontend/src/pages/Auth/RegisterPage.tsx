@@ -30,19 +30,30 @@ const EyeOffIcon = () => (
 
 export const RegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !email || !password) return toast.error('Please fill all fields');
+    if (!fullName || !email || !password || !confirmPassword) {
+      return toast.error('Please fill all required fields');
+    }
+    if (password !== confirmPassword) {
+      return toast.error('Passwords do not match');
+    }
+    if (password.length < 6) {
+      return toast.error('Password must be at least 6 characters');
+    }
 
     try {
       setIsLoading(true);
-      await axiosClient.post('/auth/register', { fullName, email, password });
+      await axiosClient.post('/auth/register', { fullName, email, password, confirmPassword, phone });
       toast.success('Registration successful! Please login.');
       navigate('/login');
     } catch (err: any) {
@@ -54,6 +65,15 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div className="relative w-full min-h-screen bg-gray-50 flex items-center justify-center font-sans overflow-hidden py-12">
+      <button
+        onClick={() => navigate('/')}
+        className="absolute top-4 left-4 flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Back to Home
+      </button>
       <div className="relative w-full max-w-sm p-6 space-y-6 bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-lg dark:shadow-zinc-900/50">
         <div className="text-center space-y-3">
           <div className="inline-flex p-2 bg-zinc-100 dark:bg-zinc-900 rounded-md border border-zinc-200 dark:border-zinc-800">
@@ -95,6 +115,19 @@ export const RegisterPage: React.FC = () => {
             />
           </div>
           <div className="space-y-2 text-left">
+            <label htmlFor="phone" className="text-sm font-medium leading-none text-zinc-900 dark:text-zinc-50">
+              Phone (Optional)
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+1 (555) 000-0000"
+              className="flex h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-5 text-sm shadow-sm transition-colors placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950"
+            />
+          </div>
+          <div className="space-y-2 text-left">
             <label htmlFor="password" className="text-sm font-medium leading-none text-zinc-900 dark:text-zinc-50">
               Password
             </label>
@@ -114,6 +147,29 @@ export const RegisterPage: React.FC = () => {
                 className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
               >
                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
+          </div>
+          <div className="space-y-2 text-left">
+            <label htmlFor="confirmPassword" className="text-sm font-medium leading-none text-zinc-900 dark:text-zinc-50">
+              Confirm Password
+            </label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm your password"
+                className="flex h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-5 pr-10 text-sm shadow-sm transition-colors placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              >
+                {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
           </div>
