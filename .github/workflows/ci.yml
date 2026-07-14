@@ -45,11 +45,11 @@ jobs:
 
     # Docker Compose
     - name: Build Docker Images and Start Services
-      run: docker-compose up -d --build
+      run: docker compose up -d --build
 
     - name: Verify Running Containers
       run: docker ps -a
 
     - name: Stop Containers
       if: always()
-      run: docker-compose down
+      run: docker compose down
