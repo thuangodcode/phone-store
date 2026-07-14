@@ -54,6 +54,9 @@ builder.Services.AddScoped<IVoucherService, VoucherService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
+// Register Data Seeder
+builder.Services.AddScoped<DataSeeder>();
+
 // Configure JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -114,6 +117,13 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// Execute Data Seeder
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
+    seeder.SeedAsync().Wait();
+}
 
 // Enable Swagger in all environments for Render deployment
 app.UseSwagger();
