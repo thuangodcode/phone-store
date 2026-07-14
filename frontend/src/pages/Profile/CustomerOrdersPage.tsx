@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import { toast } from 'react-toastify';
-import { Order } from '../../types';
+import type { Order } from '../../types';
 
 export const CustomerOrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
