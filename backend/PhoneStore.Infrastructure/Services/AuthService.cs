@@ -16,12 +16,14 @@ public class AuthService : IAuthService
     private readonly IRepository<User> _userRepository;
     private readonly IMapper _mapper;
     private readonly IConfiguration _configuration;
+    private readonly IEmailService _emailService;
 
-    public AuthService(IRepository<User> userRepository, IMapper mapper, IConfiguration configuration)
+    public AuthService(IRepository<User> userRepository, IMapper mapper, IConfiguration configuration, IEmailService emailService)
     {
         _userRepository = userRepository;
         _mapper = mapper;
         _configuration = configuration;
+        _emailService = emailService;
     }
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
@@ -44,6 +46,17 @@ public class AuthService : IAuthService
         };
 
         await _userRepository.CreateAsync(user);
+
+        // Send welcome email
+        try
+        {
+            await _emailService.SendWelcomeEmailAsync(user.Email, user.FullName);
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't fail the registration
+            Console.WriteLine($"Failed to send welcome email: {ex.Message}");
+        }
 
         var token = GenerateJwtToken(user);
         return new AuthResponseDto
@@ -79,14 +92,30 @@ public class AuthService : IAuthService
         if (user == null)
             throw new Exception("Email not found.");
 
-        // Simulated: In production, send email with reset link
+        // Generate temporary password
         var tempPassword = GenerateRandomPassword();
         user.Password = BCrypt.Net.BCrypt.HashPassword(tempPassword);
         user.UpdatedAt = DateTime.UtcNow;
         await _userRepository.UpdateAsync(user.Id, user);
 
-        // Simulated response - in production this would be sent via email
-        return $"A new password has been sent to {dto.Email}. (Simulated: {tempPassword})";
+        // Send password reset email
+        try
+        {
+            var resetLink = $"https://phone-store.vercel.app/reset-password?email={user.Email}";
+            await _emailService.SendPasswordResetEmailAsync(
+                user.Email,
+                user.FullName,
+                tempPassword,
+                resetLink
+            );
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't fail the request
+            Console.WriteLine($"Failed to send email: {ex.Message}");
+        }
+
+        return $"Password reset instructions have been sent to {dto.Email}. Please check your inbox.";
     }
 
     public async Task ChangePasswordAsync(string userId, ChangePasswordDto dto)
