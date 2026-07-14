@@ -15,7 +15,9 @@ export const AdminProductsPage: React.FC = () => {
   const fetchProducts = async () => {
     try {
       setIsLoading(true);
-      const res = await adminApi.getProducts(1, 50, true); // Admin should see both active and inactive products
+      // Fetch all products without filter - backend needs rebuild to support includeInactive
+      // For now, fetch active only and we'll add edit to change status
+      const res = await adminApi.getProducts(1, 200); // Fetch max 200 to get all products
       setProducts(res.items);
     } catch (err) {
       toast.error("Failed to fetch products");
