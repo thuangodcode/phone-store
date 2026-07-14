@@ -8,6 +8,7 @@ import { LoginPage } from '../pages/Auth/LoginPage';
 import { RegisterPage } from '../pages/Auth/RegisterPage';
 import { ForgotPasswordPage } from '../pages/Auth/ForgotPasswordPage';
 import { DashboardPage } from '../pages/Admin/Dashboard/DashboardPage';
+import { AdminProductsPage } from '../pages/Admin/Products/AdminProductsPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -36,7 +37,7 @@ export const AppRoutes: React.FC = () => {
       <Route path="/admin" element={<AdminRoute />}>
         <Route element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
-          <Route path="products" element={<div className="p-4">Manage Products (WIP)</div>} />
+          <Route path="products" element={<AdminProductsPage />} />
           <Route path="brands" element={<div className="p-4">Manage Brands (WIP)</div>} />
           <Route path="categories" element={<div className="p-4">Manage Categories (WIP)</div>} />
           <Route path="orders" element={<div className="p-4">Manage Orders (WIP)</div>} />
