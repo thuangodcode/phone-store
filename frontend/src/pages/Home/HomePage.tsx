@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axiosClient from '../../api/axiosClient';
+import { ProductCard } from '../../components/Product/ProductCard';
 import type { Product } from '../../types';
 
 export const HomePage: React.FC = () => {
@@ -46,38 +47,9 @@ export const HomePage: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
             {products.map(product => (
-              <div key={product.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition duration-300 group">
-                <div className="h-56 p-4 flex items-center justify-center bg-white relative">
-                  {product.salePrice > 0 && product.salePrice < product.price && (
-                    <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md z-10">
-                      -{Math.round((1 - product.salePrice / product.price) * 100)}%
-                    </span>
-                  )}
-                  <img 
-                    src={product.images[0] || 'https://via.placeholder.com/350'} 
-                    alt={product.name} 
-                    className="max-h-full object-contain group-hover:scale-105 transition duration-300"
-                  />
-                </div>
-                <div className="p-4 border-t border-gray-50">
-                  <div className="text-xs text-gray-500 mb-1 font-medium">{product.brandName}</div>
-                  <h3 className="font-semibold text-gray-800 text-lg truncate mb-2" title={product.name}>
-                    {product.name}
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    <span className="text-primary-600 font-bold text-lg">
-                      {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.salePrice > 0 ? product.salePrice : product.price)}
-                    </span>
-                    {product.salePrice > 0 && product.salePrice < product.price && (
-                      <span className="text-gray-400 text-sm line-through">
-                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}
@@ -88,6 +60,11 @@ export const HomePage: React.FC = () => {
           </div>
         )}
       </div>
+      <style>{`
+        .font-space-grotesk {
+          font-family: 'Space Grotesk', sans-serif;
+        }
+      `}</style>
     </div>
   );
 };
