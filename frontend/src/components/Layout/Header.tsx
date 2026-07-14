@@ -40,14 +40,14 @@ export const Header: React.FC = () => {
             <div className="flex items-center space-x-4">
               {isAdmin && (
                 <Link to="/admin" className="text-sm bg-blue-100 px-3 py-1 rounded-md text-blue-700 hover:bg-blue-200 font-medium transition">
-                  Admin Panel
+                  Quản trị viên
                 </Link>
               )}
               <UserDropdown />
             </div>
           ) : (
             <Link to="/login" className="bg-primary-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-primary-700 transition">
-              Login
+              Đăng nhập
             </Link>
           )}
         </div>

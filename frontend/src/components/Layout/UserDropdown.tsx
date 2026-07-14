@@ -44,7 +44,7 @@ export const UserDropdown: React.FC = () => {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-colors"
       >
-        <span className="text-sm">Hi {getLastName()}</span>
+        <span className="text-sm">Chào {getLastName()}</span>
         <svg
           className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"

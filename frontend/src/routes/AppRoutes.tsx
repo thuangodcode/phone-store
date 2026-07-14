@@ -36,7 +36,7 @@ export const AppRoutes: React.FC = () => {
       {/* Customer Routes with Main Layout */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/products" element={<div className="p-8 text-center text-xl">Products Page (WIP)</div>} />
+        <Route path="/products" element={<div className="p-8 text-center text-xl">Đang phát triển</div>} />
         <Route path="/products/:id" element={<ProductDetailPage />} />
         <Route path="/maps" element={<MapsPage />} />
         <Route path="/promotions" element={<PromotionsPage />} />

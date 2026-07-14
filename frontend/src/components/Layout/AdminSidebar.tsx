@@ -18,16 +18,16 @@ export const AdminSidebar: React.FC = () => {
   const { isStaff } = useAuth();
 
   const links = [
-    { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} />, adminOnly: true },
-    { name: 'Products', path: '/admin/products', icon: <Smartphone size={20} />, adminOnly: true },
-    { name: 'Products (Staff)', path: '/admin/staff-products', icon: <Smartphone size={20} />, adminOnly: false, staffOnly: true },
-    { name: 'Brands', path: '/admin/brands', icon: <Tags size={20} />, adminOnly: true },
-    { name: 'Categories', path: '/admin/categories', icon: <Layers size={20} />, adminOnly: true },
-    { name: 'Orders', path: '/admin/orders', icon: <ShoppingCart size={20} />, adminOnly: false },
-    { name: 'Promotions', path: '/admin/promotions', icon: <FileText size={20} />, adminOnly: false, staffOnly: true },
-    { name: 'Live Chat', path: '/admin/chat', icon: <MessageSquare size={20} />, adminOnly: false, staffOnly: true },
-    { name: 'Users', path: '/admin/users', icon: <Users size={20} />, adminOnly: true },
-    { name: 'Vouchers', path: '/admin/vouchers', icon: <Ticket size={20} />, adminOnly: true },
+    { name: 'Bảng điều khiển', path: '/admin', icon: <LayoutDashboard size={20} />, adminOnly: true },
+    { name: 'Sản phẩm (QTV)', path: '/admin/products', icon: <Smartphone size={20} />, adminOnly: true },
+    { name: 'Kho sản phẩm', path: '/admin/staff-products', icon: <Smartphone size={20} />, adminOnly: false, staffOnly: true },
+    { name: 'Thương hiệu', path: '/admin/brands', icon: <Tags size={20} />, adminOnly: true },
+    { name: 'Danh mục', path: '/admin/categories', icon: <Layers size={20} />, adminOnly: true },
+    { name: 'Đơn hàng', path: '/admin/orders', icon: <ShoppingCart size={20} />, adminOnly: false },
+    { name: 'Khuyến mãi', path: '/admin/promotions', icon: <FileText size={20} />, adminOnly: false, staffOnly: true },
+    { name: 'Chat trực tuyến', path: '/admin/chat', icon: <MessageSquare size={20} />, adminOnly: false, staffOnly: true },
+    { name: 'Người dùng', path: '/admin/users', icon: <Users size={20} />, adminOnly: true },
+    { name: 'Mã giảm giá', path: '/admin/vouchers', icon: <Ticket size={20} />, adminOnly: true },
   ];
 
   const visibleLinks = links.filter(link => {
@@ -41,7 +41,7 @@ export const AdminSidebar: React.FC = () => {
       <div className="p-6">
         <Link to="/" className="text-2xl font-bold text-white tracking-wider flex items-center gap-2">
           <Smartphone className="text-primary-500" />
-          {isStaff ? 'Staff Panel' : 'Admin Panel'}
+          {isStaff ? 'Hệ thống NV' : 'Quản trị viên'}
         </Link>
       </div>
       <nav className="flex-1 mt-6">
@@ -66,7 +66,7 @@ export const AdminSidebar: React.FC = () => {
       </nav>
       <div className="p-4 border-t border-gray-800">
         <Link to="/" className="text-sm text-gray-400 hover:text-white flex items-center gap-2">
-          &larr; Back to Store
+          &larr; Quay lại Cửa hàng
         </Link>
       </div>
     </aside>
