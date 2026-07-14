@@ -75,6 +75,22 @@ export const CustomerOrdersPage: React.FC = () => {
     }
   };
 
+  const handleCheckPaymentStatus = async (orderCode: number) => {
+    try {
+      const toastId = toast.loading('Đang kiểm tra trạng thái thanh toán...');
+      const res: any = await axiosClient.get(`/payment/check-status/${orderCode}`);
+      if (res.data?.data === true) {
+        toast.update(toastId, { render: 'Đã cập nhật trạng thái thanh toán thành công!', type: 'success', isLoading: false, autoClose: 3000 });
+        fetchOrders();
+      } else {
+        toast.update(toastId, { render: 'Đơn hàng chưa được thanh toán hoặc đang xử lý.', type: 'info', isLoading: false, autoClose: 3000 });
+      }
+    } catch (error) {
+      toast.dismiss();
+      toast.error('Có lỗi xảy ra khi kiểm tra trạng thái.');
+    }
+  };
+
   const getPaymentStatusColor = (status: string) => {
     if (status === 'Paid') return 'bg-green-100 text-green-800 border-green-200';
     if (status === 'Unpaid') return 'bg-red-100 text-red-800 border-red-200';
@@ -115,9 +131,19 @@ export const CustomerOrdersPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 font-medium mb-1">Thanh Toán</p>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getPaymentStatusColor(order.paymentStatus)}`}>
-                    {order.paymentStatus === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
-                  </span>
+                  <div className="flex flex-col gap-2 items-start">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getPaymentStatusColor(order.paymentStatus)}`}>
+                      {order.paymentStatus === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                    </span>
+                    {order.paymentStatus === 'Unpaid' && order.paymentMethod === 'PayOS' && (
+                      <button 
+                        onClick={() => handleCheckPaymentStatus(order.orderCode)}
+                        className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-2 py-1 rounded transition-colors"
+                      >
+                        Kiểm tra thanh toán
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
