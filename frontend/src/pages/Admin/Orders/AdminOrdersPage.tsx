@@ -32,6 +32,18 @@ export const AdminOrdersPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const handlePaymentConfirm = async (orderId: string) => {
+    if (window.confirm('Xác nhận đã nhận được tiền cho đơn hàng này?')) {
+      try {
+        await adminApi.updatePaymentStatus(orderId, 'Paid');
+        toast.success('Đã cập nhật trạng thái thanh toán');
+        fetchOrders();
+      } catch (error) {
+        toast.error('Có lỗi xảy ra');
+      }
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -47,6 +59,7 @@ export const AdminOrdersPage: React.FC = () => {
                 <th className="p-4 font-medium text-gray-600">Customer</th>
                 <th className="p-4 font-medium text-gray-600">Total</th>
                 <th className="p-4 font-medium text-gray-600">Status</th>
+                <th className="p-4 font-medium text-gray-600">Payment</th>
                 <th className="p-4 font-medium text-gray-600">Date</th>
                 <th className="p-4 font-medium text-gray-600 text-right">Actions</th>
               </tr>
@@ -73,9 +86,17 @@ export const AdminOrdersPage: React.FC = () => {
                         {order.status}
                       </span>
                     </td>
+                    <td className="p-4">
+                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${order.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                        {order.paymentStatus}
+                      </span>
+                    </td>
                     <td className="p-4 text-gray-600">{new Date(order.createdAt).toLocaleDateString()}</td>
                     <td className="p-4 text-right">
-                      <div className="flex justify-end">
+                      <div className="flex justify-end gap-2">
+                        {order.paymentStatus !== 'Paid' && (
+                           <ActionButton label="Mark Paid" onClick={() => handlePaymentConfirm(order.id)} icon={<RefreshIcon />} variant="secondary" />
+                        )}
                         <ActionButton label="Update Status" onClick={() => handleStatusChange(order)} icon={<RefreshIcon />} variant="primary" />
                       </div>
                     </td>

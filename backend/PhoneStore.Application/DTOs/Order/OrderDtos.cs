@@ -14,6 +14,8 @@ public class OrderDto
     public string Phone { get; set; } = null!;
     public string ReceiverName { get; set; } = null!;
     public string Status { get; set; } = null!;
+    public string PaymentStatus { get; set; } = null!;
+    public long OrderCode { get; set; }
     public string PaymentMethod { get; set; } = null!;
     public string Note { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }

@@ -8,6 +8,8 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isStaff: boolean;
+  isAdminOrStaff: boolean;
   isInitialized: boolean;
 }
 
@@ -53,9 +55,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isAuthenticated = !!token;
   const isAdmin = user?.role === 'Admin';
+  const isStaff = user?.role === 'Staff';
+  const isAdminOrStaff = isAdmin || isStaff;
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated, isAdmin, isInitialized }}>
+    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated, isAdmin, isStaff, isAdminOrStaff, isInitialized }}>
       {children}
     </AuthContext.Provider>
   );

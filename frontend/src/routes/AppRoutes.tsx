@@ -2,8 +2,10 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { MainLayout } from '../components/Layout/MainLayout';
 import { AdminLayout } from '../components/Layout/AdminLayout';
-import { ProtectedRoute, AdminRoute } from './ProtectedRoutes';
+import { ProtectedRoute, AdminRoute, AdminOrStaffRoute } from './ProtectedRoutes';
 import { HomePage } from '../pages/Home/HomePage';
+import { CartPage } from '../pages/Cart/CartPage';
+import { CheckoutPage } from '../pages/Checkout/CheckoutPage';
 import { LoginPage } from '../pages/Auth/LoginPage';
 import { RegisterPage } from '../pages/Auth/RegisterPage';
 import { ForgotPasswordPage } from '../pages/Auth/ForgotPasswordPage';
@@ -32,23 +34,29 @@ export const AppRoutes: React.FC = () => {
         
         {/* Protected Customer Routes */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/cart" element={<div className="p-8 text-center text-xl">Cart Page (WIP)</div>} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/payment-success" element={<div className="p-8 text-center text-xl text-green-600 font-bold">Đặt hàng thành công!</div>} />
+          <Route path="/payment-cancel" element={<div className="p-8 text-center text-xl text-red-600 font-bold">Thanh toán bị huỷ!</div>} />
           <Route path="/wishlist" element={<div className="p-8 text-center text-xl">Wishlist Page (WIP)</div>} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/orders" element={<div className="p-8 text-center text-xl">Orders Page (WIP)</div>} />
         </Route>
       </Route>
 
-      {/* Admin Routes with Admin Layout */}
-      <Route path="/admin" element={<AdminRoute />}>
+      {/* Admin/Staff Routes with Admin Layout */}
+      <Route path="/admin" element={<AdminOrStaffRoute />}>
         <Route element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
-          <Route path="products" element={<AdminProductsPage />} />
-          <Route path="brands" element={<AdminBrandsPage />} />
-          <Route path="categories" element={<AdminCategoriesPage />} />
           <Route path="orders" element={<AdminOrdersPage />} />
-          <Route path="users" element={<AdminUsersPage />} />
-          <Route path="vouchers" element={<AdminVouchersPage />} />
+          {/* Admin Only Routes */}
+          <Route element={<AdminRoute />}>
+            <Route path="products" element={<AdminProductsPage />} />
+            <Route path="brands" element={<AdminBrandsPage />} />
+            <Route path="categories" element={<AdminCategoriesPage />} />
+            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="vouchers" element={<AdminVouchersPage />} />
+          </Route>
         </Route>
       </Route>
     </Routes>

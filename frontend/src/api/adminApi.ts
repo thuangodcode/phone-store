@@ -100,6 +100,11 @@ export const adminApi = {
     return res.data;
   },
 
+  updatePaymentStatus: async (id: string, status: string): Promise<boolean> => {
+    const res = await axiosClient.put(`/orders/${id}/payment-status`, { status }) as unknown as ApiResponse<boolean>;
+    return res.success;
+  },
+
   // Users
   getUsers: async (): Promise<User[]> => {
     const res = await axiosClient.get('/users') as unknown as ApiResponse<User[]>;

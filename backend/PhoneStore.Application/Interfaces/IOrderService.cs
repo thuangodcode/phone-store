@@ -10,4 +10,5 @@ public interface IOrderService
     Task<OrderDto> GetOrderByIdAsync(string id, string? userId = null);
     Task<OrderDto> UpdateOrderStatusAsync(string id, UpdateOrderStatusDto dto);
     Task<OrderDto> CancelOrderAsync(string id, string userId);
+    Task UpdatePaymentStatusByOrderCodeAsync(long orderCode, string paymentStatus);
 }

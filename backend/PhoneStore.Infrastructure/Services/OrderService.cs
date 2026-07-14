@@ -97,6 +97,8 @@ public class OrderService : IOrderService
             PaymentMethod = dto.PaymentMethod,
             Note = dto.Note,
             Status = OrderStatus.Pending,
+            PaymentStatus = "Unpaid",
+            OrderCode = long.Parse(DateTime.Now.ToString("yyMMddHHmmss") + new Random().Next(10, 99).ToString()),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -199,6 +201,24 @@ public class OrderService : IOrderService
         await _orderRepository.UpdateAsync(id, order);
 
         return await MapOrderToDto(order);
+    }
+
+    public async Task UpdatePaymentStatusByOrderCodeAsync(long orderCode, string paymentStatus)
+    {
+        var order = await _context.Orders.Find(o => o.OrderCode == orderCode).FirstOrDefaultAsync();
+        if (order != null)
+        {
+            order.PaymentStatus = paymentStatus;
+            
+            // If Paid via PayOS, we can auto-confirm the order if it's still Pending
+            if (paymentStatus == "Paid" && order.Status == OrderStatus.Pending)
+            {
+                order.Status = OrderStatus.Confirmed;
+            }
+
+            order.UpdatedAt = DateTime.UtcNow;
+            await _orderRepository.UpdateAsync(order.Id, order);
+        }
     }
 
     private async Task<OrderDto> MapOrderToDto(Order order)

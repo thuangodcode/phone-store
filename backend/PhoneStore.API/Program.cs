@@ -55,6 +55,7 @@ builder.Services.AddScoped<IVoucherService, VoucherService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddSingleton<IPayOSService, PayOSService>();
 
 // Register Data Seeder
 builder.Services.AddScoped<DataSeeder>();

@@ -118,6 +118,8 @@ export interface Order {
   phone: string;
   receiverName: string;
   status: string;
+  paymentStatus: string;
+  orderCode: number;
   paymentMethod: string;
   note: string;
   createdAt: string;

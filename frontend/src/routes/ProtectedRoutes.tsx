@@ -33,3 +33,21 @@ export const AdminRoute: React.FC = () => {
 
   return <Outlet />;
 };
+
+export const AdminOrStaffRoute: React.FC = () => {
+  const { isAuthenticated, isAdminOrStaff, isInitialized } = useAuth();
+
+  if (!isInitialized) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  if (!isAdminOrStaff) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+};

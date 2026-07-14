@@ -22,7 +22,7 @@ public class OrdersController : ControllerBase
     }
 
     private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-    private bool IsAdmin() => User.IsInRole(UserRole.Admin);
+    private bool IsAdminOrStaff() => User.IsInRole(UserRole.Admin) || User.IsInRole(UserRole.Staff);
 
     [HttpPost]
     public async Task<ActionResult<ApiResponse<OrderDto>>> CreateOrder([FromBody] CreateOrderDto dto)
@@ -34,7 +34,7 @@ public class OrdersController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<ApiResponse<PagedResultDto<OrderDto>>>> GetOrders([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        var userId = IsAdmin() ? null : GetUserId();
+        var userId = IsAdminOrStaff() ? null : GetUserId();
         var result = await _orderService.GetOrdersAsync(userId, page, pageSize);
         return Ok(ApiResponse<PagedResultDto<OrderDto>>.SuccessResponse(result));
     }
@@ -42,17 +42,27 @@ public class OrdersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<OrderDto>>> GetOrderById(string id)
     {
-        var userId = IsAdmin() ? null : GetUserId();
+        var userId = IsAdminOrStaff() ? null : GetUserId();
         var result = await _orderService.GetOrderByIdAsync(id, userId);
         return Ok(ApiResponse<OrderDto>.SuccessResponse(result));
     }
 
-    [Authorize(Roles = UserRole.Admin)]
+    [Authorize(Roles = UserRole.Admin + "," + UserRole.Staff)]
     [HttpPut("{id}/status")]
     public async Task<ActionResult<ApiResponse<OrderDto>>> UpdateOrderStatus(string id, [FromBody] UpdateOrderStatusDto dto)
     {
         var result = await _orderService.UpdateOrderStatusAsync(id, dto);
         return Ok(ApiResponse<OrderDto>.SuccessResponse(result, "Order status updated successfully"));
+    }
+
+    [Authorize(Roles = UserRole.Admin + "," + UserRole.Staff)]
+    [HttpPut("{id}/payment-status")]
+    public async Task<ActionResult<ApiResponse>> UpdatePaymentStatus(string id, [FromBody] UpdateOrderStatusDto dto)
+    {
+        // Reusing UpdateOrderStatusDto for payment status since it just has a string "Status" field
+        var order = await _orderService.GetOrderByIdAsync(id);
+        await _orderService.UpdatePaymentStatusByOrderCodeAsync(order.OrderCode, dto.Status);
+        return Ok(ApiResponse.SuccessResponse("Payment status updated successfully"));
     }
 
     [HttpPut("{id}/cancel")]

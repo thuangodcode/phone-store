@@ -16,9 +16,10 @@ public static class OrderStatus
 public static class UserRole
 {
     public const string Admin = "Admin";
+    public const string Staff = "Staff";
     public const string Customer = "Customer";
 
-    public static readonly string[] All = { Admin, Customer };
+    public static readonly string[] All = { Admin, Staff, Customer };
 }
 
 public static class DiscountType

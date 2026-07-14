@@ -43,6 +43,12 @@ public class Order
     [BsonElement("status")]
     public string Status { get; set; } = "Pending";
 
+    [BsonElement("paymentStatus")]
+    public string PaymentStatus { get; set; } = "Unpaid";
+
+    [BsonElement("orderCode")]
+    public long OrderCode { get; set; }
+
     [BsonElement("paymentMethod")]
     public string PaymentMethod { get; set; } = "COD";
 

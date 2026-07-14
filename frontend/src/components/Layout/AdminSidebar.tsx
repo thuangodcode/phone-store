@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   LayoutDashboard, 
   Smartphone, 
@@ -12,28 +13,31 @@ import {
 
 export const AdminSidebar: React.FC = () => {
   const location = useLocation();
+  const { isStaff } = useAuth();
 
   const links = [
-    { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} /> },
-    { name: 'Products', path: '/admin/products', icon: <Smartphone size={20} /> },
-    { name: 'Brands', path: '/admin/brands', icon: <Tags size={20} /> },
-    { name: 'Categories', path: '/admin/categories', icon: <Layers size={20} /> },
-    { name: 'Orders', path: '/admin/orders', icon: <ShoppingCart size={20} /> },
-    { name: 'Users', path: '/admin/users', icon: <Users size={20} /> },
-    { name: 'Vouchers', path: '/admin/vouchers', icon: <Ticket size={20} /> },
+    { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} />, adminOnly: true },
+    { name: 'Products', path: '/admin/products', icon: <Smartphone size={20} />, adminOnly: true },
+    { name: 'Brands', path: '/admin/brands', icon: <Tags size={20} />, adminOnly: true },
+    { name: 'Categories', path: '/admin/categories', icon: <Layers size={20} />, adminOnly: true },
+    { name: 'Orders', path: '/admin/orders', icon: <ShoppingCart size={20} />, adminOnly: false },
+    { name: 'Users', path: '/admin/users', icon: <Users size={20} />, adminOnly: true },
+    { name: 'Vouchers', path: '/admin/vouchers', icon: <Ticket size={20} />, adminOnly: true },
   ];
+
+  const visibleLinks = links.filter(link => !isStaff || !link.adminOnly);
 
   return (
     <aside className="w-64 bg-gray-900 text-white flex-shrink-0 min-h-screen flex flex-col">
       <div className="p-6">
         <Link to="/" className="text-2xl font-bold text-white tracking-wider flex items-center gap-2">
           <Smartphone className="text-primary-500" />
-          Admin Panel
+          {isStaff ? 'Staff Panel' : 'Admin Panel'}
         </Link>
       </div>
       <nav className="flex-1 mt-6">
         <ul className="space-y-2 px-4">
-          {links.map((link) => {
+          {visibleLinks.map((link) => {
             const isActive = location.pathname === link.path;
             return (
               <li key={link.name}>
