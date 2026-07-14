@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PhoneStore.Application.DTOs;
 using PhoneStore.Application.DTOs.Order;
+using PhoneStore.Application.DTOs.Product;
 using PhoneStore.Application.Interfaces;
 using PhoneStore.Domain.Enums;
 using System.Security.Claims;
