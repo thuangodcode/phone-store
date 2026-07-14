@@ -46,6 +46,7 @@ public class MappingProfile : Profile
         // Voucher
         CreateMap<Voucher, VoucherDto>();
         CreateMap<CreateVoucherDto, Voucher>();
+        // Review Reply
+        CreateMap<ReviewReply, PhoneStore.Application.DTOs.Review.ReviewReplyDto>();
     }
 }
-        CreateMap<PhoneStore.Domain.Entities.ReviewReply, PhoneStore.Application.DTOs.Review.ReviewReplyDto>();
