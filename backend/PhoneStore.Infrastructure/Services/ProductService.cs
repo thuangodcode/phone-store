@@ -64,7 +64,7 @@ public class ProductService : IProductService
         if (!string.IsNullOrEmpty(filter.Rom))
             filters.Add(builder.Eq(p => p.Specifications.Rom, filter.Rom));
 
-        var combinedFilter = builder.And(filters);
+        var combinedFilter = filters.Count > 0 ? builder.And(filters) : builder.Empty;
 
         // Sorting
         var sortBuilder = Builders<Product>.Sort;
