@@ -1,0 +1,133 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using PhoneStore.Application.Interfaces;
+using PhoneStore.Application.Mappings;
+using PhoneStore.Domain.Interfaces;
+using PhoneStore.Infrastructure.Data;
+using PhoneStore.Infrastructure.Repositories;
+using PhoneStore.Infrastructure.Services;
+using PhoneStore.API.Middlewares;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers();
+
+// Configure MongoDB Settings
+var mongoDbSettings = new MongoDbSettings();
+builder.Configuration.GetSection("MongoDbSettings").Bind(mongoDbSettings);
+builder.Services.AddSingleton(mongoDbSettings);
+builder.Services.AddSingleton<MongoDbContext>();
+
+// Register AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+// Register Repositories
+builder.Services.AddScoped(typeof(IRepository<>), typeof(MongoRepository<>));
+builder.Services.AddScoped(sp => 
+{
+    var context = sp.GetRequiredService<MongoDbContext>();
+    return context.Users;
+});
+builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Products);
+builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Brands);
+builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Categories);
+builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Carts);
+builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Orders);
+builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Reviews);
+builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Vouchers);
+builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Wishlists);
+
+
+// Register Services
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IVoucherService, VoucherService>();
+builder.Services.AddScoped<IWishlistService, WishlistService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+
+// Configure JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"] ?? ""))
+        };
+    });
+
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", policy =>
+    {
+        policy.WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>())
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+// Configure Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "PhoneStore API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                },
+                Scheme = "oauth2",
+                Name = "Bearer",
+                In = ParameterLocation.Header,
+            },
+            new List<string>()
+        }
+    });
+});
+
+var app = builder.Build();
+
+// Enable Swagger in all environments for Render deployment
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.UseMiddleware<ExceptionMiddleware>();
+
+app.UseHttpsRedirection();
+
+app.UseCors("CorsPolicy");
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();

@@ -1,0 +1,22 @@
+# Node.js
+node_modules/
+dist/
+npm-debug.log
+yarn-error.log
+
+# C#
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Env
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
