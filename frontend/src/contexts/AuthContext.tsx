@@ -54,8 +54,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const isAuthenticated = !!token;
-  const isAdmin = user?.role === 'Admin';
-  const isStaff = user?.role === 'Staff';
+  const isAdmin = user?.role?.toLowerCase() === 'admin';
+  const isStaff = user?.role?.toLowerCase() === 'staff';
   const isAdminOrStaff = isAdmin || isStaff;
 
   return (
