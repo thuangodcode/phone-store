@@ -74,10 +74,10 @@ export const LoginPage: React.FC = () => {
 
       clearTimeout(timeoutId);
 
-      if (res.data) {
-        login(res.data.user, res.data.token);
+      if (res.data?.data) {
+        login(res.data.data.user, res.data.data.token);
         toast.success('Login successful!');
-        if (res.data.user.role === 'Admin') {
+        if (res.data.data.user.role === 'Admin' || res.data.data.user.role === 'Staff') {
           navigate('/admin');
         } else {
           navigate('/');

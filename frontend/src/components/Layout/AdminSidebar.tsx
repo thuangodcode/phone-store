@@ -18,7 +18,7 @@ export const AdminSidebar: React.FC = () => {
   const { isStaff } = useAuth();
 
   const links = [
-    { name: 'Bảng điều khiển', path: '/admin', icon: <LayoutDashboard size={20} />, adminOnly: true },
+    { name: 'Bảng điều khiển', path: '/admin', icon: <LayoutDashboard size={20} />, adminOnly: false },
     { name: 'Sản phẩm (QTV)', path: '/admin/products', icon: <Smartphone size={20} />, adminOnly: true },
     { name: 'Kho sản phẩm', path: '/admin/staff-products', icon: <Smartphone size={20} />, adminOnly: false, staffOnly: true },
     { name: 'Thương hiệu', path: '/admin/brands', icon: <Tags size={20} />, adminOnly: true },
