@@ -68,13 +68,27 @@ public class PayOSService : IPayOSService
     public async Task<string> GetPaymentStatus(long orderCode)
     {
         var response = await _httpClient.GetAsync($"/v2/payment-requests/{orderCode}");
+        var jsonResponse = await response.Content.ReadAsStringAsync();
+        
+        Console.WriteLine($"[PayOS] GetPaymentStatus for orderCode={orderCode}, HTTP {(int)response.StatusCode}, Body: {jsonResponse}");
+        
         if (!response.IsSuccessStatusCode)
         {
-            return "PENDING";
+            throw new Exception($"PayOS API returned HTTP {(int)response.StatusCode}: {jsonResponse}");
         }
-        var jsonResponse = await response.Content.ReadAsStringAsync();
+        
         using var document = JsonDocument.Parse(jsonResponse);
+        
+        // Check PayOS response code first
+        var code = document.RootElement.GetProperty("code").GetString();
+        if (code != "00")
+        {
+            var desc = document.RootElement.TryGetProperty("desc", out var descProp) ? descProp.GetString() : "Unknown";
+            throw new Exception($"PayOS API error code={code}, desc={desc}");
+        }
+        
         var status = document.RootElement.GetProperty("data").GetProperty("status").GetString();
+        Console.WriteLine($"[PayOS] Order {orderCode} status from PayOS: {status}");
         return status ?? "PENDING";
     }
 

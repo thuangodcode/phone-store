@@ -77,17 +77,25 @@ export const CustomerOrdersPage: React.FC = () => {
 
   const handleCheckPaymentStatus = async (orderCode: number) => {
     try {
-      const toastId = toast.loading('Đang kiểm tra trạng thái thanh toán...');
+      const toastId = toast.loading('Đang kiểm tra trạng thái thanh toán từ PayOS...');
       const res: any = await axiosClient.get(`/payment/check-status/${orderCode}`);
-      if (res.data?.data === true) {
+      console.log('[CheckPayment] API response:', res);
+      
+      const responseData = res.data?.data;
+      
+      if (responseData?.paid === true) {
         toast.update(toastId, { render: 'Đã cập nhật trạng thái thanh toán thành công!', type: 'success', isLoading: false, autoClose: 3000 });
         fetchOrders();
       } else {
-        toast.update(toastId, { render: 'Đơn hàng chưa được thanh toán hoặc đang xử lý.', type: 'info', isLoading: false, autoClose: 3000 });
+        const payosStatus = responseData?.payosStatus || 'unknown';
+        const message = res.data?.message || 'Không rõ';
+        toast.update(toastId, { render: `PayOS trạng thái: ${payosStatus} - ${message}`, type: 'warning', isLoading: false, autoClose: 5000 });
       }
-    } catch (error) {
+    } catch (error: any) {
       toast.dismiss();
-      toast.error('Có lỗi xảy ra khi kiểm tra trạng thái.');
+      const errorMsg = error?.response?.data?.message || error?.message || 'Lỗi không xác định';
+      console.error('[CheckPayment] Error:', errorMsg, error?.response?.data);
+      toast.error(`Lỗi kiểm tra: ${errorMsg}`, { autoClose: 8000 });
     }
   };
 

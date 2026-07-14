@@ -49,21 +49,24 @@ public class PaymentController : ControllerBase
 
     [Authorize]
     [HttpGet("check-status/{orderCode}")]
-    public async Task<ActionResult<ApiResponse<bool>>> CheckPaymentStatus(long orderCode)
+    public async Task<ActionResult<ApiResponse<object>>> CheckPaymentStatus(long orderCode)
     {
         try
         {
             var status = await _payOSService.GetPaymentStatus(orderCode);
+            Console.WriteLine($"[CheckPayment] PayOS returned status: '{status}' for orderCode: {orderCode}");
+            
             if (status == "PAID")
             {
                 await _orderService.UpdatePaymentStatusByOrderCodeAsync(orderCode, "Paid");
-                return Ok(ApiResponse<bool>.SuccessResponse(true, "Payment successful"));
+                return Ok(ApiResponse<object>.SuccessResponse(new { paid = true, payosStatus = status }, "Payment confirmed"));
             }
-            return Ok(ApiResponse<bool>.SuccessResponse(false, "Payment pending"));
+            return Ok(ApiResponse<object>.SuccessResponse(new { paid = false, payosStatus = status }, $"PayOS status: {status}"));
         }
         catch (Exception ex)
         {
-            return StatusCode(500, ApiResponse<bool>.ErrorResponse(ex.Message));
+            Console.WriteLine($"[CheckPayment] Error for orderCode {orderCode}: {ex.Message}");
+            return StatusCode(500, ApiResponse<object>.ErrorResponse($"PayOS check failed: {ex.Message}"));
         }
     }
 
