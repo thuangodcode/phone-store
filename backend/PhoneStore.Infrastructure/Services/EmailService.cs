@@ -125,22 +125,41 @@ public class EmailService : IEmailService
 
     private async Task SendEmailAsyncInternal(string recipientEmail, string recipientName, string subject, string htmlBody)
     {
-        using var smtpClient = new SmtpClient(_emailSettings.SmtpServer, _emailSettings.SmtpPort)
-        {
-            Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.SenderPassword),
-            EnableSsl = _emailSettings.EnableSsl,
-            Timeout = EmailTimeoutSeconds * 1000
-        };
+        _logger.LogInformation("Attempting to send email to {RecipientEmail} via {SmtpServer}:{SmtpPort}", 
+            recipientEmail, _emailSettings.SmtpServer, _emailSettings.SmtpPort);
 
-        using var mailMessage = new MailMessage
+        try
         {
-            From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName),
-            Subject = subject,
-            Body = htmlBody,
-            IsBodyHtml = true
-        };
+            using var smtpClient = new SmtpClient(_emailSettings.SmtpServer, _emailSettings.SmtpPort)
+            {
+                Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.SenderPassword),
+                EnableSsl = _emailSettings.EnableSsl,
+                Timeout = EmailTimeoutSeconds * 1000
+            };
 
-        mailMessage.To.Add(new MailAddress(recipientEmail, recipientName));
-        await smtpClient.SendMailAsync(mailMessage);
+            using var mailMessage = new MailMessage
+            {
+                From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName),
+                Subject = subject,
+                Body = htmlBody,
+                IsBodyHtml = true
+            };
+
+            mailMessage.To.Add(new MailAddress(recipientEmail, recipientName));
+            await smtpClient.SendMailAsync(mailMessage);
+            _logger.LogInformation("Email successfully sent to {RecipientEmail}", recipientEmail);
+        }
+        catch (SmtpException smtpEx)
+        {
+            _logger.LogError(smtpEx, "SMTP error sending email to {RecipientEmail}. StatusCode: {StatusCode}", 
+                recipientEmail, smtpEx.StatusCode);
+            throw new Exception($"Failed to send email: {smtpEx.Message}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error sending email to {RecipientEmail}: {ErrorType}", 
+                recipientEmail, ex.GetType().Name);
+            throw;
+        }
     }
 }

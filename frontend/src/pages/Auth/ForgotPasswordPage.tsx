@@ -23,9 +23,9 @@ export const ForgotPasswordPage: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Set a timeout for the request
+      // Set a timeout for the request (60s to handle server cold starts)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       await axiosClient.post('/auth/forgot-password', { email }, {
         signal: controller.signal
@@ -35,8 +35,12 @@ export const ForgotPasswordPage: React.FC = () => {
       setIsSent(true);
       toast.success('Password reset instructions sent to your email.');
     } catch (err: any) {
-      const message = err?.message || err?.toString?.() || 'Failed to send reset instructions';
-      toast.error(message);
+      if (err?.code === 'ERR_CANCELED' || err === 'canceled') {
+        toast.error('Request timed out. The server may be starting up, please try again in a moment.');
+      } else {
+        const message = err?.message || err?.toString?.() || 'Failed to send reset instructions';
+        toast.error(message);
+      }
     } finally {
       setIsLoading(false);
     }
