@@ -21,7 +21,7 @@ import { AdminUsersPage } from '../pages/Admin/Users/AdminUsersPage';
 import { AdminVouchersPage } from '../pages/Admin/Vouchers/AdminVouchersPage';
 import { StaffProductsPage } from '../pages/Staff/Products/StaffProductsPage';
 import { StaffPromotionsPage } from '../pages/Staff/Promotions/StaffPromotionsPage';
-import { StaffChatPage } from '../pages/Staff/Chat/StaffChatPage';
+import { StaffChatPage } from '../pages/Staff/Chat/StaffChat';
 import { ProfilePage } from '../pages/Profile/ProfilePage';
 import { CustomerOrdersPage } from '../pages/Profile/CustomerOrdersPage';
 
