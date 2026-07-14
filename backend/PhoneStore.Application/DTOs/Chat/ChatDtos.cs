@@ -16,7 +16,8 @@ public class ChatSessionDto
     public string Id { get; set; } = string.Empty;
     public string CustomerId { get; set; } = string.Empty;
     public string CustomerName { get; set; } = string.Empty;
-    public string StaffId { get; set; } = string.Empty;
+    public string? StaffId { get; set; }
+    public string? StaffName { get; set; }
     public bool IsActive { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

@@ -67,6 +67,32 @@ public class ChatController : ControllerBase
         return Ok(ApiResponse<IEnumerable<ChatMessageDto>>.SuccessResponse(_mapper.Map<IEnumerable<ChatMessageDto>>(messages)));
     }
 
+    [HttpPost("sessions/{sessionId}/assign")]
+    [Authorize(Roles = "Admin,Staff")]
+    public async Task<ActionResult<ApiResponse<ChatSessionDto>>> AssignStaff(string sessionId)
+    {
+        var session = await _context.ChatSessions.Find(s => s.Id == sessionId).FirstOrDefaultAsync();
+        if (session == null)
+            return NotFound(ApiResponse.FailResponse("Session not found"));
+
+        var staffId = GetUserId();
+        var staffName = GetUserName();
+
+        // Update session with staff info
+        var update = Builders<ChatSession>.Update
+            .Set(s => s.StaffId, staffId)
+            .Set(s => s.StaffName, staffName)
+            .Set(s => s.UpdatedAt, DateTime.UtcNow);
+        await _context.ChatSessions.UpdateOneAsync(s => s.Id == sessionId, update);
+
+        var updatedSession = await _context.ChatSessions.Find(s => s.Id == sessionId).FirstOrDefaultAsync();
+
+        // Notify the session that staff has been assigned
+        await _hubContext.Clients.Group(sessionId).SendAsync("StaffAssigned", _mapper.Map<ChatSessionDto>(updatedSession));
+
+        return Ok(ApiResponse<ChatSessionDto>.SuccessResponse(_mapper.Map<ChatSessionDto>(updatedSession), "Staff assigned successfully"));
+    }
+
     [HttpPost("messages/{sessionId}")]
     public async Task<ActionResult<ApiResponse<ChatMessageDto>>> SendMessage(string sessionId, [FromBody] string content)
     {
@@ -88,8 +114,14 @@ public class ChatController : ControllerBase
 
         var dto = _mapper.Map<ChatMessageDto>(msg);
         
-        // Broadcast
+        // Broadcast to session
         await _hubContext.Clients.Group(sessionId).SendAsync("ReceiveMessage", dto);
+
+        // If it's a customer message, notify all staff about new message
+        if (!IsStaffOrAdmin())
+        {
+            await _hubContext.Clients.Group("Staff").SendAsync("NewMessage", _mapper.Map<ChatSessionDto>(await _context.ChatSessions.Find(s => s.Id == sessionId).FirstOrDefaultAsync()));
+        }
         
         return Ok(ApiResponse<ChatMessageDto>.SuccessResponse(dto));
     }

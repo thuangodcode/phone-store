@@ -8,7 +8,8 @@ public interface IOrderService
     Task<OrderDto> CreateOrderAsync(string userId, CreateOrderDto dto);
     Task<PagedResultDto<OrderDto>> GetOrdersAsync(string? userId, int page, int pageSize, string? search = null, string? status = null, string? paymentStatus = null);
     Task<OrderDto> GetOrderByIdAsync(string id, string? userId = null);
-    Task<OrderDto> UpdateOrderStatusAsync(string id, UpdateOrderStatusDto dto);
+    Task<OrderDto> UpdateOrderStatusAsync(string id, UpdateOrderStatusDto dto, string staffId, string staffName);
     Task<OrderDto> CancelOrderAsync(string id, string userId);
-    Task UpdatePaymentStatusByOrderCodeAsync(long orderCode, string paymentStatus);
+    Task UpdatePaymentStatusByOrderCodeAsync(long orderCode, string paymentStatus, string? staffId = null, string? staffName = null);
+    Task<OrderDto> UpdatePaymentStatusAsync(string orderId, string paymentStatus, string staffId, string staffName);
 }

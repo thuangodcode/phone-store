@@ -3,6 +3,7 @@ import { adminApi } from '../../../api/adminApi';
 import type { Order } from '../../../types';
 import { OrderStatusModal } from './OrderStatusModal';
 import { ActionButton, RefreshIcon } from '../../../components/AdminActionButtons';
+import { CustomSelect } from '../../../components/Layout/CustomSelect';
 import { toast } from 'react-toastify';
 
 export const AdminOrdersPage: React.FC = () => {
@@ -95,38 +96,38 @@ export const AdminOrdersPage: React.FC = () => {
       </div>
 
       <div className="flex flex-wrap gap-4 mb-6">
-        <select 
-          className="border rounded px-3 py-2 bg-white"
+        <CustomSelect
+          options={[
+            { value: '', label: 'Tất cả trạng thái đơn' },
+            { value: 'Pending', label: 'Chờ xác nhận' },
+            { value: 'Processing', label: 'Đang xử lý' },
+            { value: 'Shipped', label: 'Đang giao' },
+            { value: 'Delivered', label: 'Đã giao' },
+            { value: 'Cancelled', label: 'Đã huỷ' }
+          ]}
           value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-        >
-          <option value="">Tất cả trạng thái đơn</option>
-          <option value="Pending">Chờ xác nhận</option>
-          <option value="Processing">Đang xử lý</option>
-          <option value="Shipped">Đang giao</option>
-          <option value="Delivered">Đã giao</option>
-          <option value="Cancelled">Đã huỷ</option>
-        </select>
+          onChange={(val) => { setStatusFilter(val); setPage(1); }}
+        />
 
-        <select 
-          className="border rounded px-3 py-2 bg-white"
+        <CustomSelect
+          options={[
+            { value: '', label: 'Tất cả trạng thái thanh toán' },
+            { value: 'Paid', label: 'Đã thanh toán' },
+            { value: 'Unpaid', label: 'Chưa thanh toán' }
+          ]}
           value={paymentStatusFilter}
-          onChange={(e) => { setPaymentStatusFilter(e.target.value); setPage(1); }}
-        >
-          <option value="">Tất cả trạng thái thanh toán</option>
-          <option value="Paid">Đã thanh toán</option>
-          <option value="Unpaid">Chưa thanh toán</option>
-        </select>
+          onChange={(val) => { setPaymentStatusFilter(val); setPage(1); }}
+        />
 
-        <select 
-          className="border rounded px-3 py-2 bg-white"
-          value={pageSize}
-          onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
-        >
-          <option value={10}>10 dòng / trang</option>
-          <option value={20}>20 dòng / trang</option>
-          <option value={50}>50 dòng / trang</option>
-        </select>
+        <CustomSelect
+          options={[
+            { value: '10', label: '10 dòng / trang' },
+            { value: '20', label: '20 dòng / trang' },
+            { value: '50', label: '50 dòng / trang' }
+          ]}
+          value={String(pageSize)}
+          onChange={(val) => { setPageSize(Number(val)); setPage(1); }}
+        />
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">

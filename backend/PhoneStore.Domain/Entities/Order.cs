@@ -55,6 +55,18 @@ public class Order
     [BsonElement("note")]
     public string Note { get; set; } = string.Empty;
 
+    // Staff tracking
+    [BsonElement("staffId")]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string? StaffId { get; set; }
+
+    [BsonElement("staffName")]
+    public string? StaffName { get; set; }
+
+    // Audit logs
+    [BsonElement("auditLogs")]
+    public List<OrderAuditLog> AuditLogs { get; set; } = new();
+
     [BsonElement("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

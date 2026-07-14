@@ -18,6 +18,11 @@ public class OrderDto
     public long OrderCode { get; set; }
     public string PaymentMethod { get; set; } = null!;
     public string Note { get; set; } = string.Empty;
+    // Staff info
+    public string? StaffId { get; set; }
+    public string? StaffName { get; set; }
+    // Audit logs
+    public List<OrderAuditLogDto> AuditLogs { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

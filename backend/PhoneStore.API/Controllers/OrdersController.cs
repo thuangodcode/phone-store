@@ -22,6 +22,7 @@ public class OrdersController : ControllerBase
     }
 
     private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+    private string GetUserName() => User.FindFirstValue(ClaimTypes.Name) ?? "Unknown";
     private bool IsAdminOrStaff() => User.IsInRole(UserRole.Admin) || User.IsInRole(UserRole.Staff);
 
     [HttpPost]
@@ -56,18 +57,16 @@ public class OrdersController : ControllerBase
     [HttpPut("{id}/status")]
     public async Task<ActionResult<ApiResponse<OrderDto>>> UpdateOrderStatus(string id, [FromBody] UpdateOrderStatusDto dto)
     {
-        var result = await _orderService.UpdateOrderStatusAsync(id, dto);
+        var result = await _orderService.UpdateOrderStatusAsync(id, dto, GetUserId(), GetUserName());
         return Ok(ApiResponse<OrderDto>.SuccessResponse(result, "Order status updated successfully"));
     }
 
     [Authorize(Roles = UserRole.Admin + "," + UserRole.Staff)]
     [HttpPut("{id}/payment-status")]
-    public async Task<ActionResult<ApiResponse>> UpdatePaymentStatus(string id, [FromBody] UpdateOrderStatusDto dto)
+    public async Task<ActionResult<ApiResponse<OrderDto>>> UpdatePaymentStatus(string id, [FromBody] UpdateOrderStatusDto dto)
     {
-        // Reusing UpdateOrderStatusDto for payment status since it just has a string "Status" field
-        var order = await _orderService.GetOrderByIdAsync(id);
-        await _orderService.UpdatePaymentStatusByOrderCodeAsync(order.OrderCode, dto.Status);
-        return Ok(ApiResponse.SuccessResponse("Payment status updated successfully"));
+        var result = await _orderService.UpdatePaymentStatusAsync(id, dto.Status, GetUserId(), GetUserName());
+        return Ok(ApiResponse<OrderDto>.SuccessResponse(result, "Payment status updated successfully"));
     }
 
     [HttpPut("{id}/cancel")]

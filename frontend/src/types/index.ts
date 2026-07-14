@@ -125,6 +125,18 @@ export interface OrderItem {
   color?: string;
 }
 
+export interface OrderAuditLog {
+  id: string;
+  orderId: string;
+  staffId: string;
+  staffName: string;
+  action: string;
+  details: string;
+  timestamp: string;
+  oldValue?: string;
+  newValue?: string;
+}
+
 export interface Order {
   id: string;
   userId: string;
@@ -142,8 +154,32 @@ export interface Order {
   orderCode: number;
   paymentMethod: string;
   note: string;
+  staffId?: string;
+  staffName?: string;
+  auditLogs: OrderAuditLog[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ChatSession {
+  id: string;
+  customerId: string;
+  customerName: string;
+  staffId?: string;
+  staffName?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  sessionId: string;
+  senderId: string;
+  senderName: string;
+  senderRole: string;
+  content: string;
+  timestamp: string;
 }
 
 export interface UpdateOrderStatusDto {

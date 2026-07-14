@@ -17,6 +17,8 @@ import type {
   Voucher,
   CreateVoucherDto,
   UpdateVoucherDto,
+  ChatSession,
+  ChatMessage,
 } from '../types';
 
 export const adminApi = {
@@ -110,9 +112,9 @@ export const adminApi = {
     return res.data;
   },
 
-  updatePaymentStatus: async (id: string, status: string): Promise<boolean> => {
-    const res = await axiosClient.put(`/orders/${id}/payment-status`, { status }) as unknown as ApiResponse<boolean>;
-    return res.success;
+  updatePaymentStatus: async (id: string, status: string): Promise<Order> => {
+    const res = await axiosClient.put(`/orders/${id}/payment-status`, { status }) as unknown as ApiResponse<Order>;
+    return res.data;
   },
 
   // Users
@@ -154,6 +156,27 @@ export const adminApi = {
 
   deleteVoucher: async (id: string): Promise<boolean> => {
     const res = await axiosClient.delete(`/vouchers/${id}`) as unknown as ApiResponse<boolean>;
+    return res.data;
+  },
+
+  // Chat
+  getChatSessions: async (): Promise<ChatSession[]> => {
+    const res = await axiosClient.get('/chat/sessions') as unknown as ApiResponse<ChatSession[]>;
+    return res.data || [];
+  },
+
+  getChatMessages: async (sessionId: string): Promise<ChatMessage[]> => {
+    const res = await axiosClient.get(`/chat/messages/${sessionId}`) as unknown as ApiResponse<ChatMessage[]>;
+    return res.data || [];
+  },
+
+  sendChatMessage: async (sessionId: string, content: string): Promise<ChatMessage> => {
+    const res = await axiosClient.post(`/chat/messages/${sessionId}`, content) as unknown as ApiResponse<ChatMessage>;
+    return res.data;
+  },
+
+  assignStaffToSession: async (sessionId: string): Promise<ChatSession> => {
+    const res = await axiosClient.post(`/chat/sessions/${sessionId}/assign`) as unknown as ApiResponse<ChatSession>;
     return res.data;
   },
 };

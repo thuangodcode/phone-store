@@ -38,6 +38,24 @@ public class OrderService : IOrderService
         _mapper = mapper;
     }
 
+    private void AddAuditLog(Order order, string staffId, string staffName, string action, string details, string? oldValue, string? newValue)
+    {
+        var log = new OrderAuditLog
+        {
+            OrderId = order.Id,
+            StaffId = staffId,
+            StaffName = staffName,
+            Action = action,
+            Details = details,
+            OldValue = oldValue,
+            NewValue = newValue,
+            Timestamp = DateTime.UtcNow
+        };
+        order.AuditLogs.Add(log);
+        // Also save to audit logs collection
+        _context.OrderAuditLogs.InsertOne(log);
+    }
+
     public async Task<OrderDto> CreateOrderAsync(string userId, CreateOrderDto dto)
     {
         var cart = await _cartRepository.FindOneAsync(c => c.UserId == userId);
@@ -203,7 +221,7 @@ public class OrderService : IOrderService
         return await MapOrderToDto(order);
     }
 
-    public async Task<OrderDto> UpdateOrderStatusAsync(string id, UpdateOrderStatusDto dto)
+    public async Task<OrderDto> UpdateOrderStatusAsync(string id, UpdateOrderStatusDto dto, string staffId, string staffName)
     {
         var order = await _orderRepository.GetByIdAsync(id);
         if (order == null)
@@ -212,8 +230,17 @@ public class OrderService : IOrderService
         if (!OrderStatus.IsValid(dto.Status))
             throw new Exception("Invalid order status.");
 
+        var oldStatus = order.Status;
         order.Status = dto.Status;
+        order.StaffId = staffId;
+        order.StaffName = staffName;
         order.UpdatedAt = DateTime.UtcNow;
+
+        // Add audit log
+        AddAuditLog(order, staffId, staffName, "UpdatedStatus",
+            $"{staffName} đã cập nhật trạng thái đơn hàng #{order.OrderCode} từ '{oldStatus}' sang '{dto.Status}'",
+            oldStatus, dto.Status);
+
         await _orderRepository.UpdateAsync(id, order);
 
         return await MapOrderToDto(order);
@@ -244,18 +271,21 @@ public class OrderService : IOrderService
             }
         }
 
+        var oldStatus = order.Status;
         order.Status = OrderStatus.Cancelled;
         order.UpdatedAt = DateTime.UtcNow;
+
         await _orderRepository.UpdateAsync(id, order);
 
         return await MapOrderToDto(order);
     }
 
-    public async Task UpdatePaymentStatusByOrderCodeAsync(long orderCode, string paymentStatus)
+    public async Task UpdatePaymentStatusByOrderCodeAsync(long orderCode, string paymentStatus, string? staffId = null, string? staffName = null)
     {
         var order = await _context.Orders.Find(o => o.OrderCode == orderCode).FirstOrDefaultAsync();
         if (order != null)
         {
+            var oldPaymentStatus = order.PaymentStatus;
             order.PaymentStatus = paymentStatus;
             
             // If Paid via PayOS, we can auto-confirm the order if it's still Pending
@@ -264,9 +294,41 @@ public class OrderService : IOrderService
                 order.Status = OrderStatus.Confirmed;
             }
 
+            if (!string.IsNullOrEmpty(staffId) && !string.IsNullOrEmpty(staffName))
+            {
+                order.StaffId = staffId;
+                order.StaffName = staffName;
+                // Add audit log for payment collection
+                AddAuditLog(order, staffId, staffName, "UpdatedPaymentStatus",
+                    $"{staffName} đã thu tiền đơn hàng #{orderCode}, số tiền: {order.FinalAmount:n0}đ, trạng thái thanh toán: {paymentStatus}",
+                    oldPaymentStatus, paymentStatus);
+            }
+
             order.UpdatedAt = DateTime.UtcNow;
             await _orderRepository.UpdateAsync(order.Id, order);
         }
+    }
+
+    public async Task<OrderDto> UpdatePaymentStatusAsync(string orderId, string paymentStatus, string staffId, string staffName)
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        if (order == null)
+            throw new Exception("Order not found.");
+
+        var oldPaymentStatus = order.PaymentStatus;
+        order.PaymentStatus = paymentStatus;
+        order.StaffId = staffId;
+        order.StaffName = staffName;
+        order.UpdatedAt = DateTime.UtcNow;
+
+        // Add audit log
+        AddAuditLog(order, staffId, staffName, "UpdatedPaymentStatus",
+            $"{staffName} đã cập nhật trạng thái thanh toán đơn hàng #{order.OrderCode} từ '{oldPaymentStatus}' sang '{paymentStatus}', số tiền: {order.FinalAmount:n0}đ",
+            oldPaymentStatus, paymentStatus);
+
+        await _orderRepository.UpdateAsync(orderId, order);
+
+        return await MapOrderToDto(order);
     }
 
     private async Task<OrderDto> MapOrderToDto(Order order)
