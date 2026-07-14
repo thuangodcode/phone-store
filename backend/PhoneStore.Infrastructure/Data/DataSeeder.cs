@@ -1,4 +1,5 @@
 using BCrypt.Net;
+using MongoDB.Driver;
 
 namespace PhoneStore.Infrastructure.Data;
 
