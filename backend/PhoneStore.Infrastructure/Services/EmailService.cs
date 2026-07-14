@@ -1,7 +1,8 @@
-using System.Net;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MimeKit;
 using PhoneStore.Application.Interfaces;
 using PhoneStore.Infrastructure.Data;
 
@@ -11,7 +12,7 @@ public class EmailService : IEmailService
 {
     private readonly EmailSettings _emailSettings;
     private readonly ILogger<EmailService> _logger;
-    private const int EmailTimeoutSeconds = 15;
+    private const int EmailTimeoutSeconds = 20;
 
     public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
     {
@@ -125,41 +126,59 @@ public class EmailService : IEmailService
 
     private async Task SendEmailAsyncInternal(string recipientEmail, string recipientName, string subject, string htmlBody)
     {
-        _logger.LogInformation("Attempting to send email to {RecipientEmail} via {SmtpServer}:{SmtpPort}", 
+        _logger.LogInformation("Attempting to send email to {RecipientEmail} via {SmtpServer}:{SmtpPort}",
             recipientEmail, _emailSettings.SmtpServer, _emailSettings.SmtpPort);
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(EmailTimeoutSeconds));
 
         try
         {
-            using var smtpClient = new SmtpClient(_emailSettings.SmtpServer, _emailSettings.SmtpPort)
-            {
-                Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.SenderPassword),
-                EnableSsl = _emailSettings.EnableSsl,
-                Timeout = EmailTimeoutSeconds * 1000
-            };
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(_emailSettings.SenderName, _emailSettings.SenderEmail));
+            message.To.Add(new MailboxAddress(recipientName, recipientEmail));
+            message.Subject = subject;
+            message.Body = new TextPart("html") { Text = htmlBody };
 
-            using var mailMessage = new MailMessage
-            {
-                From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName),
-                Subject = subject,
-                Body = htmlBody,
-                IsBodyHtml = true
-            };
+            using var client = new SmtpClient();
+            
+            _logger.LogInformation("Connecting to SMTP server...");
+            await client.ConnectAsync(
+                _emailSettings.SmtpServer, 
+                _emailSettings.SmtpPort, 
+                SecureSocketOptions.StartTls, 
+                cts.Token
+            );
 
-            mailMessage.To.Add(new MailAddress(recipientEmail, recipientName));
-            await smtpClient.SendMailAsync(mailMessage);
+            _logger.LogInformation("Authenticating with SMTP server...");
+            await client.AuthenticateAsync(
+                _emailSettings.SenderEmail, 
+                _emailSettings.SenderPassword, 
+                cts.Token
+            );
+
+            _logger.LogInformation("Sending email...");
+            await client.SendAsync(message, cts.Token);
+            await client.DisconnectAsync(true, cts.Token);
+
             _logger.LogInformation("Email successfully sent to {RecipientEmail}", recipientEmail);
         }
-        catch (SmtpException smtpEx)
+        catch (OperationCanceledException)
         {
-            _logger.LogError(smtpEx, "SMTP error sending email to {RecipientEmail}. StatusCode: {StatusCode}", 
-                recipientEmail, smtpEx.StatusCode);
-            throw new Exception($"Failed to send email: {smtpEx.Message}");
+            _logger.LogError("Email sending to {RecipientEmail} timed out after {Timeout}s", 
+                recipientEmail, EmailTimeoutSeconds);
+            throw new Exception($"Email sending timed out after {EmailTimeoutSeconds} seconds. Please try again.");
+        }
+        catch (MailKit.Security.AuthenticationException authEx)
+        {
+            _logger.LogError(authEx, "SMTP authentication failed for {SenderEmail}. App Password may be invalid or expired.", 
+                _emailSettings.SenderEmail);
+            throw new Exception("Email authentication failed. The App Password may be invalid or expired.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error sending email to {RecipientEmail}: {ErrorType}", 
-                recipientEmail, ex.GetType().Name);
-            throw;
+            _logger.LogError(ex, "Failed to send email to {RecipientEmail}: {ErrorType} - {ErrorMessage}", 
+                recipientEmail, ex.GetType().Name, ex.Message);
+            throw new Exception($"Failed to send email: {ex.Message}");
         }
     }
 }
