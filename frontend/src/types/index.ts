@@ -6,6 +6,8 @@ export interface User {
   role: string;
   avatar: string;
   address: string;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface Product {
@@ -43,12 +45,101 @@ export interface Brand {
   id: string;
   name: string;
   logo: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface CreateBrandDto {
+  name: string;
+  logo: string;
+}
+
+export interface UpdateBrandDto {
+  name: string;
+  logo: string;
+  isActive: boolean;
 }
 
 export interface Category {
   id: string;
   name: string;
   description: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface CreateCategoryDto {
+  name: string;
+  description: string;
+}
+
+export interface UpdateCategoryDto {
+  name: string;
+  description: string;
+  isActive: boolean;
+}
+
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  productImage: string;
+  quantity: number;
+  price: number;
+}
+
+export interface Order {
+  id: string;
+  userId: string;
+  userName: string;
+  items: OrderItem[];
+  totalAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+  voucherCode?: string;
+  shippingAddress: string;
+  phone: string;
+  receiverName: string;
+  status: string;
+  paymentMethod: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateOrderStatusDto {
+  status: string;
+}
+
+export interface Voucher {
+  id: string;
+  code: string;
+  description: string;
+  discountType: string;
+  discountValue: number;
+  minOrderAmount: number;
+  maxDiscount: number;
+  quantity: number;
+  used: number;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface CreateVoucherDto {
+  code: string;
+  description: string;
+  discountType: string;
+  discountValue: number;
+  minOrderAmount: number;
+  maxDiscount: number;
+  quantity: number;
+  startDate: string;
+  endDate: string;
+}
+
+export interface UpdateVoucherDto extends CreateVoucherDto {
+  isActive: boolean;
 }
 
 export interface DashboardDto {

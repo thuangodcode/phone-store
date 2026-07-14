@@ -9,6 +9,11 @@ import { RegisterPage } from '../pages/Auth/RegisterPage';
 import { ForgotPasswordPage } from '../pages/Auth/ForgotPasswordPage';
 import { DashboardPage } from '../pages/Admin/Dashboard/DashboardPage';
 import { AdminProductsPage } from '../pages/Admin/Products/AdminProductsPage';
+import { AdminBrandsPage } from '../pages/Admin/Brands/AdminBrandsPage';
+import { AdminCategoriesPage } from '../pages/Admin/Categories/AdminCategoriesPage';
+import { AdminOrdersPage } from '../pages/Admin/Orders/AdminOrdersPage';
+import { AdminUsersPage } from '../pages/Admin/Users/AdminUsersPage';
+import { AdminVouchersPage } from '../pages/Admin/Vouchers/AdminVouchersPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -38,11 +43,11 @@ export const AppRoutes: React.FC = () => {
         <Route element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="products" element={<AdminProductsPage />} />
-          <Route path="brands" element={<div className="p-4">Manage Brands (WIP)</div>} />
-          <Route path="categories" element={<div className="p-4">Manage Categories (WIP)</div>} />
-          <Route path="orders" element={<div className="p-4">Manage Orders (WIP)</div>} />
-          <Route path="users" element={<div className="p-4">Manage Users (WIP)</div>} />
-          <Route path="vouchers" element={<div className="p-4">Manage Vouchers (WIP)</div>} />
+          <Route path="brands" element={<AdminBrandsPage />} />
+          <Route path="categories" element={<AdminCategoriesPage />} />
+          <Route path="orders" element={<AdminOrdersPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="vouchers" element={<AdminVouchersPage />} />
         </Route>
       </Route>
     </Routes>
