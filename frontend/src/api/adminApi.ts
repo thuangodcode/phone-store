@@ -28,7 +28,7 @@ export const adminApi = {
 
   // Products
   getProducts: async (page = 1, pageSize = 100): Promise<{ items: Product[]; totalCount: number }> => {
-    const res = await axiosClient.get(`/products?pageIndex=${page}&pageSize=${pageSize}`) as unknown as ApiResponse<{ items: Product[]; totalCount: number }>;
+    const res = await axiosClient.get(`/products?page=${page}&pageSize=${pageSize}`) as unknown as ApiResponse<{ items: Product[]; totalCount: number }>;
     return res.data;
   },
 

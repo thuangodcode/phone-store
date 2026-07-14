@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import type { Product, CreateProductDto, Brand, Category } from '../../../types';
+import type { Product, CreateProductDto, UpdateProductDto, Brand, Category } from '../../../types';
 import { adminApi } from '../../../api/adminApi';
 import { toast } from 'react-toastify';
 
@@ -11,8 +11,10 @@ interface ProductFormModalProps {
   onSuccess: () => void;
 }
 
+type ProductFormValues = CreateProductDto & { isActive?: boolean };
+
 export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onClose, product, onSuccess }) => {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<CreateProductDto>();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<ProductFormValues>();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,13 +38,8 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
 
   useEffect(() => {
     if (product && isOpen) {
-      // Find IDs from names (since product object might only have names depending on the backend response)
-      // For a robust app, the backend should return brandId/categoryId in the Product object.
-      // Assuming we need to map it if not present, but let's assume they are or we can just pick the first for now if missing.
-      // Wait, in our types, Product doesn't have brandId/categoryId, only names. 
-      // To edit, we'd need the IDs. We'll try to find them from the lists.
-      const bId = brands.find(b => b.name === product.brandName)?.id || '';
-      const cId = categories.find(c => c.name === product.categoryName)?.id || '';
+      const bId = (product as Product & { brandId?: string }).brandId || brands.find(b => b.name === product.brandName)?.id || '';
+      const cId = (product as Product & { categoryId?: string }).categoryId || categories.find(c => c.name === product.categoryName)?.id || '';
 
       reset({
         name: product.name,
@@ -53,12 +50,13 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
         categoryId: cId,
         stock: product.stock,
         images: product.images,
-        specifications: product.specifications || {}
+        specifications: product.specifications || {},
+        isActive: product.isActive ?? true
       });
-      setImagesInput(product.images ? product.images.join(', ') : '');
+      setImagesInput(product.images ? product.images.join('\n') : '');
     } else {
       reset({
-        name: '', description: '', price: 0, salePrice: 0, brandId: '', categoryId: '', stock: 0, images: [], specifications: {}
+        name: '', description: '', price: 0, salePrice: 0, brandId: '', categoryId: '', stock: 0, images: [], specifications: {}, isActive: true
       });
       setImagesInput('');
     }
@@ -66,20 +64,39 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
 
   if (!isOpen) return null;
 
-  const onSubmit = async (data: CreateProductDto) => {
+  const onSubmit = async (data: ProductFormValues) => {
     try {
       setIsLoading(true);
-      // Parse images from text input
-      data.images = imagesInput.split(',').map(url => url.trim()).filter(url => url);
-      
-      // Ensure specifications is an object (empty for now to keep it simple, or add a proper UI later)
-      data.specifications = data.specifications || {};
+      const images = imagesInput.split(/\r?\n|,/).map(url => url.trim()).filter(url => url);
+      const specs = data.specifications || {};
 
       if (product) {
-        await adminApi.updateProduct(product.id, data);
+        const updateData: UpdateProductDto = {
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          salePrice: data.salePrice,
+          brandId: data.brandId,
+          categoryId: data.categoryId,
+          images,
+          specifications: specs,
+          stock: data.stock,
+          isActive: data.isActive ?? true
+        };
+        await adminApi.updateProduct(product.id, updateData);
         toast.success("Product updated successfully");
       } else {
-        await adminApi.createProduct(data);
+        await adminApi.createProduct({
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          salePrice: data.salePrice,
+          brandId: data.brandId,
+          categoryId: data.categoryId,
+          images,
+          specifications: specs,
+          stock: data.stock
+        });
         toast.success("Product created successfully");
       }
       onSuccess();
@@ -147,15 +164,23 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Image URLs (comma separated)</label>
+            <label className="block text-sm font-medium mb-1">Image URLs (one per line or comma separated)</label>
             <textarea 
               value={imagesInput} 
               onChange={e => setImagesInput(e.target.value)} 
-              rows={3} 
-              placeholder="https://image1.jpg, https://image2.jpg"
+              rows={5} 
+              placeholder="https://image1.jpg\nhttps://image2.jpg"
               className="w-full border rounded-md px-3 py-2"
             ></textarea>
+            <p className="mt-2 text-xs text-gray-500">Use multiple lines or commas to enter image URLs for carousel/gallery.</p>
           </div>
+
+          {product && (
+            <div className="flex items-center gap-2">
+              <input type="checkbox" {...register('isActive')} id="isActive" className="h-4 w-4 text-blue-600 rounded" />
+              <label htmlFor="isActive" className="text-sm text-gray-700">Active product</label>
+            </div>
+          )}
 
           <div className="flex justify-end pt-4 border-t gap-2">
             <button type="button" onClick={onClose} className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50">Cancel</button>

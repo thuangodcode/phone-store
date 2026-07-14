@@ -16,6 +16,8 @@ export interface Product {
   description: string;
   price: number;
   salePrice: number;
+  brandId?: string;
+  categoryId?: string;
   brandName: string;
   categoryName: string;
   images: string[];
@@ -24,6 +26,7 @@ export interface Product {
   averageRating: number;
   totalReviews: number;
   specifications: Record<string, string>;
+  isActive?: boolean;
   createdAt: string;
 }
 
@@ -39,7 +42,9 @@ export interface CreateProductDto {
   specifications: Record<string, string>;
 }
 
-export interface UpdateProductDto extends CreateProductDto {}
+export interface UpdateProductDto extends CreateProductDto {
+  isActive: boolean;
+}
 
 export interface Brand {
   id: string;
