@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import { cartApi } from '../../api/cartApi';
 import { useCart } from '../../contexts/CartContext';
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { toast } from 'react-toastify';
 
 interface CartItem {
@@ -130,7 +131,7 @@ export const CheckoutPage: React.FC = () => {
     }
   };
 
-  if (loadingCart) return <div className="text-center py-20">Đang tải giỏ hàng...</div>;
+  if (loadingCart) return <LoadingSpinner fullScreen />;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl font-sans">
@@ -286,3 +287,5 @@ export const CheckoutPage: React.FC = () => {
     </div>
   );
 };
+
+

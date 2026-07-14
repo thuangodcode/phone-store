@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../../api/adminApi';
 import type { DashboardDto } from '../../../types';
 import { toast } from 'react-toastify';
+import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 
 export const DashboardPage: React.FC = () => {
   const [stats, setStats] = useState<DashboardDto | null>(null);
@@ -24,7 +25,7 @@ export const DashboardPage: React.FC = () => {
   }, []);
 
   if (isLoading) {
-    return <div className="p-8 text-center">Loading dashboard...</div>;
+    return <LoadingSpinner fullScreen />;
   }
 
   if (!stats) {

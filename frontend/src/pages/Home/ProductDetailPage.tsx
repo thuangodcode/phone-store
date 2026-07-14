@@ -4,6 +4,7 @@ import axiosClient from '../../api/axiosClient';
 import { cartApi } from '../../api/cartApi';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { toast } from 'react-toastify';
 import type { Product, ProductStorageVariantDto, ProductColorVariantDto } from '../../types';
 
@@ -81,7 +82,7 @@ export const ProductDetailPage: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="text-center py-20">Đang tải...</div>;
+  if (loading) return <LoadingSpinner fullScreen />;
   if (!product) return <div className="text-center py-20 text-red-500">Sản phẩm không tồn tại.</div>;
 
   // Calculate Price
@@ -255,3 +256,5 @@ export const ProductDetailPage: React.FC = () => {
     </div>
   );
 };
+
+

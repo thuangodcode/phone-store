@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { articleApi } from '../../api/articleApi';
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 
 export const PromotionsPage: React.FC = () => {
   const [articles, setArticles] = useState<any[]>([]);
@@ -19,7 +20,7 @@ export const PromotionsPage: React.FC = () => {
     fetchArticles();
   }, []);
 
-  if (loading) return <div className="text-center py-20">Đang tải tin khuyến mãi...</div>;
+  if (loading) return <LoadingSpinner fullScreen />;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl font-sans">
@@ -53,3 +54,5 @@ export const PromotionsPage: React.FC = () => {
     </div>
   );
 };
+
+

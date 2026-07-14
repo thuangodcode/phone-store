@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import { toast } from 'react-toastify';
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import type { Order } from '../../types';
 
 export const CustomerOrdersPage: React.FC = () => {
@@ -105,7 +106,7 @@ export const CustomerOrdersPage: React.FC = () => {
     return 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
-  if (loading) return <div className="text-center py-20">Đang tải lịch sử mua hàng...</div>;
+  if (loading) return <LoadingSpinner fullScreen />;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl font-sans">
@@ -198,3 +199,6 @@ export const CustomerOrdersPage: React.FC = () => {
     </div>
   );
 };
+
+
+

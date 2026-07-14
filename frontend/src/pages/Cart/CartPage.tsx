@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import { cartApi } from '../../api/cartApi';
 import { useCart } from '../../contexts/CartContext';
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 
 interface CartItem {
   productId: string;
@@ -61,7 +62,7 @@ export const CartPage: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="container mx-auto px-4 py-8 text-center">Loading cart...</div>;
+    return <LoadingSpinner fullScreen />;
   }
 
   const items = cart?.items || [];
@@ -118,3 +119,4 @@ export const CartPage: React.FC = () => {
     </div>
   );
 };
+
