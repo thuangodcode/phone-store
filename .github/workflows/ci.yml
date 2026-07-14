@@ -1,0 +1,55 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    # Backend: .NET
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies (Backend)
+      run: dotnet restore backend/PhoneStore.sln
+
+    - name: Build project (Backend)
+      run: dotnet build backend/PhoneStore.sln --no-restore -c Release
+
+    - name: Run Unit Tests (Backend)
+      run: dotnet test backend/PhoneStore.sln --no-build --verbosity normal -c Release
+
+    # Frontend: Node.js
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Restore dependencies (Frontend)
+      run: npm install
+      working-directory: ./frontend
+
+    - name: Build project (Frontend)
+      run: npm run build
+      working-directory: ./frontend
+
+    # Docker Compose
+    - name: Build Docker Images and Start Services
+      run: docker-compose up -d --build
+
+    - name: Verify Running Containers
+      run: docker ps -a
+
+    - name: Stop Containers
+      if: always()
+      run: docker-compose down
