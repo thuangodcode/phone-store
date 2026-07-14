@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { ShoppingCart, Heart, User, LogOut } from 'lucide-react';
 
 export const Header: React.FC = () => {
-  const { user, isAuthenticated, logout, isAdmin } = useAuth();
+  const { isAuthenticated, logout, isAdmin } = useAuth();
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
