@@ -33,7 +33,10 @@ public class ProductService : IProductService
     public async Task<PagedResultDto<ProductDto>> GetProductsAsync(ProductFilterDto filter)
     {
         var builder = Builders<Product>.Filter;
-        var filters = new List<FilterDefinition<Product>> { builder.Eq(p => p.IsActive, true) };
+        var filters = new List<FilterDefinition<Product>>();
+
+        if (!filter.IncludeInactive)
+            filters.Add(builder.Eq(p => p.IsActive, true));
 
         // Search by name
         if (!string.IsNullOrEmpty(filter.Search))

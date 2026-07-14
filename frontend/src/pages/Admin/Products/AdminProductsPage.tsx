@@ -15,7 +15,7 @@ export const AdminProductsPage: React.FC = () => {
   const fetchProducts = async () => {
     try {
       setIsLoading(true);
-      const res = await adminApi.getProducts(1, 50); // Get first 50 for now
+      const res = await adminApi.getProducts(1, 50, true); // Admin should see both active and inactive products
       setProducts(res.items);
     } catch (err) {
       toast.error("Failed to fetch products");
@@ -132,7 +132,7 @@ export const AdminProductsPage: React.FC = () => {
                           type="button"
                           onClick={() => handleToggleStatus(product)}
                           disabled={toggleLoadingId === product.id}
-                          className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors duration-200 ease-in-out ${isActive ? 'bg-green-500' : 'bg-gray-300'} ${toggleLoadingId === product.id ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                          className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors duration-200 ease-in-out ${isActive ? 'bg-green-500' : 'bg-black'} ${toggleLoadingId === product.id ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           <span className={`ml-1 inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform duration-200 ease-in-out ${isActive ? 'translate-x-6' : 'translate-x-0'}`} />
                         </button>

@@ -69,6 +69,7 @@ public class ProductFilterDto
     public string? Ram { get; set; }
     public string? Rom { get; set; }
     public string? SortBy { get; set; } // price_asc, price_desc, newest, bestseller, rating
+    public bool IncludeInactive { get; set; } = false;
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 12;
 }
