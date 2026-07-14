@@ -15,7 +15,7 @@ export const AdminProductsPage: React.FC = () => {
   const fetchProducts = async () => {
     try {
       setIsLoading(true);
-      const res = await adminApi.getProducts(1, 50, true); // Admin should see both active and inactive products
+      const res = await adminApi.getProducts(1, 50);
       setProducts(res.items);
     } catch (err) {
       toast.error("Failed to fetch products");
