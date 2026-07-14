@@ -7,7 +7,7 @@ import type { DashboardDto, Product, CreateProductDto, UpdateProductDto, Brand, 
 export const adminApi = {
   // Dashboard
   getDashboardStats: async (): Promise<DashboardDto> => {
-    const res = await axiosClient.get<ApiResponse<DashboardDto>>('/dashboard/stats');
+    const res = await axiosClient.get<ApiResponse<DashboardDto>>('/dashboard');
     return res.data.data;
   },
 
