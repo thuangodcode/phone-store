@@ -4,6 +4,7 @@ import { MainLayout } from '../components/Layout/MainLayout';
 import { AdminLayout } from '../components/Layout/AdminLayout';
 import { ProtectedRoute, AdminRoute, AdminOrStaffRoute } from './ProtectedRoutes';
 import { HomePage } from '../pages/Home/HomePage';
+import { ProductDetailPage } from '../pages/Home/ProductDetailPage';
 import { CartPage } from '../pages/Cart/CartPage';
 import { CheckoutPage } from '../pages/Checkout/CheckoutPage';
 import { LoginPage } from '../pages/Auth/LoginPage';
@@ -30,7 +31,7 @@ export const AppRoutes: React.FC = () => {
       <Route element={<MainLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/products" element={<div className="p-8 text-center text-xl">Products Page (WIP)</div>} />
-        <Route path="/products/:id" element={<div className="p-8 text-center text-xl">Product Detail (WIP)</div>} />
+        <Route path="/products/:id" element={<ProductDetailPage />} />
         
         {/* Protected Customer Routes */}
         <Route element={<ProtectedRoute />}>

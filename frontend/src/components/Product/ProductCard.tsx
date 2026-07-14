@@ -1,6 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import type { Product } from '../../types';
+import { cartApi } from '../../api/cartApi';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ProductCardProps {
   product: Product;
@@ -19,12 +22,31 @@ const StarIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 );
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  
   const isSale = product.salePrice > 0 && product.salePrice < product.price;
   const displayPrice = isSale ? product.salePrice : product.price;
   const discountPercent = isSale ? Math.round((1 - product.salePrice / product.price) * 100) : 0;
   
   const formattedPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(displayPrice);
   const formattedOldPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price);
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent link navigation
+    if (!isAuthenticated) {
+      toast.info('Vui lòng đăng nhập để thêm vào giỏ hàng');
+      navigate('/login');
+      return;
+    }
+    
+    try {
+      await cartApi.addToCart(product.id, 1);
+      toast.success('Đã thêm sản phẩm vào giỏ hàng');
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi thêm vào giỏ hàng');
+    }
+  };
 
   return (
     <div className="relative group overflow-hidden rounded-2xl sm:rounded-3xl bg-white border border-gray-200 shadow-lg shadow-gray-200/50 transition-all duration-300 hover:shadow-xl hover:shadow-gray-300/50 hover:-translate-y-1 hover:border-blue-300 w-full font-space-grotesk flex flex-col h-full">
@@ -78,7 +100,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       </Link>
       
       <div className="px-4 pb-4 sm:px-5 sm:pb-5">
-        <button className="w-full py-2.5 bg-gray-900 hover:bg-blue-600 text-white text-sm font-semibold rounded-xl transition-colors shadow-md group-hover:shadow-lg">
+        <button 
+          onClick={handleAddToCart}
+          className="w-full py-2.5 bg-gray-900 hover:bg-blue-600 text-white text-sm font-semibold rounded-xl transition-colors shadow-md group-hover:shadow-lg"
+        >
           Thêm vào giỏ
         </button>
       </div>
