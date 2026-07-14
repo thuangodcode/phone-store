@@ -107,7 +107,7 @@ export const CheckoutPage: React.FC = () => {
 
       if (formData.paymentMethod === 'PayOS') {
         // 2. Generate PayOS Link
-        const paymentResponse: any = await axiosClient.post(`/payment/create-link/${order.id}?returnUrl=${window.location.origin}/payment-success&cancelUrl=${window.location.origin}/payment-cancel`);
+        const paymentResponse: any = await axiosClient.post(`/payment/create-link/${order.id}?returnUrl=${window.location.origin}/history&cancelUrl=${window.location.origin}/history`);
         const checkoutUrl = paymentResponse.data;
         if (checkoutUrl) {
           window.location.href = checkoutUrl;
@@ -116,7 +116,7 @@ export const CheckoutPage: React.FC = () => {
         }
       } else {
         // Redirect to success page for PayAtStore
-        navigate('/payment-success', { state: { orderId: order.id, method: 'PayAtStore' } });
+        navigate('/history', { state: { orderId: order.id, method: 'PayAtStore' } });
       }
     } catch (error) {
       console.error('Checkout error:', error);

@@ -19,6 +19,7 @@ import { AdminUsersPage } from '../pages/Admin/Users/AdminUsersPage';
 import { AdminVouchersPage } from '../pages/Admin/Vouchers/AdminVouchersPage';
 import { StaffProductsPage } from '../pages/Staff/Products/StaffProductsPage';
 import { ProfilePage } from '../pages/Profile/ProfilePage';
+import { CustomerOrdersPage } from '../pages/Profile/CustomerOrdersPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -38,11 +39,9 @@ export const AppRoutes: React.FC = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/payment-success" element={<div className="p-8 text-center text-xl text-green-600 font-bold">Đặt hàng thành công!</div>} />
-          <Route path="/payment-cancel" element={<div className="p-8 text-center text-xl text-red-600 font-bold">Thanh toán bị huỷ!</div>} />
           <Route path="/wishlist" element={<div className="p-8 text-center text-xl">Wishlist Page (WIP)</div>} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/orders" element={<div className="p-8 text-center text-xl">Orders Page (WIP)</div>} />
+          <Route path="/history" element={<CustomerOrdersPage />} />
         </Route>
       </Route>
 
