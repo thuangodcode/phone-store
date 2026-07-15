@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { AdminSidebar } from './AdminSidebar';
 import { useAuth } from '../../contexts/AuthContext';
-import { LogOut, ChevronDown, Home } from 'lucide-react';
+import { LogOut, ChevronDown, Home, Menu } from 'lucide-react';
 import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from './DropdownMenu';
 
 export const AdminLayout: React.FC = () => {
   const { user, logout, isStaff } = useAuth();
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const handleLogout = () => {
     logout();
@@ -16,9 +17,16 @@ export const AdminLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex bg-gray-100 font-sans">
-      <AdminSidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-white shadow-sm h-16 flex items-center justify-end px-8 z-10">
+      <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
+        <header className="bg-white shadow-sm h-16 flex items-center justify-between px-8 z-10">
+          <button 
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600"
+          >
+            <Menu size={24} />
+          </button>
+          
           <div className="flex items-center gap-4">
             <DropdownMenu
               trigger={

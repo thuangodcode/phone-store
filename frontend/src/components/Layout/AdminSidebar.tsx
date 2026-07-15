@@ -13,7 +13,12 @@ import {
   MessageSquare
 } from 'lucide-react';
 
-export const AdminSidebar: React.FC = () => {
+interface AdminSidebarProps {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+}
+
+export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen }) => {
   const location = useLocation();
   const { isStaff } = useAuth();
 
@@ -37,36 +42,59 @@ export const AdminSidebar: React.FC = () => {
   });
 
   return (
-    <aside className="w-64 bg-gray-900 text-white flex-shrink-0 min-h-screen flex flex-col">
-      <div className="p-6">
-        <Link to="/" className="text-2xl font-bold text-white tracking-wider flex items-center gap-2">
-          <Smartphone className="text-primary-500" />
-          {isStaff ? 'Hệ thống NV' : 'Quản trị viên'}
+    <aside 
+      className={`bg-gray-900 text-white flex-shrink-0 min-h-screen flex flex-col transition-all duration-300 ${
+        isOpen ? 'w-64' : 'w-20'
+      }`}
+    >
+      <div className="p-6 flex justify-center items-center h-20">
+        <Link to="/" className="text-xl font-bold text-white tracking-wider flex items-center gap-2 overflow-hidden whitespace-nowrap">
+          <Smartphone className="text-primary-500 flex-shrink-0" size={24} />
+          {isOpen && (
+            <span className="animate-in fade-in zoom-in duration-300">
+              {isStaff ? 'Hệ thống NV' : 'Quản trị viên'}
+            </span>
+          )}
         </Link>
       </div>
-      <nav className="flex-1 mt-6">
-        <ul className="space-y-2 px-4">
+      <nav className="flex-1 mt-2">
+        <ul className="space-y-2 px-3">
           {visibleLinks.map((link) => {
             const isActive = location.pathname === link.path;
             return (
               <li key={link.name}>
                 <Link
                   to={link.path}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  className={`flex items-center gap-3 py-3 rounded-lg transition-colors relative group ${
+                    isOpen ? 'px-4' : 'justify-center px-2'
+                  } ${
                     isActive ? 'bg-primary-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                   }`}
+                  title={!isOpen ? link.name : undefined}
                 >
-                  {link.icon}
-                  {link.name}
+                  <div className="flex-shrink-0">{link.icon}</div>
+                  {isOpen && (
+                    <span className="whitespace-nowrap animate-in fade-in duration-300">
+                      {link.name}
+                    </span>
+                  )}
+                  
+                  {/* Tooltip for collapsed state */}
+                  {!isOpen && (
+                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                      {link.name}
+                    </div>
+                  )}
                 </Link>
               </li>
             );
           })}
         </ul>
       </nav>
-      <div className="p-4 border-t border-gray-800">
-        <Link to="/" className="text-sm text-gray-400 hover:text-white flex items-center gap-2">
-          &larr; Quay lại Cửa hàng
+      <div className={`p-4 border-t border-gray-800 flex ${isOpen ? 'justify-start' : 'justify-center'}`}>
+        <Link to="/" className="text-sm text-gray-400 hover:text-white flex items-center gap-2" title={!isOpen ? "Quay lại Cửa hàng" : undefined}>
+          <span className="flex-shrink-0">&larr;</span>
+          {isOpen && <span className="whitespace-nowrap">Quay lại Cửa hàng</span>}
         </Link>
       </div>
     </aside>
