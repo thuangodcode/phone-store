@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import * as signalR from "@microsoft/signalr";
 import { useAuth } from "../../contexts/AuthContext";
 import { chatApi } from "../../api/chatApi";
+import { adminApi } from "../../api/adminApi";
 import axiosClient from "../../api/axiosClient";
 
 const EMOJIS = ["😀","😂","😍","🥰","😎","😭","😡","👍","🙏","❤️","🔥","✨","🎉","📱","💻"];
@@ -16,6 +17,8 @@ export const CustomerChatWidget: React.FC = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
+  const [brands, setBrands] = useState<any[]>([]);
+  const [selectedBrand, setSelectedBrand] = useState<any | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const connectionRef = useRef<signalR.HubConnection | null>(null);
@@ -77,10 +80,8 @@ export const CustomerChatWidget: React.FC = () => {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (showProductModal && products.length === 0) {
-      axiosClient.get('/products?pageSize=10').then((res: any) => {
-        setProducts(res.data?.items || []);
-      }).catch(console.error);
+    if (showProductModal && brands.length === 0) {
+      adminApi.getBrands().then((res: any) => setBrands(res)).catch(console.error);
     }
   }, [showProductModal]);
 
@@ -110,7 +111,7 @@ export const CustomerChatWidget: React.FC = () => {
             <strong>Sản phẩm đính kèm</strong>
           </div>
           <div className="text-gray-600 truncate">ID: {productId}</div>
-          <a href={`/product/${productId}`} target="_blank" rel="noreferrer" className="text-blue-600 underline mt-2 inline-block">Xem chi tiết &rarr;</a>
+          <a href={`/products/${productId}`} target="_blank" rel="noreferrer" className="text-blue-600 underline mt-2 inline-block">Xem chi tiết &rarr;</a>
         </div>
       );
     }
@@ -172,19 +173,44 @@ export const CustomerChatWidget: React.FC = () => {
             {showProductModal && (
               <div className="absolute inset-0 bg-white z-20 flex flex-col">
                 <div className="p-3 border-b flex justify-between items-center font-bold bg-gray-50">
-                  Gửi sản phẩm
-                  <button onClick={() => setShowProductModal(false)} className="text-gray-500"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                  <div className="flex items-center gap-2">
+                    {selectedBrand && (
+                      <button onClick={() => setSelectedBrand(null)} className="text-blue-600 hover:bg-blue-50 p-1 rounded">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+                      </button>
+                    )}
+                    {selectedBrand ? `SP của ${selectedBrand.name}` : 'Chọn hãng'}
+                  </div>
+                  <button onClick={() => { setShowProductModal(false); setSelectedBrand(null); }} className="text-gray-500 hover:bg-gray-100 p-1 rounded">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                  </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-2">
-                  {products.map(p => (
-                    <div key={p.id} onClick={() => { sendMessage(undefined, `[PRODUCT]:${p.id}`); setShowProductModal(false); }} className="flex items-center gap-3 p-2 hover:bg-blue-50 cursor-pointer rounded-lg border-b">
-                      <img src={p.images?.[0] || 'https://via.placeholder.com/40'} className="w-10 h-10 object-cover rounded" alt={p.name} />
-                      <div className="flex-1 text-xs">
-                        <div className="font-bold line-clamp-1">{p.name}</div>
-                        <div className="text-blue-600">{p.price?.toLocaleString('vi-VN')} đ</div>
-                      </div>
+                  {!selectedBrand ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      {brands.map(b => (
+                        <div key={b.id} onClick={() => {
+                          setSelectedBrand(b);
+                          axiosClient.get(`/products?brandId=${b.id}&pageSize=50`).then((res: any) => setProducts(res.data?.items || []));
+                        }} className="border rounded-lg p-3 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 font-medium">
+                          {b.name}
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  ) : (
+                    <div className="flex flex-col">
+                      {products.length === 0 ? <div className="p-4 text-center text-gray-500 text-sm">Đang tải hoặc không có sản phẩm...</div> : null}
+                      {products.map(p => (
+                        <div key={p.id} onClick={() => { sendMessage(undefined, `[PRODUCT]:${p.id}`); setShowProductModal(false); setSelectedBrand(null); }} className="flex items-center gap-3 p-2 hover:bg-blue-50 cursor-pointer rounded-lg border-b">
+                          <img src={p.images?.[0] || 'https://via.placeholder.com/40'} className="w-10 h-10 object-cover rounded" alt={p.name} />
+                          <div className="flex-1 text-xs">
+                            <div className="font-bold line-clamp-1">{p.name}</div>
+                            <div className="text-blue-600">{p.price?.toLocaleString('vi-VN')} đ</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
