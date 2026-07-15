@@ -4,6 +4,7 @@ import { adminApi } from '../../../api/adminApi';
 import { toast } from 'react-toastify';
 import type { Product } from '../../../types';
 import { Search, ChevronDown, Check, ImageIcon } from 'lucide-react';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export const StaffPromotionsPage: React.FC = () => {
   const [articles, setArticles] = useState<any[]>([]);
@@ -11,6 +12,13 @@ export const StaffPromotionsPage: React.FC = () => {
   
   const [formData, setFormData] = useState({ title: '', content: '', imageUrl: '', productUrl: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  const editingArticle = articles.find(a => a.id === editingId);
+  const displayAuthorName = editingArticle ? editingArticle.authorName : (user?.fullName || 'Admin / Staff');
+  const displayDate = editingArticle 
+    ? new Date(editingArticle.createdAt).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })
+    : new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
 
   // For product dropdown
   const [products, setProducts] = useState<Product[]>([]);
@@ -113,9 +121,9 @@ export const StaffPromotionsPage: React.FC = () => {
           </div>
 
           <div className="flex items-center text-sm text-gray-500 mb-4">
-            <span>Đăng bởi: Admin / Staff</span>
+            <span>Đăng bởi: {displayAuthorName}</span>
             <span className="mx-2">•</span>
-            <span>{new Date().toLocaleDateString('vi-VN')}</span>
+            <span>{displayDate}</span>
           </div>
 
           {/* Image - Article Style */}
@@ -241,16 +249,7 @@ export const StaffPromotionsPage: React.FC = () => {
               )}
             </div>
             
-            {/* Direct URL Input as fallback/manual override if needed */}
-            <div className="mt-3">
-               <input 
-                 type="url" 
-                 value={formData.productUrl} 
-                 onChange={e => setFormData({...formData, productUrl: e.target.value})} 
-                 className="w-full px-4 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none text-gray-500 bg-gray-50" 
-                 placeholder="Hoặc nhập Link URL trực tiếp..." 
-               />
-            </div>
+
           </div>
 
           <div className="flex gap-3 pt-6 justify-end border-t">
