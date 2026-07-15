@@ -2,9 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../../api/adminApi';
 import type { Order } from '../../../types';
 import { OrderStatusModal } from './OrderStatusModal';
-import { ActionButton, RefreshIcon } from '../../../components/AdminActionButtons';
+import { ActionButton, InfoIcon, RefreshIcon } from '../../../components/AdminActionButtons';
 import { CustomSelect } from '../../../components/Layout/CustomSelect';
 import { toast } from 'react-toastify';
+
+const statusOptions = [
+  { value: 'Pending', label: 'Chờ xác nhận' },
+  { value: 'Confirmed', label: 'Đã xác nhận' },
+  { value: 'Processing', label: 'Đang xử lý' },
+  { value: 'Shipped', label: 'Đang giao' },
+  { value: 'Delivered', label: 'Đã giao' },
+  { value: 'Cancelled', label: 'Đã huỷ' }
+];
 
 export const AdminOrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -49,6 +58,21 @@ export const AdminOrdersPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const handleInlineStatusUpdate = async (order: Order, newStatus: string) => {
+    if (newStatus === order.status) return;
+
+    const confirmMessage = `Bạn có chắc muốn đổi trạng thái đơn hàng #${order.orderCode} từ "${translateStatus(order.status)}" sang "${translateStatus(newStatus)}"?`;
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      await adminApi.updateOrderStatus(order.id, { status: newStatus });
+      toast.success('Cập nhật trạng thái đơn hàng thành công');
+      fetchOrders();
+    } catch (error: any) {
+      toast.error(error?.message || 'Có lỗi khi cập nhật trạng thái');
+    }
+  };
+
   const handlePaymentConfirm = async (orderId: string) => {
     if (window.confirm('Xác nhận đã nhận được tiền cho đơn hàng này?')) {
       try {
@@ -66,6 +90,7 @@ export const AdminOrdersPage: React.FC = () => {
   const translateStatus = (status: string) => {
     switch (status) {
       case 'Pending': return 'Chờ xác nhận';
+      case 'Confirmed': return 'Đã xác nhận';
       case 'Processing': return 'Đang xử lý';
       case 'Shipped': return 'Đang giao';
       case 'Delivered': return 'Đã giao';
@@ -100,6 +125,7 @@ export const AdminOrdersPage: React.FC = () => {
           options={[
             { value: '', label: 'Tất cả trạng thái đơn' },
             { value: 'Pending', label: 'Chờ xác nhận' },
+            { value: 'Confirmed', label: 'Đã xác nhận' },
             { value: 'Processing', label: 'Đang xử lý' },
             { value: 'Shipped', label: 'Đang giao' },
             { value: 'Delivered', label: 'Đã giao' },
@@ -170,10 +196,12 @@ export const AdminOrdersPage: React.FC = () => {
                       <div className="text-sm text-gray-500">{order.phone}</div>
                     </td>
                     <td className="p-4 font-medium text-red-600">{order.finalAmount.toLocaleString('vi-VN')} đ</td>
-                    <td className="p-4">
-                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' : order.status === 'Cancelled' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                        {translateStatus(order.status)}
-                      </span>
+                    <td className="p-4 w-64">
+                      <CustomSelect
+                        options={statusOptions}
+                        value={order.status}
+                        onChange={(val) => handleInlineStatusUpdate(order, val)}
+                      />
                     </td>
                     <td className="p-4">
                       <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${order.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
@@ -186,7 +214,7 @@ export const AdminOrdersPage: React.FC = () => {
                         {order.paymentStatus !== 'Paid' && (
                            <ActionButton label="Đã thu tiền" onClick={() => handlePaymentConfirm(order.id)} icon={<RefreshIcon />} variant="secondary" />
                         )}
-                        <ActionButton label="Cập nhật" onClick={() => handleStatusChange(order)} icon={<RefreshIcon />} variant="primary" />
+                        <ActionButton label="Thông tin" onClick={() => handleStatusChange(order)} icon={<InfoIcon />} variant="primary" />
                       </div>
                     </td>
                   </tr>

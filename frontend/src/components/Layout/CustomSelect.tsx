@@ -38,6 +38,7 @@ export const CustomSelect = ({
   return (
     <div className="relative" ref={selectRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-zinc-800 bg-white border border-zinc-200 rounded-lg shadow-sm hover:bg-zinc-50 transition-colors"
       >
@@ -49,6 +50,7 @@ export const CustomSelect = ({
           <div className="flex flex-col space-y-1">
             {options.map(opt => (
               <button
+                type="button"
                 key={opt.value}
                 onClick={() => {
                   onChange(opt.value);
