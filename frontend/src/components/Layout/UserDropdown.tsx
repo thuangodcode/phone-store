@@ -5,7 +5,7 @@ import { ShoppingCart, Heart, LogOut, User, ClipboardList, ChevronDown } from 'l
 import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from './DropdownMenu';
 
 export const UserDropdown: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdminOrStaff, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   // Get last name from full name
@@ -41,20 +41,30 @@ export const UserDropdown: React.FC = () => {
       <div className="flex flex-col space-y-1">
         <DropdownMenuItem onClick={() => handleNavigation('/profile')}>
           <User className="mr-3 h-5 w-5 text-zinc-500" />
-          <span>Hồ sơ</span>
+          <span>Hồ sơ cá nhân</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleNavigation('/history')}>
-          <ClipboardList className="mr-3 h-5 w-5 text-zinc-500" />
-          <span>Lịch sử mua hàng</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleNavigation('/wishlist')}>
-          <Heart className="mr-3 h-5 w-5 text-zinc-500" />
-          <span>Danh sách yêu thích</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleNavigation('/cart')}>
-          <ShoppingCart className="mr-3 h-5 w-5 text-zinc-500" />
-          <span>Giỏ hàng</span>
-        </DropdownMenuItem>
+        
+        {isAdminOrStaff ? (
+          <DropdownMenuItem onClick={() => handleNavigation(isAdmin ? '/admin' : '/staff')}>
+            <ClipboardList className="mr-3 h-5 w-5 text-zinc-500" />
+            <span>Bảng điều khiển</span>
+          </DropdownMenuItem>
+        ) : (
+          <>
+            <DropdownMenuItem onClick={() => handleNavigation('/history')}>
+              <ClipboardList className="mr-3 h-5 w-5 text-zinc-500" />
+              <span>Lịch sử mua hàng</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleNavigation('/wishlist')}>
+              <Heart className="mr-3 h-5 w-5 text-zinc-500" />
+              <span>Danh sách yêu thích</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleNavigation('/cart')}>
+              <ShoppingCart className="mr-3 h-5 w-5 text-zinc-500" />
+              <span>Giỏ hàng</span>
+            </DropdownMenuItem>
+          </>
+        )}
       </div>
       <DropdownMenuSeparator />
       <div className="flex flex-col space-y-1">

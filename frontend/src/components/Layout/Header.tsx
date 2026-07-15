@@ -6,7 +6,7 @@ import { UserDropdown } from './UserDropdown';
 import { useCart } from '../../contexts/CartContext';
 
 export const Header: React.FC = () => {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, isAdminOrStaff } = useAuth();
   const { cartCount } = useCart();
 
   return (
@@ -24,7 +24,7 @@ export const Header: React.FC = () => {
         </nav>
 
         <div className="flex items-center space-x-6">
-          {isAuthenticated && (
+          {isAuthenticated && !isAdminOrStaff && (
             <>
               <Link to="/wishlist" className="text-gray-600 hover:text-primary-600 relative">
                 <Heart size={24} />
@@ -38,9 +38,9 @@ export const Header: React.FC = () => {
 
           {isAuthenticated ? (
             <div className="flex items-center space-x-4">
-              {isAdmin && (
-                <Link to="/admin" className="text-sm bg-blue-100 px-3 py-1 rounded-md text-blue-700 hover:bg-blue-200 font-medium transition">
-                  Quản trị viên
+              {isAdminOrStaff && (
+                <Link to={isAdmin ? "/admin" : "/staff"} className="text-sm bg-blue-100 px-3 py-1 rounded-md text-blue-700 hover:bg-blue-200 font-medium transition">
+                  {isAdmin ? "Quản trị viên" : "Nhân viên"}
                 </Link>
               )}
               <UserDropdown />
