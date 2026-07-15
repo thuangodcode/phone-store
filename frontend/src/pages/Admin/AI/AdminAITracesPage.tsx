@@ -22,6 +22,7 @@ interface AILog {
 export const AdminAITracesPage: React.FC = () => {
   const [traces, setTraces] = useState<AILog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [expandedTraceId, setExpandedTraceId] = useState<string | null>(null);
   const [expandedEventIdx, setExpandedEventIdx] = useState<number | null>(null);
 
@@ -31,10 +32,13 @@ export const AdminAITracesPage: React.FC = () => {
 
   const fetchTraces = async () => {
     try {
-      const response = await axiosClient.get('/ai/traces');
-      setTraces(response.data);
-    } catch (error) {
+      setLoading(true);
+      setError(null);
+      const data = await axiosClient.get('/ai/traces');
+      setTraces(Array.isArray(data) ? data : []);
+    } catch (error: any) {
       console.error('Failed to fetch AI traces:', error);
+      setError(error?.message || 'Không thể tải dữ liệu AI traces.');
     } finally {
       setLoading(false);
     }
@@ -63,6 +67,11 @@ export const AdminAITracesPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <strong>Có lỗi:</strong> {error}
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <Terminal className="text-indigo-600" /> AI Trace Viewer (Wireshark for AI)
@@ -71,7 +80,7 @@ export const AdminAITracesPage: React.FC = () => {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {traces.map((trace) => (
+        {traces.length > 0 ? traces.map((trace) => (
           <div key={trace.id} className="border-b border-gray-100 last:border-0">
             {/* Trace Header */}
             <div 
@@ -140,8 +149,7 @@ export const AdminAITracesPage: React.FC = () => {
               </div>
             )}
           </div>
-        ))}
-        {traces.length === 0 && (
+        )) : (
           <div className="p-12 text-center text-gray-500">
             Chưa có lịch sử Trace nào được ghi nhận.
           </div>
