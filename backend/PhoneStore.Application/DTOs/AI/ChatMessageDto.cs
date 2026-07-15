@@ -8,5 +8,6 @@ public class ChatMessageDto
     public string Content { get; set; } = string.Empty;
     public string? ToolCallId { get; set; } // If the message is a tool result or tool call
     public string? ToolName { get; set; }
+    public string? ThoughtSignature { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 }

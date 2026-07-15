@@ -1,169 +1,290 @@
-import React, { useState, useRef, useEffect } from 'react';
-import axiosClient from '../../api/axiosClient';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Bot,
+  CircleAlert,
+  MessageCircleMore,
+  RefreshCw,
+  RotateCcw,
+  ShieldCheck,
+  Sparkles,
+  X,
+  Zap,
+} from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { getAIChatErrorMessage, sendAIChatMessage } from '../../api/aiApi';
 import { useAuth } from '../../contexts/AuthContext';
 import { PromptInputBox } from '../ui/ai-prompt-box';
-import ReactMarkdown from 'react-markdown';
 
 interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  isError?: boolean;
 }
+
+const createSessionId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `web-${crypto.randomUUID()}`;
+  }
+
+  return `web-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+};
+
+const quickPrompts = [
+  {
+    label: 'Chọn máy chơi game',
+    prompt: 'Tìm cho tôi điện thoại chơi game tốt nhất',
+    icon: Zap,
+  },
+  {
+    label: 'Tư vấn theo ngân sách',
+    prompt: 'Tôi có 15 triệu thì nên mua điện thoại gì?',
+    icon: Sparkles,
+  },
+];
 
 export const AIAssistantWidget: React.FC = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
-  const [sessionId] = useState(`session-${Math.random().toString(36).substr(2, 9)}`);
+  const [sessionId, setSessionId] = useState(createSessionId);
+  const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   useEffect(() => {
     if (isOpen) {
-      scrollToBottom();
+      requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }));
     }
-  }, [messages, isOpen]);
+  }, [isOpen, messages, loading]);
 
-  const handleSend = async (text: string) => {
-    if (!text.trim()) return;
+  const sendMessage = async (text: string, includeUserMessage = true) => {
+    const message = text.trim();
+    if (!message || loading) return;
 
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: text,
-    };
-    setMessages((prev) => [...prev, userMessage]);
+    if (includeUserMessage) {
+      setMessages((current) => [
+        ...current,
+        { id: `user-${Date.now()}`, role: 'user', content: message },
+      ]);
+    }
+
     setLoading(true);
+    setLastFailedMessage(null);
 
     try {
-      // The backend expects: { message: string, sessionId: string }
-      const response = await axiosClient.post('/ai/chat', {
-        message: text,
-        sessionId: sessionId,
-      });
-      
-      const aiMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: (response.data as any).response || 'Lỗi: Không nhận được phản hồi',
-      };
-      
-      setMessages((prev) => [...prev, aiMessage]);
+      const response = await sendAIChatMessage(message, sessionId);
+      const answer = response.response?.trim();
+
+      if (!answer) {
+        throw new Error('EMPTY_AI_RESPONSE');
+      }
+
+      setMessages((current) => [
+        ...current,
+        { id: `assistant-${Date.now()}`, role: 'assistant', content: answer },
+      ]);
     } catch (error) {
-      console.error('AI Chat Error:', error);
-      const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Xin lỗi, tôi đang gặp sự cố kết nối. Vui lòng thử lại sau.',
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      console.error('AI chat error:', error);
+      setLastFailedMessage(message);
+      setMessages((current) => [
+        ...current,
+        {
+          id: `assistant-error-${Date.now()}`,
+          role: 'assistant',
+          content: getAIChatErrorMessage(error),
+          isError: true,
+        },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
+  const resetConversation = () => {
+    if (loading) return;
+
+    setMessages([]);
+    setLastFailedMessage(null);
+    setSessionId(createSessionId());
+  };
+
+  const firstName = user?.fullName?.trim().split(' ')[0] || 'bạn';
+
   return (
-    <div className="fixed bottom-[90px] right-6 z-[60] font-sans">
+    <div className="fixed bottom-[5.5rem] right-4 z-[60] max-sm:left-4 sm:right-6">
       {!isOpen && (
         <button
+          type="button"
           onClick={() => setIsOpen(true)}
-          className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:scale-105 transition-transform text-white rounded-full p-4 shadow-[0_0_15px_rgba(168,85,247,0.5)] flex items-center justify-center relative group"
+          aria-label="Mở trợ lý AI PhoneStore"
+          className="group relative flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-xl shadow-slate-950/25 transition-all duration-300 hover:-translate-y-1 hover:bg-blue-600 hover:shadow-blue-600/30"
         >
-          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-          </svg>
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-white animate-pulse">
-            AI
+          <span className="absolute inset-0 rounded-2xl border border-white/15" />
+          <MessageCircleMore size={24} strokeWidth={2.1} />
+          <span className="absolute -right-1 -top-1 flex h-4 w-4">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex h-4 w-4 rounded-full border-2 border-white bg-emerald-400" />
           </span>
-          <div className="absolute left-full ml-4 whitespace-nowrap bg-gray-900 text-white text-sm px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-            Hỏi AI Trợ Lý
-            <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
-          </div>
+          <span className="pointer-events-none absolute right-[calc(100%+0.75rem)] whitespace-nowrap rounded-lg bg-slate-950 px-3 py-2 text-xs font-medium opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100 max-sm:hidden">
+            Hỏi PhoneStore AI
+          </span>
         </button>
       )}
 
       {isOpen && (
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 w-[380px] sm:w-[450px] flex flex-col h-[600px] overflow-hidden animate-fade-in-up">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-white flex justify-between items-center shadow-md z-10">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white font-bold text-lg border border-white/30">
-                ✨
-              </div>
-              <div>
-                <h3 className="font-bold leading-tight">PhoneStore AI</h3>
-                <div className="text-xs text-indigo-100 flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                  Trợ lý thông minh
+        <section
+          role="dialog"
+          aria-label="Trợ lý AI PhoneStore"
+          className="flex h-[min(42rem,calc(100dvh-7rem))] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-2xl shadow-slate-950/20 sm:w-[26rem]"
+        >
+          <header className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 px-5 py-4 text-white">
+            <div className="absolute -right-10 -top-16 h-36 w-36 rounded-full bg-blue-400/20 blur-2xl" />
+            <div className="absolute -bottom-12 left-16 h-28 w-28 rounded-full bg-cyan-300/10 blur-2xl" />
+            <div className="relative flex items-center justify-between">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10 shadow-inner shadow-white/10">
+                  <Bot size={23} strokeWidth={2.1} />
                 </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="truncate text-sm font-bold tracking-wide">PhoneStore AI</h3>
+                    <span className="rounded-full border border-emerald-300/20 bg-emerald-400/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-200">
+                      BETA
+                    </span>
+                  </div>
+                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-300">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    Tư vấn sản phẩm thông minh
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={resetConversation}
+                  disabled={loading || messages.length === 0}
+                  aria-label="Bắt đầu cuộc trò chuyện mới"
+                  title="Bắt đầu cuộc trò chuyện mới"
+                  className="rounded-xl p-2 text-slate-300 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+                >
+                  <RotateCcw size={17} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  aria-label="Đóng trợ lý AI"
+                  className="rounded-xl p-2 text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <X size={19} />
+                </button>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} className="text-white hover:bg-white/20 p-2 rounded-xl transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-          </div>
-          
-          {/* Messages Area */}
-          <div className="flex-1 p-4 overflow-y-auto bg-gray-50/50 flex flex-col gap-4">
-            {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500 space-y-4">
-                <div className="w-20 h-20 bg-gradient-to-tr from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mb-2">
-                  <span className="text-4xl">👋</span>
-                </div>
-                <h4 className="font-bold text-gray-800 text-lg">Xin chào {user?.fullName || 'bạn'}!</h4>
-                <p className="text-sm text-center px-4">
-                  Tôi là trợ lý AI của PhoneStore. Tôi có thể giúp bạn tìm sản phẩm, so sánh cấu hình, hoặc hỗ trợ nghiệp vụ quản lý.
-                </p>
-                <div className="flex flex-wrap gap-2 justify-center mt-4">
-                  <span className="bg-white border px-3 py-1 rounded-full text-xs shadow-sm cursor-pointer hover:border-indigo-300" onClick={() => handleSend('Tìm cho tôi điện thoại chơi game tốt nhất')}>🎮 Điện thoại chơi game</span>
-                  <span className="bg-white border px-3 py-1 rounded-full text-xs shadow-sm cursor-pointer hover:border-indigo-300" onClick={() => handleSend('Tôi có 15 triệu thì nên mua điện thoại gì?')}>💰 Dưới 15 triệu</span>
-                </div>
-              </div>
-            )}
-            
-            {messages.map((msg) => (
-              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] p-3 rounded-2xl text-sm shadow-sm ${
-                  msg.role === 'user' 
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-none' 
-                    : 'bg-white border border-gray-100 text-gray-800 rounded-bl-none'
-                }`}>
-                  {msg.role === 'assistant' ? (
-                    <div className="prose prose-sm max-w-none prose-p:my-1 prose-a:text-indigo-600 prose-strong:text-indigo-900 prose-ul:my-1">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+          </header>
+
+          <div className="relative flex-1 overflow-y-auto bg-slate-50 px-4 py-5">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-blue-50/70 to-transparent" />
+            <div className="relative flex min-h-full flex-col gap-4">
+              {messages.length === 0 && (
+                <div className="my-auto py-4">
+                  <div className="mx-auto flex max-w-sm flex-col items-center text-center">
+                    <div className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20">
+                      <Sparkles size={28} />
+                      <span className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-4 border-slate-50 bg-emerald-400" />
                     </div>
-                  ) : (
-                    <div>{msg.content}</div>
+                    <p className="text-base font-bold text-slate-900">Chào {firstName}, mình có thể giúp gì?</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-500">
+                      Hỏi về sản phẩm, cấu hình, mức giá hoặc nhu cầu sử dụng của bạn.
+                    </p>
+                    <div className="mt-6 grid w-full gap-2">
+                      {quickPrompts.map(({ label, prompt, icon: Icon }) => (
+                        <button
+                          key={label}
+                          type="button"
+                          onClick={() => sendMessage(prompt)}
+                          disabled={loading}
+                          className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3.5 py-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                            <Icon size={16} />
+                          </span>
+                          <span className="text-xs font-semibold text-slate-700">{label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex items-end gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  {message.role === 'assistant' && (
+                    <div className={`mb-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl ${message.isError ? 'bg-rose-100 text-rose-600' : 'bg-slate-900 text-white'}`}>
+                      {message.isError ? <CircleAlert size={15} /> : <Bot size={15} />}
+                    </div>
                   )}
+                  <div
+                    className={`max-w-[82%] rounded-2xl px-3.5 py-3 text-[13px] leading-6 shadow-sm ${
+                      message.role === 'user'
+                        ? 'rounded-br-md bg-slate-950 text-white shadow-slate-950/10'
+                        : message.isError
+                          ? 'rounded-bl-md border border-rose-200 bg-rose-50 text-rose-800'
+                          : 'rounded-bl-md border border-slate-200 bg-white text-slate-700'
+                    }`}
+                  >
+                    {message.role === 'assistant' ? (
+                      <div className="[&_ol]:my-2 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_p]:m-0 [&_p+p]:mt-2 [&_strong]:font-semibold [&_ul]:my-2 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <p className="m-0 whitespace-pre-wrap">{message.content}</p>
+                    )}
+                    {message.isError && lastFailedMessage && !loading && (
+                      <button
+                        type="button"
+                        onClick={() => sendMessage(lastFailedMessage, false)}
+                        className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-100"
+                      >
+                        <RefreshCw size={13} />
+                        Thử lại
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-            
-            {loading && (
-              <div className="flex justify-start">
-                <div className="bg-white border border-gray-100 p-4 rounded-2xl rounded-bl-none shadow-sm flex items-center gap-2">
-                  <span className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"></span>
-                  <span className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-                  <span className="w-2 h-2 bg-pink-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+              ))}
+
+              {loading && (
+                <div className="flex items-end gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900 text-white">
+                    <Bot size={15} />
+                  </div>
+                  <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-md border border-slate-200 bg-white px-3.5 py-3 shadow-sm">
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-500" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-500 [animation-delay:150ms]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-500 [animation-delay:300ms]" />
+                    <span className="ml-1 text-xs font-medium text-slate-500">Đang phân tích</span>
+                  </div>
                 </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
+              )}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
 
-          {/* Input Area */}
-          <div className="bg-white border-t border-gray-100 p-2">
-            <PromptInputBox 
-              onSend={handleSend} 
-              disabled={loading} 
-              placeholder="Hỏi tôi bất cứ điều gì..."
+          <footer className="border-t border-slate-200 bg-white px-4 pb-3 pt-3">
+            <PromptInputBox
+              onSend={(message) => sendMessage(message)}
+              disabled={loading}
+              placeholder="Hỏi về điện thoại, giá hoặc cấu hình..."
             />
-          </div>
-        </div>
+            <div className="mt-1 flex items-center gap-1.5 px-1 text-[10px] text-slate-400">
+              <ShieldCheck size={12} />
+              <span>AI có thể mắc lỗi. Hãy kiểm tra thông tin quan trọng trước khi mua.</span>
+            </div>
+          </footer>
+        </section>
       )}
     </div>
   );

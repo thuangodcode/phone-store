@@ -92,6 +92,7 @@ public class AIAgentService : IAIAgentService
                     { 
                         Role = "tool", 
                         ToolName = tool.Name, 
+                        ToolCallId = responseMsg.ToolCallId,
                         Content = toolResultContent 
                     };
                     

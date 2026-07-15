@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ArrowUp } from 'lucide-react';
 
 interface PromptInputBoxProps {
   onSend: (message: string) => void;
@@ -6,10 +7,10 @@ interface PromptInputBoxProps {
   disabled?: boolean;
 }
 
-export const PromptInputBox: React.FC<PromptInputBoxProps> = ({ 
-  onSend, 
-  placeholder = "Hỏi tôi bất cứ điều gì...", 
-  disabled = false 
+export const PromptInputBox: React.FC<PromptInputBoxProps> = ({
+  onSend,
+  placeholder = 'Hỏi tôi bất cứ điều gì...',
+  disabled = false,
 }) => {
   const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -23,59 +24,55 @@ export const PromptInputBox: React.FC<PromptInputBoxProps> = ({
 
   const handleSend = () => {
     if (!input.trim() || disabled) return;
+
     onSend(input.trim());
     setInput('');
+
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
       handleSend();
     }
   };
 
+  const canSend = input.trim().length > 0 && !disabled;
+
   return (
-    <div className="relative flex w-full max-w-3xl items-center justify-center p-4">
-      <div className="relative flex w-full flex-row items-end overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all dark:border-gray-800 dark:bg-gray-950">
+    <div className="w-full">
+      <div className="flex items-end gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-1.5 shadow-sm transition-all duration-200 focus-within:border-blue-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-500/10">
         <textarea
           ref={textareaRef}
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(event) => setInput(event.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className="max-h-[120px] w-full resize-none bg-transparent px-4 py-4 text-sm outline-none placeholder:text-gray-400 disabled:opacity-50"
           rows={1}
+          className="max-h-[120px] min-h-11 w-full resize-none bg-transparent px-3 py-2.5 text-sm leading-6 text-slate-800 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+          aria-label="Tin nhắn cho trợ lý AI"
         />
-        <div className="flex h-[52px] items-center justify-center px-2">
-          <button
-            onClick={handleSend}
-            disabled={!input.trim() || disabled}
-            className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
-              input.trim() && !disabled
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-100 text-gray-400 dark:bg-gray-800'
-            }`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="22" y1="2" x2="11" y2="13" />
-              <polygon points="22 2 15 22 11 13 2 9 22 2" />
-            </svg>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleSend}
+          disabled={!canSend}
+          aria-label="Gửi tin nhắn"
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-200 ${
+            canSend
+              ? 'bg-slate-950 text-white shadow-md shadow-slate-950/20 hover:-translate-y-0.5 hover:bg-blue-600 active:translate-y-0'
+              : 'bg-slate-200 text-slate-400'
+          }`}
+        >
+          <ArrowUp size={18} strokeWidth={2.5} />
+        </button>
+      </div>
+      <div className="mt-2 flex items-center justify-between px-1 text-[11px] text-slate-400">
+        <span>Enter để gửi</span>
+        <span>Shift + Enter để xuống dòng</span>
       </div>
     </div>
   );

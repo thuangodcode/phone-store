@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import axiosClient from '../../../api/axiosClient';
+import { getAIChatErrorMessage, sendAIChatMessage } from '../../../api/aiApi';
 import { useAuth } from '../../../contexts/AuthContext';
 import { PromptInputBox } from '../../../components/ui/ai-prompt-box';
 import ReactMarkdown from 'react-markdown';
@@ -37,15 +37,12 @@ export const AIAssistantPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await axiosClient.post('/ai/chat', {
-        message: text,
-        sessionId: sessionId,
-      });
+      const response = await sendAIChatMessage(text, sessionId);
       
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: (response.data as any).response || 'Lỗi: Không nhận được phản hồi',
+        content: response.response || 'Không nhận được phản hồi từ trợ lý AI.',
       };
       
       setMessages((prev) => [...prev, aiMessage]);
@@ -54,7 +51,7 @@ export const AIAssistantPage: React.FC = () => {
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'Xin lỗi, tôi đang gặp sự cố kết nối. Vui lòng thử lại sau.',
+        content: getAIChatErrorMessage(error),
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {

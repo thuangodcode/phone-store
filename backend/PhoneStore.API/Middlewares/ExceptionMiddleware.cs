@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using PhoneStore.Application.DTOs;
+using PhoneStore.Application.Exceptions;
 
 namespace PhoneStore.API.Middlewares;
 
@@ -22,6 +23,17 @@ public class ExceptionMiddleware
         try
         {
             await _next(context);
+        }
+        catch (AIProviderException ex)
+        {
+            _logger.LogWarning(ex, "AI provider request failed.");
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = ex.StatusCode;
+
+            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            var json = JsonSerializer.Serialize(ApiResponse.ErrorResponse(ex.Message), options);
+
+            await context.Response.WriteAsync(json);
         }
         catch (Exception ex)
         {
