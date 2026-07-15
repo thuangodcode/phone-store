@@ -5,6 +5,7 @@ import { adminApi } from "../../../api/adminApi";
 import { useAuth } from "../../../contexts/AuthContext";
 import type { ChatSession, ChatMessage } from "../../../types";
 import axiosClient from "../../../api/axiosClient";
+import { ProductMessagePreview } from "../../../components/Chat/ProductMessagePreview";
 
 export const StaffChatPage: React.FC = () => {
   const { user } = useAuth();
@@ -133,16 +134,7 @@ export const StaffChatPage: React.FC = () => {
   const renderMessageContent = (content: string) => {
     if (content.startsWith('[PRODUCT]:')) {
       const productId = content.replace('[PRODUCT]:', '');
-      return (
-        <div className="mt-2 p-3 bg-white border border-gray-200 rounded-lg text-black text-xs font-sans">
-          <div className="flex items-center gap-2 mb-2">
-            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-            <strong>Sản phẩm đính kèm</strong>
-          </div>
-          <div className="text-gray-600 truncate">ID: {productId}</div>
-          <a href={`/products/${productId}`} target="_blank" rel="noreferrer" className="text-blue-600 underline mt-2 inline-block">Xem chi tiết &rarr;</a>
-        </div>
-      );
+      return <ProductMessagePreview productId={productId} />;
     }
     return <div>{content}</div>;
   };
