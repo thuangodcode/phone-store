@@ -23,7 +23,11 @@ public class OrdersController : ControllerBase
 
     private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
     private string GetUserName() => User.FindFirstValue(ClaimTypes.Name) ?? "Unknown";
-    private bool IsAdminOrStaff() => User.IsInRole(UserRole.Admin) || User.IsInRole(UserRole.Staff);
+    private bool IsAdminOrStaff() 
+    {
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        return role != null && (role.Equals(UserRole.Admin, StringComparison.OrdinalIgnoreCase) || role.Equals(UserRole.Staff, StringComparison.OrdinalIgnoreCase));
+    }
 
     [HttpPost]
     public async Task<ActionResult<ApiResponse<OrderDto>>> CreateOrder([FromBody] CreateOrderDto dto)
