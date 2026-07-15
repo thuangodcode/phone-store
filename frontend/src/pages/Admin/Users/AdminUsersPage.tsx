@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../../api/adminApi';
 import type { User } from '../../../types';
 import { ActionButton, RefreshIcon, TrashIcon } from '../../../components/AdminActionButtons';
+import { ConfirmModal } from '../../../components/Layout/ConfirmModal';
 import { toast } from 'react-toastify';
 import { CustomSelect } from '../../../components/Layout/CustomSelect';
 
@@ -20,6 +21,10 @@ export const AdminUsersPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newUser, setNewUser] = useState({ fullName: '', email: '', password: '', phone: '', address: '', role: 'User' });
   const [isCreating, setIsCreating] = useState(false);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [confirmAction, setConfirmAction] = useState<(() => Promise<void>) | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -48,7 +53,8 @@ export const AdminUsersPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string, fullName: string) => {
-    if (window.confirm(`Bạn có chắc muốn xóa người dùng ${fullName}? Hành động này không thể hoàn tác!`)) {
+    setConfirmMessage(`Bạn có chắc muốn xóa người dùng ${fullName}? Hành động này không thể hoàn tác!`);
+    setConfirmAction(() => async () => {
       try {
         await adminApi.deleteUser(id);
         toast.success('Xóa người dùng thành công');
@@ -56,7 +62,8 @@ export const AdminUsersPage: React.FC = () => {
       } catch (error) {
         toast.error('Lỗi khi xóa người dùng');
       }
-    }
+    });
+    setConfirmModalOpen(true);
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -270,6 +277,26 @@ export const AdminUsersPage: React.FC = () => {
           </div>
         </div>
       )}
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        title="Xác nhận hành động"
+        description={confirmMessage}
+        confirmLabel="Có"
+        cancelLabel="Không"
+        isLoading={confirmLoading}
+        onConfirm={async () => {
+          if (!confirmAction) return;
+          setConfirmLoading(true);
+          await confirmAction();
+          setConfirmLoading(false);
+          setConfirmModalOpen(false);
+          setConfirmAction(null);
+        }}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setConfirmAction(null);
+        }}
+      />
     </div>
   );
 };

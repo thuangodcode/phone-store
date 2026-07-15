@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../../api/adminApi';
 import { toast } from 'react-toastify';
+import { ConfirmModal } from '../../../components/Layout/ConfirmModal';
 import { ImageIcon, Power } from 'lucide-react';
 import type { Banner } from '../../../types';
 
@@ -10,6 +11,10 @@ export const StaffBannersPage: React.FC = () => {
   
   const [formData, setFormData] = useState({ title: '', imageUrl: '', isActive: true });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [confirmAction, setConfirmAction] = useState<(() => Promise<void>) | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   const fetchBanners = async () => {
     setLoading(true);
@@ -52,14 +57,17 @@ export const StaffBannersPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xoá ảnh nền này?')) return;
-    try {
-      await adminApi.deleteBanner(id);
-      toast.success('Xoá thành công');
-      fetchBanners();
-    } catch (error) {
-      toast.error('Lỗi khi xoá');
-    }
+    setConfirmMessage('Bạn có chắc chắn muốn xoá ảnh nền này?');
+    setConfirmAction(() => async () => {
+      try {
+        await adminApi.deleteBanner(id);
+        toast.success('Xoá thành công');
+        fetchBanners();
+      } catch (error) {
+        toast.error('Lỗi khi xoá');
+      }
+    });
+    setConfirmModalOpen(true);
   };
 
   const handleToggleStatus = async (id: string) => {
@@ -212,6 +220,26 @@ export const StaffBannersPage: React.FC = () => {
             </table>
           </div>
         )}
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        title="Xác nhận hành động"
+        description={confirmMessage}
+        confirmLabel="Có"
+        cancelLabel="Không"
+        isLoading={confirmLoading}
+        onConfirm={async () => {
+          if (!confirmAction) return;
+          setConfirmLoading(true);
+          await confirmAction();
+          setConfirmLoading(false);
+          setConfirmModalOpen(false);
+          setConfirmAction(null);
+        }}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setConfirmAction(null);
+        }}
+      />
       </div>
     </div>
   );

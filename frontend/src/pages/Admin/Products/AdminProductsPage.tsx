@@ -3,6 +3,7 @@ import { adminApi } from '../../../api/adminApi';
 import type { Product, Brand, Category } from '../../../types';
 import { ProductFormModal } from './ProductFormModal';
 import { ActionButton, EditIcon, TrashIcon } from '../../../components/AdminActionButtons';
+import { ConfirmModal } from '../../../components/Layout/ConfirmModal';
 import { toast } from 'react-toastify';
 import { CustomSelect } from '../../../components/Layout/CustomSelect';
 
@@ -17,6 +18,10 @@ export const AdminProductsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [toggleLoadingId, setToggleLoadingId] = useState<string | null>(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [confirmAction, setConfirmAction] = useState<(() => Promise<void>) | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   // Filters & Pagination
   const [page, setPage] = useState(1);
@@ -67,33 +72,33 @@ export const AdminProductsPage: React.FC = () => {
 
   const handleToggleStatus = async (product: Product) => {
     const currentStatus = product.isActive ?? true;
-    if (!window.confirm(`Bạn có chắc muốn ${currentStatus ? 'ẩn' : 'hiển thị'} sản phẩm này?`)) {
-      return;
-    }
+    setConfirmMessage(`Bạn có chắc muốn ${currentStatus ? 'ẩn' : 'hiển thị'} sản phẩm này?`);
+    setConfirmAction(() => async () => {
+      try {
+        setToggleLoadingId(product.id);
 
-    try {
-      setToggleLoadingId(product.id);
+        await adminApi.updateProduct(product.id, {
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          salePrice: product.salePrice,
+          brandId: product.brandId ?? '',
+          categoryId: product.categoryId ?? '',
+          images: product.images ?? [],
+          specifications: product.specifications ?? {},
+          stock: product.stock,
+          isActive: !currentStatus,
+        });
 
-      await adminApi.updateProduct(product.id, {
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        salePrice: product.salePrice,
-        brandId: product.brandId ?? '',
-        categoryId: product.categoryId ?? '',
-        images: product.images ?? [],
-        specifications: product.specifications ?? {},
-        stock: product.stock,
-        isActive: !currentStatus,
-      });
-
-      toast.success(`Đã ${currentStatus ? 'ẩn' : 'hiển thị'} sản phẩm thành công`);
-      fetchProducts();
-    } catch (err) {
-      toast.error("Lỗi khi cập nhật trạng thái sản phẩm");
-    } finally {
-      setToggleLoadingId(null);
-    }
+        toast.success(`Đã ${currentStatus ? 'ẩn' : 'hiển thị'} sản phẩm thành công`);
+        fetchProducts();
+      } catch (err) {
+        toast.error('Lỗi khi cập nhật trạng thái sản phẩm');
+      } finally {
+        setToggleLoadingId(null);
+      }
+    });
+    setConfirmModalOpen(true);
   };
 
   const handleCreate = () => {
@@ -107,15 +112,17 @@ export const AdminProductsPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?')) {
+    setConfirmMessage('Bạn có chắc chắn muốn xóa sản phẩm này không?');
+    setConfirmAction(() => async () => {
       try {
         await adminApi.deleteProduct(id);
-        toast.success("Xóa sản phẩm thành công");
+        toast.success('Xóa sản phẩm thành công');
         fetchProducts();
       } catch (err) {
-        toast.error("Lỗi khi xóa sản phẩm");
+        toast.error('Lỗi khi xóa sản phẩm');
       }
-    }
+    });
+    setConfirmModalOpen(true);
   };
 
   const totalPages = Math.ceil(totalCount / pageSize) || 1;
@@ -259,6 +266,26 @@ export const AdminProductsPage: React.FC = () => {
         )}
       </div>
 
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        title="Xác nhận hành động"
+        description={confirmMessage}
+        confirmLabel="Có"
+        cancelLabel="Không"
+        isLoading={confirmLoading}
+        onConfirm={async () => {
+          if (!confirmAction) return;
+          setConfirmLoading(true);
+          await confirmAction();
+          setConfirmLoading(false);
+          setConfirmModalOpen(false);
+          setConfirmAction(null);
+        }}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setConfirmAction(null);
+        }}
+      />
       <ProductFormModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 

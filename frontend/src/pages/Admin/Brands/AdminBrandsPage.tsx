@@ -3,6 +3,7 @@ import { adminApi } from '../../../api/adminApi';
 import type { Brand } from '../../../types';
 import { BrandFormModal } from './BrandFormModal';
 import { ActionButton, EditIcon, TrashIcon } from '../../../components/AdminActionButtons';
+import { ConfirmModal } from '../../../components/Layout/ConfirmModal';
 import { toast } from 'react-toastify';
 import { CustomSelect } from '../../../components/Layout/CustomSelect';
 
@@ -11,6 +12,10 @@ export const AdminBrandsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [confirmAction, setConfirmAction] = useState<(() => Promise<void>) | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   // Filters & Pagination
   const [page, setPage] = useState(1);
@@ -44,7 +49,8 @@ export const AdminBrandsPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa thương hiệu này không?')) {
+    setConfirmMessage('Bạn có chắc chắn muốn xóa thương hiệu này không?');
+    setConfirmAction(() => async () => {
       try {
         await adminApi.deleteBrand(id);
         toast.success('Xóa thương hiệu thành công');
@@ -52,7 +58,8 @@ export const AdminBrandsPage: React.FC = () => {
       } catch (error) {
         toast.error('Lỗi khi xóa thương hiệu');
       }
-    }
+    });
+    setConfirmModalOpen(true);
   };
 
   // Client-side filtering
@@ -160,6 +167,26 @@ export const AdminBrandsPage: React.FC = () => {
         )}
       </div>
 
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        title="Xác nhận hành động"
+        description={confirmMessage}
+        confirmLabel="Có"
+        cancelLabel="Không"
+        isLoading={confirmLoading}
+        onConfirm={async () => {
+          if (!confirmAction) return;
+          setConfirmLoading(true);
+          await confirmAction();
+          setConfirmLoading(false);
+          setConfirmModalOpen(false);
+          setConfirmAction(null);
+        }}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setConfirmAction(null);
+        }}
+      />
       <BrandFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} brand={editingBrand} onSuccess={fetchBrands} />
     </div>
   );

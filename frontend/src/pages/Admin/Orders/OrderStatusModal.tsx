@@ -5,7 +5,6 @@ interface OrderStatusModalProps {
   isOpen: boolean;
   onClose: () => void;
   order: Order | null;
-  onSuccess?: () => void;
 }
 
 const statusOptions = [
@@ -14,7 +13,9 @@ const statusOptions = [
   { value: 'Processing', label: 'Đang xử lý' },
   { value: 'Shipped', label: 'Đang giao' },
   { value: 'Delivered', label: 'Đã giao' },
-  { value: 'Cancelled', label: 'Đã huỷ' }
+  { value: 'Cancelled', label: 'Đã huỷ' },
+  { value: 'Paid', label: 'Đã thanh toán' },
+  { value: 'Unpaid', label: 'Chưa thanh toán' }
 ];
 
 export const OrderStatusModal: React.FC<OrderStatusModalProps> = ({ isOpen, onClose, order }) => {
@@ -22,6 +23,18 @@ export const OrderStatusModal: React.FC<OrderStatusModalProps> = ({ isOpen, onCl
 
   const translateStatus = (s: string) => {
     return statusOptions.find(opt => opt.value === s)?.label || s;
+  };
+
+  const translateAuditDetails = (details: string) => {
+    return details
+      .replace(/\bPending\b/g, 'Chờ xác nhận')
+      .replace(/\bConfirmed\b/g, 'Đã xác nhận')
+      .replace(/\bProcessing\b/g, 'Đang xử lý')
+      .replace(/\bShipped\b/g, 'Đang giao')
+      .replace(/\bDelivered\b/g, 'Đã giao')
+      .replace(/\bCancelled\b/g, 'Đã huỷ')
+      .replace(/\bPaid\b/g, 'Đã thanh toán')
+      .replace(/\bUnpaid\b/g, 'Chưa thanh toán');
   };
 
   return (
@@ -61,7 +74,7 @@ export const OrderStatusModal: React.FC<OrderStatusModalProps> = ({ isOpen, onCl
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="font-semibold text-gray-800">{log.staffName}</div>
-                          <div className="text-sm text-gray-600 mt-1">{log.details}</div>
+                          <div className="text-sm text-gray-600 mt-1">{translateAuditDetails(log.details)}</div>
                         </div>
                         <div className="text-xs text-gray-500">
                           {new Date(log.timestamp).toLocaleDateString('vi-VN')} {new Date(log.timestamp).toLocaleTimeString('vi-VN')}
@@ -69,9 +82,9 @@ export const OrderStatusModal: React.FC<OrderStatusModalProps> = ({ isOpen, onCl
                       </div>
                       {log.oldValue && log.newValue && (
                         <div className="mt-2 text-sm text-gray-600">
-                          <span className="text-red-600 line-through">{log.oldValue}</span>
+                          <span className="text-red-600 line-through">{translateStatus(log.oldValue)}</span>
                           <span className="mx-2">→</span>
-                          <span className="text-green-600 font-medium">{log.newValue}</span>
+                          <span className="text-green-600 font-medium">{translateStatus(log.newValue)}</span>
                         </div>
                       )}
                     </div>

@@ -4,6 +4,7 @@ import type { Order } from '../../../types';
 import { OrderStatusModal } from './OrderStatusModal';
 import { ActionButton, InfoIcon, RefreshIcon } from '../../../components/AdminActionButtons';
 import { CustomSelect } from '../../../components/Layout/CustomSelect';
+import { ConfirmModal } from '../../../components/Layout/ConfirmModal';
 import { toast } from 'react-toastify';
 
 const statusOptions = [
@@ -21,6 +22,10 @@ export const AdminOrdersPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{ order: Order; status: string } | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   // Filters & Pagination
   const [page, setPage] = useState(1);
@@ -58,30 +63,62 @@ export const AdminOrdersPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleInlineStatusUpdate = async (order: Order, newStatus: string) => {
+  const handleInlineStatusUpdate = (order: Order, newStatus: string) => {
     if (newStatus === order.status) return;
 
-    const confirmMessage = `Bạn có chắc muốn đổi trạng thái đơn hàng #${order.orderCode} từ "${translateStatus(order.status)}" sang "${translateStatus(newStatus)}"?`;
-    if (!window.confirm(confirmMessage)) return;
+    const message = `Bạn có chắc muốn đổi trạng thái đơn hàng #${order.orderCode} từ "${translateStatus(order.status)}" sang "${translateStatus(newStatus)}"?`;
+    setConfirmMessage(message);
+    setPendingStatusUpdate({ order, status: newStatus });
+    setConfirmModalOpen(true);
+  };
+
+  const confirmStatusUpdate = async () => {
+    if (!pendingStatusUpdate) return;
+    const { order, status } = pendingStatusUpdate;
 
     try {
-      await adminApi.updateOrderStatus(order.id, { status: newStatus });
+      setConfirmLoading(true);
+      await adminApi.updateOrderStatus(order.id, { status });
       toast.success('Cập nhật trạng thái đơn hàng thành công');
       fetchOrders();
     } catch (error: any) {
       toast.error(error?.message || 'Có lỗi khi cập nhật trạng thái');
+    } finally {
+      setConfirmLoading(false);
+      setConfirmModalOpen(false);
+      setPendingStatusUpdate(null);
     }
   };
 
-  const handlePaymentConfirm = async (orderId: string) => {
-    if (window.confirm('Xác nhận đã nhận được tiền cho đơn hàng này?')) {
-      try {
-        await adminApi.updatePaymentStatus(orderId, 'Paid');
-        toast.success('Đã cập nhật trạng thái thanh toán');
-        fetchOrders();
-      } catch (error) {
-        toast.error('Có lỗi xảy ra');
-      }
+  const handlePaymentConfirm = (orderId: string) => {
+    setConfirmMessage('Xác nhận đã nhận được tiền cho đơn hàng này?');
+    setPendingStatusUpdate({ order: orders.find((o) => o.id === orderId)!, status: 'Paid' });
+    setConfirmModalOpen(true);
+  };
+
+  const confirmPaymentUpdate = async () => {
+    if (!pendingStatusUpdate) return;
+
+    try {
+      setConfirmLoading(true);
+      await adminApi.updatePaymentStatus(pendingStatusUpdate.order.id, pendingStatusUpdate.status);
+      toast.success('Đã cập nhật trạng thái thanh toán');
+      fetchOrders();
+    } catch (error) {
+      toast.error('Có lỗi xảy ra');
+    } finally {
+      setConfirmLoading(false);
+      setConfirmModalOpen(false);
+      setPendingStatusUpdate(null);
+    }
+  };
+
+  const handleConfirmAction = async () => {
+    if (!pendingStatusUpdate) return;
+    if (pendingStatusUpdate.status === 'Paid') {
+      await confirmPaymentUpdate();
+    } else {
+      await confirmStatusUpdate();
     }
   };
 
@@ -250,7 +287,20 @@ export const AdminOrdersPage: React.FC = () => {
         )}
       </div>
 
-      <OrderStatusModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} order={selectedOrder} onSuccess={fetchOrders} />
+      <OrderStatusModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} order={selectedOrder} />
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        title="Xác nhận hành động"
+        description={confirmMessage}
+        confirmLabel="Có"
+        cancelLabel="Không"
+        isLoading={confirmLoading}
+        onConfirm={handleConfirmAction}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setPendingStatusUpdate(null);
+        }}
+      />
     </div>
   );
 };

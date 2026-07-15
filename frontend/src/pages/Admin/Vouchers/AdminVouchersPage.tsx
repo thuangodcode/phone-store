@@ -3,6 +3,7 @@ import { adminApi } from '../../../api/adminApi';
 import type { Voucher } from '../../../types';
 import { VoucherFormModal } from './VoucherFormModal';
 import { ActionButton, EditIcon, TrashIcon } from '../../../components/AdminActionButtons';
+import { ConfirmModal } from '../../../components/Layout/ConfirmModal';
 import { toast } from 'react-toastify';
 import { CustomSelect } from '../../../components/Layout/CustomSelect';
 
@@ -11,6 +12,10 @@ export const AdminVouchersPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVoucher, setEditingVoucher] = useState<Voucher | null>(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [confirmAction, setConfirmAction] = useState<(() => Promise<void>) | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   // Filters & Pagination
   const [page, setPage] = useState(1);
@@ -44,7 +49,8 @@ export const AdminVouchersPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa mã giảm giá này không?')) {
+    setConfirmMessage('Bạn có chắc chắn muốn xóa mã giảm giá này không?');
+    setConfirmAction(() => async () => {
       try {
         await adminApi.deleteVoucher(id);
         toast.success('Xóa mã giảm giá thành công');
@@ -52,7 +58,8 @@ export const AdminVouchersPage: React.FC = () => {
       } catch (error) {
         toast.error('Lỗi khi xóa mã giảm giá');
       }
-    }
+    });
+    setConfirmModalOpen(true);
   };
 
   // Client-side filtering
@@ -164,6 +171,26 @@ export const AdminVouchersPage: React.FC = () => {
         )}
       </div>
 
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        title="Xác nhận hành động"
+        description={confirmMessage}
+        confirmLabel="Có"
+        cancelLabel="Không"
+        isLoading={confirmLoading}
+        onConfirm={async () => {
+          if (!confirmAction) return;
+          setConfirmLoading(true);
+          await confirmAction();
+          setConfirmLoading(false);
+          setConfirmModalOpen(false);
+          setConfirmAction(null);
+        }}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setConfirmAction(null);
+        }}
+      />
       <VoucherFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} voucher={editingVoucher} onSuccess={fetchVouchers} />
     </div>
   );

@@ -4,6 +4,7 @@ import { adminApi } from '../../../api/adminApi';
 import { toast } from 'react-toastify';
 import type { Product } from '../../../types';
 import { Search, ChevronDown, Check, ImageIcon } from 'lucide-react';
+import { ConfirmModal } from '../../../components/Layout/ConfirmModal';
 import { useAuth } from '../../../contexts/AuthContext';
 
 export const StaffPromotionsPage: React.FC = () => {
@@ -12,6 +13,10 @@ export const StaffPromotionsPage: React.FC = () => {
   
   const [formData, setFormData] = useState({ title: '', content: '', imageUrl: '', productUrl: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [confirmAction, setConfirmAction] = useState<(() => Promise<void>) | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
   const { user } = useAuth();
 
   const editingArticle = articles.find(a => a.id === editingId);
@@ -86,14 +91,17 @@ export const StaffPromotionsPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xoá bài viết này?')) return;
-    try {
-      await articleApi.delete(id);
-      toast.success('Xoá thành công');
-      fetchArticles();
-    } catch (error) {
-      toast.error('Lỗi khi xoá');
-    }
+    setConfirmMessage('Bạn có chắc chắn muốn xoá bài viết này?');
+    setConfirmAction(() => async () => {
+      try {
+        await articleApi.delete(id);
+        toast.success('Xoá thành công');
+        fetchArticles();
+      } catch (error) {
+        toast.error('Lỗi khi xoá');
+      }
+    });
+    setConfirmModalOpen(true);
   };
 
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()));
@@ -311,6 +319,26 @@ export const StaffPromotionsPage: React.FC = () => {
             </table>
           </div>
         )}
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        title="Xác nhận hành động"
+        description={confirmMessage}
+        confirmLabel="Có"
+        cancelLabel="Không"
+        isLoading={confirmLoading}
+        onConfirm={async () => {
+          if (!confirmAction) return;
+          setConfirmLoading(true);
+          await confirmAction();
+          setConfirmLoading(false);
+          setConfirmModalOpen(false);
+          setConfirmAction(null);
+        }}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setConfirmAction(null);
+        }}
+      />
       </div>
     </div>
   );
