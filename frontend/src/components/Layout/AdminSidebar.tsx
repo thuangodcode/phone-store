@@ -37,6 +37,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen }) => {
     { name: 'Chat trực tuyến', path: `${prefix}/chat`, icon: <MessageSquare size={20} />, adminOnly: false, staffOnly: true },
     { name: 'Người dùng', path: `${prefix}/users`, icon: <Users size={20} />, adminOnly: true },
     { name: 'Mã giảm giá', path: `${prefix}/vouchers`, icon: <Ticket size={20} />, adminOnly: true },
+    { name: 'AI Trợ lý', path: `${prefix}/ai`, icon: <span className="text-[20px] leading-none">✨</span>, adminOnly: false },
   ];
 
   const visibleLinks = links.filter(link => {

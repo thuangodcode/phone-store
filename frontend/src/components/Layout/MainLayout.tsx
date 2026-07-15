@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { CustomerChatWidget } from '../Chat/ChatWidget';
+import { AIAssistantWidget } from '../Chat/AIAssistantWidget';
 
 export const MainLayout: React.FC = () => {
   return (
@@ -13,6 +14,7 @@ export const MainLayout: React.FC = () => {
       </main>
       <Footer />
       <CustomerChatWidget />
+      <AIAssistantWidget />
     </div>
   );
 };

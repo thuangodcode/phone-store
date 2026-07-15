@@ -27,6 +27,7 @@ import { StaffChatPage } from '../pages/Staff/Chat/StaffChat';
 import { ProfilePage } from '../pages/Profile/ProfilePage';
 import { CustomerOrdersPage } from '../pages/Profile/CustomerOrdersPage';
 import { WishlistPage } from '../pages/Profile/WishlistPage';
+import { AIAssistantPage } from '../pages/Admin/AI/AIAssistantPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -65,6 +66,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="categories" element={<AdminCategoriesPage />} />
           <Route path="users" element={<AdminUsersPage />} />
           <Route path="vouchers" element={<AdminVouchersPage />} />
+          <Route path="ai" element={<AIAssistantPage />} />
         </Route>
       </Route>
 
@@ -77,6 +79,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="promotions" element={<StaffPromotionsPage />} />
           <Route path="banners" element={<StaffBannersPage />} />
           <Route path="chat" element={<StaffChatPage />} />
+          <Route path="ai" element={<AIAssistantPage />} />
         </Route>
       </Route>
     </Routes>

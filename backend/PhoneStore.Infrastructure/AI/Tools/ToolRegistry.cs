@@ -18,8 +18,8 @@ public class ToolRegistry : IToolRegistry
         // In a real application, you might use Reflection to load all types implementing IAITool.
         _allToolTypes = new List<Type>
         {
-            typeof(SearchProductsTool)
-            // Add more tools here as they are implemented
+            typeof(SearchProductsTool),
+            typeof(GetRevenueAnalyticsTool)
         };
     }
 
