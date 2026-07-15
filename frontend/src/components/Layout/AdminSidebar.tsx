@@ -11,7 +11,8 @@ import {
   Ticket,
   FileText,
   MessageSquare,
-  Image
+  Image,
+  Activity
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -38,6 +39,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen }) => {
     { name: 'Người dùng', path: `${prefix}/users`, icon: <Users size={20} />, adminOnly: true },
     { name: 'Mã giảm giá', path: `${prefix}/vouchers`, icon: <Ticket size={20} />, adminOnly: true },
     { name: 'AI Trợ lý', path: `${prefix}/ai`, icon: <span className="text-[20px] leading-none">✨</span>, adminOnly: false },
+    { name: 'AI Traces (Logs)', path: `${prefix}/ai-traces`, icon: <Activity size={20} />, adminOnly: true },
   ];
 
   const visibleLinks = links.filter(link => {

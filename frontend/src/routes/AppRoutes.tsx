@@ -28,6 +28,7 @@ import { ProfilePage } from '../pages/Profile/ProfilePage';
 import { CustomerOrdersPage } from '../pages/Profile/CustomerOrdersPage';
 import { WishlistPage } from '../pages/Profile/WishlistPage';
 import { AIAssistantPage } from '../pages/Admin/AI/AIAssistantPage';
+import { AdminAITracesPage } from '../pages/Admin/AI/AdminAITracesPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -67,6 +68,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="users" element={<AdminUsersPage />} />
           <Route path="vouchers" element={<AdminVouchersPage />} />
           <Route path="ai" element={<AIAssistantPage />} />
+          <Route path="ai-traces" element={<AdminAITracesPage />} />
         </Route>
       </Route>
 

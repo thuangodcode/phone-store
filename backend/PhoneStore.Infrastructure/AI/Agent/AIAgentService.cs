@@ -12,12 +12,14 @@ public class AIAgentService : IAIAgentService
     private readonly IAIProvider _aiProvider;
     private readonly IAIMemoryService _memoryService;
     private readonly IToolRegistry _toolRegistry;
+    private readonly IAILogService _logService;
 
-    public AIAgentService(IAIProvider aiProvider, IAIMemoryService memoryService, IToolRegistry toolRegistry)
+    public AIAgentService(IAIProvider aiProvider, IAIMemoryService memoryService, IToolRegistry toolRegistry, IAILogService logService)
     {
         _aiProvider = aiProvider;
         _memoryService = memoryService;
         _toolRegistry = toolRegistry;
+        _logService = logService;
     }
 
     public async Task<AIChatResponseDto> ProcessChatAsync(AIChatRequestDto request, string userId, string role)
@@ -42,11 +44,29 @@ public class AIAgentService : IAIAgentService
         // 3. Get authorized tools
         var availableTools = _toolRegistry.GetToolsForRole(role);
 
+        await _logService.LogSessionEventAsync(sessionId, userId, role, new Domain.Entities.AILogEvent
+        {
+            EventType = "PROMPT_COMPILED",
+            Description = $"Compiled prompt with {conversation.Count} messages and {availableTools.Count()} tools.",
+            RawData = System.Text.Json.JsonSerializer.Serialize(new { HistoryCount = conversation.Count, Role = role }),
+            LatencyMs = 0
+        });
+
         // 4. Interaction Loop (Handle Tool Calls)
         var maxIterations = 5;
         for (int i = 0; i < maxIterations; i++)
         {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             var responseMsg = await _aiProvider.GenerateResponseAsync(conversation, availableTools);
+            sw.Stop();
+
+            await _logService.LogSessionEventAsync(sessionId, userId, role, new Domain.Entities.AILogEvent
+            {
+                EventType = "LLM_RESPONSE",
+                Description = string.IsNullOrEmpty(responseMsg.ToolName) ? "Text Response" : $"Tool Call: {responseMsg.ToolName}",
+                RawData = System.Text.Json.JsonSerializer.Serialize(responseMsg),
+                LatencyMs = sw.ElapsedMilliseconds
+            });
 
             if (!string.IsNullOrEmpty(responseMsg.ToolName))
             {
@@ -55,7 +75,17 @@ public class AIAgentService : IAIAgentService
                 if (tool != null)
                 {
                     // Execute tool
+                    var toolSw = System.Diagnostics.Stopwatch.StartNew();
                     var toolResultContent = await tool.ExecuteAsync(responseMsg.Content);
+                    toolSw.Stop();
+
+                    await _logService.LogSessionEventAsync(sessionId, userId, role, new Domain.Entities.AILogEvent
+                    {
+                        EventType = "TOOL_EXECUTION",
+                        Description = $"Executed tool: {tool.Name}",
+                        RawData = System.Text.Json.JsonSerializer.Serialize(new { Arguments = responseMsg.Content, Result = toolResultContent }),
+                        LatencyMs = toolSw.ElapsedMilliseconds
+                    });
                     
                     // Add tool execution record to memory so it knows the result
                     var toolResponseMsg = new ChatMessageDto 

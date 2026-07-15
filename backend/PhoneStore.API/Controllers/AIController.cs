@@ -11,10 +11,12 @@ namespace PhoneStore.API.Controllers;
 public class AIController : ControllerBase
 {
     private readonly IAIAgentService _aiAgentService;
+    private readonly IAILogService _aiLogService;
 
-    public AIController(IAIAgentService aiAgentService)
+    public AIController(IAIAgentService aiAgentService, IAILogService aiLogService)
     {
         _aiAgentService = aiAgentService;
+        _aiLogService = aiLogService;
     }
 
     [HttpPost("chat")]
@@ -29,5 +31,13 @@ public class AIController : ControllerBase
 
         var result = await _aiAgentService.ProcessChatAsync(request, userId, role);
         return Ok(result);
+    }
+
+    [HttpGet("traces")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetTraces([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+    {
+        var logs = await _aiLogService.GetAllLogsAsync(page, pageSize);
+        return Ok(logs);
     }
 }

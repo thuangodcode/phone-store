@@ -28,4 +28,5 @@ public class MongoDbContext
     public IMongoCollection<ChatSession> ChatSessions => _database.GetCollection<ChatSession>("chat_sessions");
     public IMongoCollection<OrderAuditLog> OrderAuditLogs => _database.GetCollection<OrderAuditLog>("order_audit_logs");
     public IMongoCollection<Banner> Banners => _database.GetCollection<Banner>("banners");
+    public IMongoCollection<AILog> AILogs => _database.GetCollection<AILog>("ai_logs");
 }

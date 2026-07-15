@@ -69,6 +69,7 @@ builder.Services.AddHttpClient<PhoneStore.Application.Interfaces.AI.IAIProvider,
 builder.Services.AddSingleton<PhoneStore.Application.Interfaces.AI.IAIMemoryService, PhoneStore.Infrastructure.AI.Memory.InMemoryChatContext>();
 builder.Services.AddScoped<PhoneStore.Application.Interfaces.AI.IToolRegistry, PhoneStore.Infrastructure.AI.Tools.ToolRegistry>();
 builder.Services.AddScoped<PhoneStore.Application.Interfaces.AI.IAIAgentService, PhoneStore.Infrastructure.AI.Agent.AIAgentService>();
+builder.Services.AddScoped<PhoneStore.Application.Interfaces.AI.IAILogService, PhoneStore.Infrastructure.AI.Services.AILogService>();
 builder.Services.AddTransient<PhoneStore.Infrastructure.AI.Tools.SearchProductsTool>();
 builder.Services.AddTransient<PhoneStore.Infrastructure.AI.Tools.GetRevenueAnalyticsTool>();
 // Register Data Seeder
