@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axiosClient from '../../api/axiosClient';
 import { ProductCard } from '../../components/Product/ProductCard';
 import type { Product } from '../../types';
+import ThreeDCarousel from '../../components/ui/ThreeDCarousel';
 
 export const HomePage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -23,13 +24,27 @@ export const HomePage: React.FC = () => {
     fetchProducts();
   }, []);
 
+  const highestPricedProducts = [...products].sort((a, b) => b.price - a.price).slice(0, 8);
+  const carouselImages = highestPricedProducts.map(p => p.images?.[0]).filter(Boolean) as string[];
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold text-center mb-8">Welcome to PhoneStore</h1>
-      <p className="text-center text-gray-600 max-w-2xl mx-auto">
-        Discover the latest smartphones with cutting-edge technology. 
-        Browse our collection of premium devices from top brands around the world.
-      </p>
+    <div className="container mx-auto px-4 py-8 overflow-hidden">
+      <div className="mb-8 flex flex-col items-center">
+        <h1 className="text-4xl font-bold text-center mb-2">Sản phẩm nổi bật</h1>
+        <p className="text-center text-gray-500 mb-8">Những thiết bị cao cấp nhất dành cho bạn</p>
+        <div className="w-full h-[350px] sm:h-[400px] relative z-0">
+          {!loading && carouselImages.length > 0 ? (
+            <ThreeDCarousel images={carouselImages} />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="animate-pulse flex flex-col items-center">
+                <div className="w-32 h-40 bg-gray-200 rounded-xl mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-24"></div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="mt-12">
         <h2 className="text-2xl font-bold mb-6 text-gray-800">Featured Products</h2>
