@@ -79,7 +79,7 @@ export const CustomerChatWidget: React.FC = () => {
   useEffect(() => {
     if (showProductModal && products.length === 0) {
       axiosClient.get('/products?pageSize=10').then((res: any) => {
-        setProducts(res.data?.data?.items || []);
+        setProducts(res.data?.items || []);
       }).catch(console.error);
     }
   }, [showProductModal]);
@@ -178,7 +178,7 @@ export const CustomerChatWidget: React.FC = () => {
                 <div className="flex-1 overflow-y-auto p-2">
                   {products.map(p => (
                     <div key={p.id} onClick={() => { sendMessage(undefined, `[PRODUCT]:${p.id}`); setShowProductModal(false); }} className="flex items-center gap-3 p-2 hover:bg-blue-50 cursor-pointer rounded-lg border-b">
-                      <img src={p.imageUrl} className="w-10 h-10 object-cover rounded" alt={p.name} />
+                      <img src={p.images?.[0] || 'https://via.placeholder.com/40'} className="w-10 h-10 object-cover rounded" alt={p.name} />
                       <div className="flex-1 text-xs">
                         <div className="font-bold line-clamp-1">{p.name}</div>
                         <div className="text-blue-600">{p.price?.toLocaleString('vi-VN')} đ</div>

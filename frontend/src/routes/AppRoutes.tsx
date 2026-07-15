@@ -26,6 +26,7 @@ import { StaffBannersPage } from '../pages/Staff/Banners/StaffBannersPage';
 import { StaffChatPage } from '../pages/Staff/Chat/StaffChat';
 import { ProfilePage } from '../pages/Profile/ProfilePage';
 import { CustomerOrdersPage } from '../pages/Profile/CustomerOrdersPage';
+import { WishlistPage } from '../pages/Profile/WishlistPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -48,7 +49,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/payment-success" element={<PaymentSuccessPage />} />
-          <Route path="/wishlist" element={<div className="p-8 text-center text-xl">Wishlist Page (WIP)</div>} />
+          <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/history" element={<CustomerOrdersPage />} />
         </Route>

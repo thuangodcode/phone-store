@@ -1,9 +1,10 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import * as signalR from "@microsoft/signalr";
 import { chatApi } from "../../../api/chatApi";
 import { adminApi } from "../../../api/adminApi";
 import { useAuth } from "../../../contexts/AuthContext";
 import type { ChatSession, ChatMessage } from "../../../types";
+import axiosClient from "../../../api/axiosClient";
 
 export const StaffChatPage: React.FC = () => {
   const { user } = useAuth();
@@ -12,18 +13,28 @@ export const StaffChatPage: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [showQuickReplies, setShowQuickReplies] = useState(false);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
   const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeSessionRef = useRef<ChatSession | null>(null);
 
   const QUICK_REPLIES = [
-    "ChÃ o báº¡n, PhoneStore cÃ³ thá»ƒ giÃºp gÃ¬ cho báº¡n hÃ´m nay?",
-    "Cáº£m Æ¡n quÃ½ khÃ¡ch Ä‘Ã£ quan tÃ¢m Ä‘áº¿n sáº£n pháº©m cá»§a shop.",
-    "Xin quÃ½ khÃ¡ch vui lÃ²ng Ä‘á»ƒ láº¡i sá»‘ Ä‘iá»‡n thoáº¡i Ä‘á»ƒ nhÃ¢n viÃªn tÆ° váº¥n chi tiáº¿t hÆ¡n.",
-    "Sáº£n pháº©m nÃ y hiá»‡n Ä‘ang cÃ³ sáºµn, quÃ½ khÃ¡ch cÃ³ muá»‘n Ä‘áº·t hÃ ng ngay khÃ´ng?",
-    "Xin lá»—i quÃ½ khÃ¡ch vÃ¬ sá»± cháº­m trá»… nÃ y, chÃºng tÃ´i sáº½ kiá»ƒm tra vÃ  pháº£n há»“i láº¡i ngay.",
-    "Cáº£m Æ¡n quÃ½ khÃ¡ch, chÃºc quÃ½ khÃ¡ch má»™t ngÃ y tá»‘t lÃ nh!"
+    "Chào bạn, PhoneStore có thể giúp gì cho bạn hôm nay?",
+    "Cảm ơn quý khách đã quan tâm đến sản phẩm của shop.",
+    "Xin quý khách vui lòng để lại số điện thoại để nhân viên tư vấn chi tiết hơn.",
+    "Sản phẩm này hiện đang có sẵn, quý khách có muốn đặt hàng ngay không?",
+    "Xin lỗi quý khách vì sự chậm trễ này, chúng tôi sẽ kiểm tra và phản hồi lại ngay.",
+    "Cảm ơn quý khách, chúc quý khách một ngày tốt lành!"
   ];
+
+  useEffect(() => {
+    if (showProductModal && products.length === 0) {
+      axiosClient.get('/products?pageSize=10').then((res: any) => {
+        setProducts(res.data?.items || []);
+      }).catch(console.error);
+    }
+  }, [showProductModal]);
 
   useEffect(() => {
     activeSessionRef.current = activeSession;
@@ -192,14 +203,51 @@ export const StaffChatPage: React.FC = () => {
             </div>
             <div className="p-4 bg-white border-t">
               <form onSubmit={handleSend} className="flex gap-2 relative">
+                <button type="button" onClick={() => setShowProductModal(!showProductModal)} className="p-3 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-xl transition-colors" title="Gửi sản phẩm">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                </button>
                 <button 
                   type="button" 
                   onClick={() => setShowQuickReplies(!showQuickReplies)} 
-                  className="p-3 text-gray-500 hover:bg-gray-100 rounded-xl transition-colors" 
-                  title="Tin nháº¯n máº«u"
+                  className="p-3 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-xl transition-colors" 
+                  title="Tin nhắn mẫu"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
                 </button>
+                
+                {showProductModal && (
+                  <div className="absolute bottom-full left-0 mb-2 w-80 bg-white border border-gray-200 shadow-xl rounded-xl overflow-hidden z-10 animate-fade-in-up">
+                    <div className="p-3 font-bold bg-gray-50 border-b text-sm flex justify-between items-center">
+                      Gửi sản phẩm
+                      <button type="button" onClick={() => setShowProductModal(false)} className="text-gray-400 hover:text-gray-600">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                      </button>
+                    </div>
+                    <ul className="max-h-60 overflow-y-auto p-2">
+                      {products.map(p => (
+                        <li 
+                          key={p.id} 
+                          onClick={async () => { 
+                            if (!activeSession) return;
+                            try {
+                              await chatApi.sendMessage(activeSession.id, `[PRODUCT]:${p.id}`);
+                              setShowProductModal(false);
+                            } catch (e) {
+                              console.error(e);
+                            }
+                          }} 
+                          className="flex items-center gap-3 p-2 hover:bg-blue-50 cursor-pointer rounded-lg border-b last:border-0"
+                        >
+                          <img src={p.images?.[0] || 'https://via.placeholder.com/40'} className="w-10 h-10 object-cover rounded" alt={p.name} />
+                          <div className="flex-1 text-xs">
+                            <div className="font-bold line-clamp-1">{p.name}</div>
+                            <div className="text-blue-600">{p.price?.toLocaleString('vi-VN')} đ</div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 
                 {showQuickReplies && (
                   <div className="absolute bottom-full left-0 mb-2 w-80 bg-white border border-gray-200 shadow-xl rounded-xl overflow-hidden z-10 animate-fade-in-up">
