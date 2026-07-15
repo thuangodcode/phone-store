@@ -64,6 +64,12 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IBannerService, BannerService>();
 builder.Services.AddSingleton<IPayOSService, PayOSService>();
 
+// Register AI Services
+builder.Services.AddHttpClient<PhoneStore.Application.Interfaces.AI.IAIProvider, PhoneStore.Infrastructure.AI.Providers.GeminiProvider>();
+builder.Services.AddSingleton<PhoneStore.Application.Interfaces.AI.IAIMemoryService, PhoneStore.Infrastructure.AI.Memory.InMemoryChatContext>();
+builder.Services.AddScoped<PhoneStore.Application.Interfaces.AI.IToolRegistry, PhoneStore.Infrastructure.AI.Tools.ToolRegistry>();
+builder.Services.AddScoped<PhoneStore.Application.Interfaces.AI.IAIAgentService, PhoneStore.Infrastructure.AI.Agent.AIAgentService>();
+builder.Services.AddTransient<PhoneStore.Infrastructure.AI.Tools.SearchProductsTool>();
 // Register Data Seeder
 builder.Services.AddScoped<DataSeeder>();
 
