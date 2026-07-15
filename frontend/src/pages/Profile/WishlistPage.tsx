@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import { wishlistApi } from '../../api/wishlistApi';
 import { cartApi } from '../../api/cartApi';
 import { useCart } from '../../contexts/CartContext';
+import { useWishlist } from '../../contexts/WishlistContext';
 import { toast } from 'react-toastify';
 
 export const WishlistPage: React.FC = () => {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { fetchCart } = useCart();
+  const { removeFromWishlist } = useWishlist();
 
   const fetchWishlist = async () => {
     try {
@@ -31,7 +33,7 @@ export const WishlistPage: React.FC = () => {
 
   const handleRemove = async (productId: string) => {
     try {
-      await wishlistApi.removeFromWishlist(productId);
+      await removeFromWishlist(productId);
       toast.success('Đã xoá khỏi danh sách yêu thích');
       setItems(items.filter(item => item.productId !== productId));
     } catch (error) {

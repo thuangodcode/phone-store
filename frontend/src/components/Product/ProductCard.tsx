@@ -3,9 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import type { Product } from '../../types';
 import { cartApi } from '../../api/cartApi';
-import { wishlistApi } from '../../api/wishlistApi';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
+import { useWishlist } from '../../contexts/WishlistContext';
 
 interface ProductCardProps {
   product: Product;
@@ -27,13 +27,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { fetchCart } = useCart();
-  const [isWishlisted, setIsWishlisted] = React.useState(false);
+  const { isWishlisted, addToWishlist, removeFromWishlist } = useWishlist();
 
-  // Ideally, you'd check if the product is in the user's wishlist globally,
-  // but for immediate feedback we use local state initially.
-  
   const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (!isAuthenticated) {
       toast.info('Vui lòng đăng nhập để thêm vào danh sách yêu thích');
       navigate('/login');
@@ -41,13 +39,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     }
     
     try {
-      if (isWishlisted) {
-        await wishlistApi.removeFromWishlist(product.id);
-        setIsWishlisted(false);
+      if (isWishlisted(product.id)) {
+        await removeFromWishlist(product.id);
         toast.success('Đã xoá khỏi danh sách yêu thích');
       } else {
-        await wishlistApi.addToWishlist(product.id);
-        setIsWishlisted(true);
+        await addToWishlist(product.id);
         toast.success('Đã thêm vào danh sách yêu thích');
       }
     } catch (error) {
@@ -98,7 +94,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             )}
 
             <button 
-              className={`absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2.5 rounded-full transition-colors backdrop-blur-md border border-gray-200 shadow-sm z-10 ${isWishlisted ? 'bg-red-500 text-white border-red-500' : 'bg-white/70 text-gray-600 hover:text-red-500 hover:bg-white'}`}
+              className={`absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2.5 rounded-full transition-colors backdrop-blur-md border border-gray-200 shadow-sm z-10 ${isWishlisted(product.id) ? 'bg-red-500 text-white border-red-500' : 'bg-white/70 text-gray-600 hover:text-red-500 hover:bg-white'}`}
               onClick={handleWishlist}
             >
               <HeartIcon className="w-4 h-4 sm:w-5 sm:h-5" />

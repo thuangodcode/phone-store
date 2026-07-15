@@ -4,12 +4,14 @@ import { useAuth } from '../../contexts/AuthContext';
 import { ShoppingCart, Heart, Search, ChevronDown } from 'lucide-react';
 import { UserDropdown } from './UserDropdown';
 import { useCart } from '../../contexts/CartContext';
+import { useWishlist } from '../../contexts/WishlistContext';
 import { adminApi } from '../../api/adminApi';
 import type { Brand, Product } from '../../types';
 
 export const Header: React.FC = () => {
   const { isAuthenticated, isAdmin, isAdminOrStaff } = useAuth();
   const { cartCount } = useCart();
+  const { wishlistProductIds } = useWishlist();
   const navigate = useNavigate();
 
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -167,6 +169,11 @@ export const Header: React.FC = () => {
             <>
               <Link to="/wishlist" className="text-gray-600 hover:text-primary-600 relative">
                 <Heart size={24} />
+                {wishlistProductIds.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {wishlistProductIds.length}
+                  </span>
+                )}
               </Link>
               <Link to="/cart" className="text-gray-600 hover:text-primary-600 relative">
                 <ShoppingCart size={24} />
