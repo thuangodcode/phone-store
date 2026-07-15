@@ -9,7 +9,7 @@ namespace PhoneStore.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = UserRole.Admin)]
+[Authorize(Roles = UserRole.Admin + "," + UserRole.Staff)]
 public class DashboardController : ControllerBase
 {
     private readonly IDashboardService _dashboardService;
