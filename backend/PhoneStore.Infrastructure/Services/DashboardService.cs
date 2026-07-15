@@ -66,19 +66,19 @@ public class DashboardService : IDashboardService
 
     public async Task<RevenueStatsDto> GetRevenueStatsAsync()
     {
-        var deliveredFilter = Builders<Order>.Filter.Eq(o => o.Status, OrderStatus.Delivered);
+        var revenueFilter = Builders<Order>.Filter.Ne(o => o.Status, OrderStatus.Cancelled);
 
-        var allDelivered = await _context.Orders.Find(deliveredFilter).ToListAsync();
-        var totalRevenue = allDelivered.Sum(o => o.FinalAmount);
+        var validOrders = await _context.Orders.Find(revenueFilter).ToListAsync();
+        var totalRevenue = validOrders.Sum(o => o.FinalAmount);
 
         var today = DateTime.UtcNow.Date;
         var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
 
-        var monthlyRevenue = allDelivered
+        var monthlyRevenue = validOrders
             .Where(o => o.CreatedAt >= firstDayOfMonth)
             .Sum(o => o.FinalAmount);
 
-        var dailyRevenue = allDelivered
+        var dailyRevenue = validOrders
             .Where(o => o.CreatedAt >= today)
             .Sum(o => o.FinalAmount);
 
