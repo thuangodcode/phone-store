@@ -123,7 +123,7 @@ export const DashboardPage: React.FC = () => {
                 <Tooltip 
                   cursor={{fill: '#f9fafb'}}
                   contentStyle={{borderRadius: '0.75rem', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'}}
-                  formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
+                  formatter={(value: any) => [`$${Number(value).toLocaleString()}`, 'Revenue']}
                 />
                 <Bar dataKey="revenue" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={50} />
               </BarChart>
@@ -148,7 +148,7 @@ export const DashboardPage: React.FC = () => {
                     dataKey="value"
                     labelLine={false}
                   >
-                    {orderStatusData.map((entry, index) => (
+                    {orderStatusData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
                   </Pie>
