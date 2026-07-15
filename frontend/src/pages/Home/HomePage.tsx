@@ -25,7 +25,12 @@ export const HomePage: React.FC = () => {
   }, []);
 
   const highestPricedProducts = [...products].sort((a, b) => b.price - a.price).slice(0, 8);
-  const carouselImages = highestPricedProducts.map(p => p.images?.[0]).filter(Boolean) as string[];
+  const carouselProducts = highestPricedProducts.map(p => ({
+    id: p.id,
+    name: p.name,
+    image: p.images?.[0] || 'https://via.placeholder.com/400',
+    price: p.salePrice > 0 ? p.salePrice : p.price
+  }));
 
   return (
     <div className="container mx-auto px-4 py-8 overflow-hidden">
@@ -33,8 +38,8 @@ export const HomePage: React.FC = () => {
         <h1 className="text-4xl font-bold text-center mb-2">Sản phẩm nổi bật</h1>
         <p className="text-center text-gray-500 mb-8">Những thiết bị cao cấp nhất dành cho bạn</p>
         <div className="w-full h-[350px] sm:h-[400px] relative z-0">
-          {!loading && carouselImages.length > 0 ? (
-            <ThreeDCarousel images={carouselImages} />
+          {!loading && carouselProducts.length > 0 ? (
+            <ThreeDCarousel products={carouselProducts} />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <div className="animate-pulse flex flex-col items-center">

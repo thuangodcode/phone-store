@@ -1,5 +1,6 @@
 'use client';
 import React, { useMemo, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 /* 1️⃣  Assets ————————————————————————— */
 const FALLBACK =
@@ -8,13 +9,9 @@ const FALLBACK =
   'fill="%23e2e8f0"/><text x="50%" y="50%" dominant-baseline="middle"' +
   ' text-anchor="middle" fill="%234a5568" font-size="18">Image</text></svg>';
 
-const DEFAULT_IMAGES = [
-  'https://i.pinimg.com/736x/9f/09/45/9f0945103fc6158cb16e1828a2665b5c.jpg',
-  'https://i.pinimg.com/1200x/6e/4c/39/6e4c394783c731f261f295e7ffd1deed.jpg',
-  'https://i.pinimg.com/1200x/1e/0c/1c/1e0c1c9c868bf07b4c27a275fb3087af.jpg',
-  'https://i.pinimg.com/736x/30/91/09/3091098a15810ddbbd58d5e007bc7207.jpg',
-  'https://i.pinimg.com/736x/07/cf/4a/07cf4a3a6f4144b4c7ac8e2ec5978dc1.jpg',
-  'https://i.pinimg.com/736x/5d/bf/f2/5dbff2b4c0fdcb9815e989f0db386f95.jpg',
+const DEFAULT_PRODUCTS = [
+  { id: '1', name: 'iPhone 15 Pro', image: 'https://i.pinimg.com/736x/9f/09/45/9f0945103fc6158cb16e1828a2665b5c.jpg', price: 25000000 },
+  { id: '2', name: 'Samsung Galaxy S24', image: 'https://i.pinimg.com/1200x/6e/4c/39/6e4c394783c731f261f295e7ffd1deed.jpg', price: 23000000 },
 ];
 
 /* 2️⃣  Config ————————————————————————— */
@@ -28,16 +25,24 @@ const AUTOSPIN_SPEED = 0.08;
 const IDLE_TIMEOUT = 2000;
 
 /* 3️⃣  Card Component (Memoized for Performance) ——— */
+export interface CarouselProduct {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+}
+
 interface CardProps {
-  src: string;
+  product: CarouselProduct;
   transform: string;
   cardW: number;
   cardH: number;
+  onClick: (id: string) => void;
 }
 
-const Card = React.memo(({ src, transform, cardW, cardH }: CardProps) => (
+const Card = React.memo(({ product, transform, cardW, cardH, onClick }: CardProps) => (
   <div
-    className="absolute"
+    className="absolute cursor-pointer"
     style={{
       width: cardW,
       height: cardH,
@@ -45,26 +50,32 @@ const Card = React.memo(({ src, transform, cardW, cardH }: CardProps) => (
       transformStyle: 'preserve-3d',
       willChange: 'transform',
     }}
+    onClick={() => onClick(product.id)}
   >
     <div
       className="w-full h-full rounded-2xl overflow-hidden bg-white dark:bg-gray-800
-                 border border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-gray-900/50
-                 transition-transform duration-300 hover:scale-105 hover:shadow-2xl dark:hover:shadow-gray-900/70
-                 hover:z-10"
+                 border border-gray-200 dark:border-gray-700 shadow-xl dark:shadow-gray-900/50
+                 transition-all duration-300 hover:scale-105 hover:shadow-2xl dark:hover:shadow-gray-900/70
+                 hover:z-10 group relative"
       style={{ backfaceVisibility: 'hidden' }}
     >
       <img
-        src={src}
-        alt="Carousel item"
+        src={product.image}
+        alt={product.name}
         width={cardW}
         height={cardH}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         loading="lazy"
         draggable="false"
         onError={e => {
           e.currentTarget.src = FALLBACK;
         }}
       />
+      {/* Glassmorphic Overlay for Product Info */}
+      <div className="absolute bottom-0 left-0 right-0 p-3 pt-6 bg-gradient-to-t from-black/90 via-black/50 to-transparent backdrop-blur-[1px]">
+        <h3 className="text-white font-bold text-[15px] leading-tight line-clamp-2 drop-shadow-md mb-1">{product.name}</h3>
+        <p className="text-blue-400 font-semibold text-sm drop-shadow-md">{product.price.toLocaleString('vi-VN')} đ</p>
+      </div>
     </div>
   </div>
 ));
@@ -73,7 +84,7 @@ Card.displayName = 'Card';
 
 /* 4️⃣  Main component —————————————————— */
 interface ThreeDCarouselProps {
-  images?: string[];
+  products?: CarouselProduct[];
   radius?: number;
   cardW?: number;
   cardH?: number;
@@ -81,7 +92,7 @@ interface ThreeDCarouselProps {
 
 const ThreeDCarousel = React.memo(
   ({
-    images = DEFAULT_IMAGES,
+    products = DEFAULT_PRODUCTS,
     radius = RADIUS,
     cardW = CARD_W,
     cardH = CARD_H,
@@ -95,9 +106,11 @@ const ThreeDCarousel = React.memo(
     const velocityRef = useRef(0);
     const isDraggingRef = useRef(false);
     const dragStartRef = useRef(0);
+    const dragDistanceRef = useRef(0);
     const initialRotationRef = useRef(0);
     const lastInteractionRef = useRef(Date.now());
     const animationFrameRef = useRef<number | null>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
       const handleMouseMove = (e: MouseEvent) => {
@@ -153,6 +166,7 @@ const ThreeDCarousel = React.memo(
       isDraggingRef.current = true;
       velocityRef.current = 0;
       dragStartRef.current = clientX;
+      dragDistanceRef.current = 0;
       initialRotationRef.current = rotationRef.current;
     }, []);
 
@@ -161,6 +175,7 @@ const ThreeDCarousel = React.memo(
       lastInteractionRef.current = Date.now();
 
       const deltaX = clientX - dragStartRef.current;
+      dragDistanceRef.current = Math.abs(deltaX);
       const newRotation = initialRotationRef.current + deltaX * DRAG_SENSITIVITY;
 
       velocityRef.current = newRotation - rotationRef.current;
@@ -179,18 +194,24 @@ const ThreeDCarousel = React.memo(
     const onTouchStart = (e: React.TouchEvent) => handleDragStart(e.touches[0].clientX);
     const onTouchMove = (e: React.TouchEvent) => handleDragMove(e.touches[0].clientX);
 
-    /* Pre-compute card transforms (only re-computes if images/radius change) */
+    const handleCardClick = useCallback((id: string) => {
+      if (dragDistanceRef.current < 5) {
+        navigate(`/products/${id}`);
+      }
+    }, [navigate]);
+
+    /* Pre-compute card transforms (only re-computes if products/radius change) */
     const cards = useMemo(
       () =>
-        images.map((src, idx) => {
-          const angle = (idx * 360) / images.length;
+        products.map((product, idx) => {
+          const angle = (idx * 360) / products.length;
           return {
             key: idx,
-            src,
+            product,
             transform: `rotateY(${angle}deg) translateZ(${radius}px)`,
           };
         }),
-      [images, radius]
+      [products, radius]
     );
 
     return (
@@ -233,10 +254,11 @@ const ThreeDCarousel = React.memo(
             {cards.map(card => (
               <Card
                 key={card.key}
-                src={card.src}
+                product={card.product}
                 transform={card.transform}
                 cardW={cardW}
                 cardH={cardH}
+                onClick={handleCardClick}
               />
             ))}
           </div>
