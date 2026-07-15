@@ -66,7 +66,8 @@ builder.Services.AddSingleton<IPayOSService, PayOSService>();
 
 // Register AI Services
 builder.Services.AddHttpClient<PhoneStore.Application.Interfaces.AI.IAIProvider, PhoneStore.Infrastructure.AI.Providers.GeminiProvider>();
-builder.Services.AddSingleton<PhoneStore.Application.Interfaces.AI.IAIMemoryService, PhoneStore.Infrastructure.AI.Memory.InMemoryChatContext>();
+builder.Services.AddScoped<PhoneStore.Application.Interfaces.AI.IAIMemoryService, PhoneStore.Infrastructure.AI.Memory.MongoAIChatMemoryService>();
+builder.Services.AddScoped<PhoneStore.Application.Interfaces.AI.IAIChatSessionService, PhoneStore.Infrastructure.AI.Services.AIChatSessionService>();
 builder.Services.AddScoped<PhoneStore.Application.Interfaces.AI.IToolRegistry, PhoneStore.Infrastructure.AI.Tools.ToolRegistry>();
 builder.Services.AddScoped<PhoneStore.Application.Interfaces.AI.IAIAgentService, PhoneStore.Infrastructure.AI.Agent.AIAgentService>();
 builder.Services.AddScoped<PhoneStore.Application.Interfaces.AI.IAILogService, PhoneStore.Infrastructure.AI.Services.AILogService>();

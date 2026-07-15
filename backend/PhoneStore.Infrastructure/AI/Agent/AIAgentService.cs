@@ -11,13 +11,15 @@ public class AIAgentService : IAIAgentService
 {
     private readonly IAIProvider _aiProvider;
     private readonly IAIMemoryService _memoryService;
+    private readonly IAIChatSessionService _sessionService;
     private readonly IToolRegistry _toolRegistry;
     private readonly IAILogService _logService;
 
-    public AIAgentService(IAIProvider aiProvider, IAIMemoryService memoryService, IToolRegistry toolRegistry, IAILogService logService)
+    public AIAgentService(IAIProvider aiProvider, IAIMemoryService memoryService, IAIChatSessionService sessionService, IToolRegistry toolRegistry, IAILogService logService)
     {
         _aiProvider = aiProvider;
         _memoryService = memoryService;
+        _sessionService = sessionService;
         _toolRegistry = toolRegistry;
         _logService = logService;
     }
@@ -28,6 +30,7 @@ public class AIAgentService : IAIAgentService
         if (string.IsNullOrEmpty(sessionId))
         {
             sessionId = Guid.NewGuid().ToString();
+            await _sessionService.CreateSessionAsync(userId, role, $"Cuộc trò chuyện AI {DateTime.UtcNow:yyyy-MM-dd HH:mm}", sessionId);
         }
 
         // 1. Save user message to memory

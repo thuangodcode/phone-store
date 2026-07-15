@@ -26,6 +26,8 @@ public class MongoDbContext
     public IMongoCollection<Article> Articles => _database.GetCollection<Article>("articles");
     public IMongoCollection<ChatMessage> ChatMessages => _database.GetCollection<ChatMessage>("chat_messages");
     public IMongoCollection<ChatSession> ChatSessions => _database.GetCollection<ChatSession>("chat_sessions");
+    public IMongoCollection<AIChatMessage> AIChatMessages => _database.GetCollection<AIChatMessage>("ai_chat_messages");
+    public IMongoCollection<AIChatSession> AIChatSessions => _database.GetCollection<AIChatSession>("ai_chat_sessions");
     public IMongoCollection<OrderAuditLog> OrderAuditLogs => _database.GetCollection<OrderAuditLog>("order_audit_logs");
     public IMongoCollection<Banner> Banners => _database.GetCollection<Banner>("banners");
     public IMongoCollection<AILog> AILogs => _database.GetCollection<AILog>("ai_logs");
