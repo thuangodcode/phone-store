@@ -77,8 +77,10 @@ export const LoginPage: React.FC = () => {
       if (res.data) {
         login(res.data.user, res.data.token);
         toast.success('Login successful!');
-        if (res.data.user.role?.toLowerCase() === 'admin' || res.data.user.role?.toLowerCase() === 'staff') {
+        if (res.data.user.role?.toLowerCase() === 'admin') {
           navigate('/admin');
+        } else if (res.data.user.role?.toLowerCase() === 'staff') {
+          navigate('/staff');
         } else {
           navigate('/');
         }

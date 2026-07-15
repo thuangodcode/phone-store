@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { MainLayout } from '../components/Layout/MainLayout';
 import { AdminLayout } from '../components/Layout/AdminLayout';
-import { ProtectedRoute, AdminRoute, AdminOrStaffRoute } from './ProtectedRoutes';
+import { ProtectedRoute, AdminRoute, StaffRoute } from './ProtectedRoutes';
 import { HomePage } from '../pages/Home/HomePage';
 import { ProductDetailPage } from '../pages/Home/ProductDetailPage';
 import { CartPage } from '../pages/Cart/CartPage';
@@ -53,22 +53,27 @@ export const AppRoutes: React.FC = () => {
         </Route>
       </Route>
 
-      {/* Admin/Staff Routes with Admin Layout */}
-      <Route path="/admin" element={<AdminOrStaffRoute />}>
+      {/* Admin Routes with Admin Layout */}
+      <Route path="/admin" element={<AdminRoute />}>
+        <Route element={<AdminLayout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="orders" element={<AdminOrdersPage />} />
+          <Route path="products" element={<AdminProductsPage />} />
+          <Route path="brands" element={<AdminBrandsPage />} />
+          <Route path="categories" element={<AdminCategoriesPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="vouchers" element={<AdminVouchersPage />} />
+        </Route>
+      </Route>
+
+      {/* Staff Routes with Admin Layout */}
+      <Route path="/staff" element={<StaffRoute />}>
         <Route element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="orders" element={<AdminOrdersPage />} />
           <Route path="staff-products" element={<StaffProductsPage />} />
           <Route path="promotions" element={<StaffPromotionsPage />} />
           <Route path="chat" element={<StaffChatPage />} />
-          {/* Admin Only Routes */}
-          <Route element={<AdminRoute />}>
-            <Route path="products" element={<AdminProductsPage />} />
-            <Route path="brands" element={<AdminBrandsPage />} />
-            <Route path="categories" element={<AdminCategoriesPage />} />
-            <Route path="users" element={<AdminUsersPage />} />
-            <Route path="vouchers" element={<AdminVouchersPage />} />
-          </Route>
         </Route>
       </Route>
     </Routes>

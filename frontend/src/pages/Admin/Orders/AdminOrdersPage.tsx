@@ -154,7 +154,16 @@ export const AdminOrdersPage: React.FC = () => {
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="p-4">
                       <div className="font-medium text-gray-900">#{order.orderCode}</div>
-                      <div className="text-xs text-gray-500 mt-1">{order.paymentMethod === 'PayOS' ? 'Chuyển khoản' : 'Thanh toán tại cửa hàng'}</div>
+                      <div className="mt-2">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-semibold ${
+                          order.paymentMethod === 'PayOS' 
+                            ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                            : 'bg-purple-50 text-purple-700 border border-purple-200'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${order.paymentMethod === 'PayOS' ? 'bg-blue-500' : 'bg-purple-500'}`}></span>
+                          {order.paymentMethod === 'PayOS' ? 'Chuyển khoản Online' : 'Nhận & Thanh toán tại cửa hàng'}
+                        </span>
+                      </div>
                     </td>
                     <td className="p-4">
                       <div className="font-medium text-gray-900">{order.receiverName}</div>

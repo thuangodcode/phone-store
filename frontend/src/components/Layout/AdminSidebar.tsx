@@ -22,17 +22,19 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen }) => {
   const location = useLocation();
   const { isStaff } = useAuth();
 
+  const prefix = isStaff ? '/staff' : '/admin';
+
   const links = [
-    { name: 'Bảng điều khiển', path: '/admin', icon: <LayoutDashboard size={20} />, adminOnly: false },
-    { name: 'Sản phẩm (QTV)', path: '/admin/products', icon: <Smartphone size={20} />, adminOnly: true },
-    { name: 'Kho sản phẩm', path: '/admin/staff-products', icon: <Smartphone size={20} />, adminOnly: false, staffOnly: true },
-    { name: 'Thương hiệu', path: '/admin/brands', icon: <Tags size={20} />, adminOnly: true },
-    { name: 'Danh mục', path: '/admin/categories', icon: <Layers size={20} />, adminOnly: true },
-    { name: 'Đơn hàng', path: '/admin/orders', icon: <ShoppingCart size={20} />, adminOnly: false },
-    { name: 'Khuyến mãi', path: '/admin/promotions', icon: <FileText size={20} />, adminOnly: false, staffOnly: true },
-    { name: 'Chat trực tuyến', path: '/admin/chat', icon: <MessageSquare size={20} />, adminOnly: false, staffOnly: true },
-    { name: 'Người dùng', path: '/admin/users', icon: <Users size={20} />, adminOnly: true },
-    { name: 'Mã giảm giá', path: '/admin/vouchers', icon: <Ticket size={20} />, adminOnly: true },
+    { name: 'Bảng điều khiển', path: `${prefix}`, icon: <LayoutDashboard size={20} />, adminOnly: false },
+    { name: 'Sản phẩm (QTV)', path: `${prefix}/products`, icon: <Smartphone size={20} />, adminOnly: true },
+    { name: 'Kho sản phẩm', path: `${prefix}/staff-products`, icon: <Smartphone size={20} />, adminOnly: false, staffOnly: true },
+    { name: 'Thương hiệu', path: `${prefix}/brands`, icon: <Tags size={20} />, adminOnly: true },
+    { name: 'Danh mục', path: `${prefix}/categories`, icon: <Layers size={20} />, adminOnly: true },
+    { name: 'Đơn hàng', path: `${prefix}/orders`, icon: <ShoppingCart size={20} />, adminOnly: false },
+    { name: 'Khuyến mãi', path: `${prefix}/promotions`, icon: <FileText size={20} />, adminOnly: false, staffOnly: true },
+    { name: 'Chat trực tuyến', path: `${prefix}/chat`, icon: <MessageSquare size={20} />, adminOnly: false, staffOnly: true },
+    { name: 'Người dùng', path: `${prefix}/users`, icon: <Users size={20} />, adminOnly: true },
+    { name: 'Mã giảm giá', path: `${prefix}/vouchers`, icon: <Ticket size={20} />, adminOnly: true },
   ];
 
   const visibleLinks = links.filter(link => {
