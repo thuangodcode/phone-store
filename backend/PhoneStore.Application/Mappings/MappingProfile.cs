@@ -38,6 +38,7 @@ public class MappingProfile : Profile
         // Order
         CreateMap<Order, OrderDto>();
         CreateMap<OrderItem, OrderItemDto>();
+        CreateMap<OrderAuditLog, OrderAuditLogDto>();
 
         // Review
         CreateMap<Review, ReviewDto>();
