@@ -35,16 +35,6 @@ const createConversation = () => {
   } as Conversation;
 };
 
-const getUserRoleLabel = (role: string) => {
-  switch (role.toLowerCase()) {
-    case 'admin': return 'Quản trị viên';
-    case 'staff': return 'Nhân viên';
-    case 'customer': return 'Khách hàng';
-    case 'guest': return 'Khách vãng lai';
-    default: return role;
-  }
-};
-
 const deriveConversationTitle = (conversation: Conversation) => {
   const firstUserMessage = conversation.messages.find((message) => message.role === 'user');
   if (firstUserMessage) {
