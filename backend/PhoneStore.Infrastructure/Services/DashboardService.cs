@@ -66,7 +66,7 @@ public class DashboardService : IDashboardService
 
     public async Task<RevenueStatsDto> GetRevenueStatsAsync()
     {
-        var revenueFilter = Builders<Order>.Filter.Ne(o => o.Status, OrderStatus.Cancelled);
+        var revenueFilter = Builders<Order>.Filter.Eq(o => o.PaymentStatus, "Paid");
 
         var validOrders = await _context.Orders.Find(revenueFilter).ToListAsync();
         var totalRevenue = validOrders.Sum(o => o.FinalAmount);
