@@ -247,3 +247,19 @@ export interface ApiResponse<T = any> {
   data: T;
   errors?: string[];
 }
+
+export interface Banner {
+  id: string;
+  title: string;
+  imageUrl: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface CreateBannerDto {
+  title: string;
+  imageUrl: string;
+  isActive: boolean;
+}
+
+export interface UpdateBannerDto extends CreateBannerDto {}

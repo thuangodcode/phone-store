@@ -22,6 +22,7 @@ import { AdminUsersPage } from '../pages/Admin/Users/AdminUsersPage';
 import { AdminVouchersPage } from '../pages/Admin/Vouchers/AdminVouchersPage';
 import { StaffProductsPage } from '../pages/Staff/Products/StaffProductsPage';
 import { StaffPromotionsPage } from '../pages/Staff/Promotions/StaffPromotionsPage';
+import { StaffBannersPage } from '../pages/Staff/Banners/StaffBannersPage';
 import { StaffChatPage } from '../pages/Staff/Chat/StaffChat';
 import { ProfilePage } from '../pages/Profile/ProfilePage';
 import { CustomerOrdersPage } from '../pages/Profile/CustomerOrdersPage';
@@ -73,6 +74,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="orders" element={<AdminOrdersPage />} />
           <Route path="staff-products" element={<StaffProductsPage />} />
           <Route path="promotions" element={<StaffPromotionsPage />} />
+          <Route path="banners" element={<StaffBannersPage />} />
           <Route path="chat" element={<StaffChatPage />} />
         </Route>
       </Route>

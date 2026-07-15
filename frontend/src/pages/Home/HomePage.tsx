@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import axiosClient from '../../api/axiosClient';
+import { adminApi } from '../../api/adminApi';
 import { ProductCard } from '../../components/Product/ProductCard';
-import type { Product } from '../../types';
+import type { Product, Banner } from '../../types';
 import ThreeDCarousel from '../../components/ui/ThreeDCarousel';
 import { useSearchParams } from 'react-router-dom';
 import { Filter, SortAsc, SortDesc, X } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [activeBanner, setActiveBanner] = useState<Banner | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   
@@ -17,19 +19,22 @@ export const HomePage: React.FC = () => {
   const [priceFilter, setPriceFilter] = useState<string>('default');
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        // Fetch a large number of products to group them on the frontend
-        const response = await axiosClient.get('/products?pageSize=1000');
-        setProducts(response.data?.items || []);
+        const [productsRes, banner] = await Promise.all([
+          axiosClient.get('/products?pageSize=1000'),
+          adminApi.getActiveBanner()
+        ]);
+        setProducts(productsRes.data?.items || []);
+        setActiveBanner(banner);
       } catch (error) {
-        console.error('Failed to fetch products', error);
+        console.error('Failed to fetch data', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
 
   const highestPricedProducts = useMemo(() => {
@@ -99,27 +104,48 @@ export const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 overflow-hidden">
-      {!isFiltering && (
-        <div className="mb-8 flex flex-col items-center">
-          <h1 className="text-4xl font-bold text-center mb-2">Sản phẩm nổi bật</h1>
-          <p className="text-center text-gray-500 mb-8">Những thiết bị cao cấp nhất dành cho bạn</p>
-          <div className="w-full h-[350px] sm:h-[400px] relative z-0">
-            {!loading && carouselProducts.length > 0 ? (
-              <ThreeDCarousel products={carouselProducts} />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="animate-pulse flex flex-col items-center">
-                  <div className="w-32 h-40 bg-gray-200 rounded-xl mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-24"></div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Top Banner & Carousel Section */}
+      <div 
+        className="relative pt-12 pb-16 overflow-hidden bg-gray-900"
+        style={activeBanner?.imageUrl ? {
+          backgroundImage: `url(${activeBanner.imageUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        } : undefined}
+      >
+        {/* Dark overlay for better text readability */}
+        {activeBanner?.imageUrl && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"></div>
+        )}
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col items-center">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-center mb-4 text-white tracking-tight drop-shadow-md">
+              Sản phẩm nổi bật
+            </h1>
+            <p className="text-center text-gray-200 mb-12 text-lg sm:text-xl max-w-2xl drop-shadow">
+              Khám phá những thiết bị cao cấp nhất được tuyển chọn dành riêng cho bạn
+            </p>
+            <div className="w-full h-[450px] sm:h-[550px] relative z-0 max-w-6xl mx-auto">
+              {!loading && carouselProducts.length > 0 ? (
+                <ThreeDCarousel products={carouselProducts} />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="animate-pulse flex flex-col items-center">
+                    <div className="w-32 h-40 bg-gray-700/50 rounded-xl mb-4"></div>
+                    <div className="h-4 bg-gray-700/50 rounded w-24"></div>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      )}
+      </div>
 
-      <div className="mt-8 border-b pb-4 mb-8 sticky top-[72px] bg-white/95 backdrop-blur-md z-40 shadow-sm rounded-lg px-4 pt-4">
+      <div className="container mx-auto px-4 py-8">
+        <div className="border-b pb-4 mb-8 sticky top-[72px] bg-white/95 backdrop-blur-md z-40 shadow-sm rounded-lg px-4 pt-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center text-gray-700 font-medium mr-2">
             <Filter className="w-5 h-5 mr-1" /> Bộ lọc:
@@ -239,6 +265,7 @@ export const HomePage: React.FC = () => {
           </div>
         )}
       </div>
+    </div>
       <style>{`
         .font-space-grotesk {
           font-family: 'Space Grotesk', sans-serif;

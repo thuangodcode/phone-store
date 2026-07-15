@@ -45,6 +45,7 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Wishlis
 builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Articles);
 builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().ChatMessages);
 builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().ChatSessions);
+builder.Services.AddScoped(sp => sp.GetRequiredService<MongoDbContext>().Banners);
 
 // Register Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -60,6 +61,7 @@ builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IBannerService, BannerService>();
 builder.Services.AddSingleton<IPayOSService, PayOSService>();
 
 // Register Data Seeder

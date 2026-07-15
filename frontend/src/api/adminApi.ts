@@ -19,6 +19,9 @@ import type {
   UpdateVoucherDto,
   ChatSession,
   ChatMessage,
+  Banner,
+  CreateBannerDto,
+  UpdateBannerDto,
 } from '../types';
 
 export const adminApi = {
@@ -177,6 +180,41 @@ export const adminApi = {
 
   assignStaffToSession: async (sessionId: string): Promise<ChatSession> => {
     const res = await axiosClient.post(`/chat/sessions/${sessionId}/assign`) as unknown as ApiResponse<ChatSession>;
+    return res.data;
+  },
+
+  // Banners
+  getBanners: async (): Promise<Banner[]> => {
+    const res = await axiosClient.get('/banners') as unknown as ApiResponse<Banner[]>;
+    return res.data || [];
+  },
+
+  getActiveBanner: async (): Promise<Banner | null> => {
+    try {
+      const res = await axiosClient.get('/banners/active') as unknown as ApiResponse<Banner>;
+      return res.data;
+    } catch {
+      return null;
+    }
+  },
+
+  createBanner: async (data: CreateBannerDto): Promise<Banner> => {
+    const res = await axiosClient.post('/banners', data) as unknown as ApiResponse<Banner>;
+    return res.data;
+  },
+
+  updateBanner: async (id: string, data: UpdateBannerDto): Promise<Banner> => {
+    const res = await axiosClient.put(`/banners/${id}`, data) as unknown as ApiResponse<Banner>;
+    return res.data;
+  },
+
+  deleteBanner: async (id: string): Promise<boolean> => {
+    const res = await axiosClient.delete(`/banners/${id}`) as unknown as ApiResponse<boolean>;
+    return res.data;
+  },
+
+  toggleBannerStatus: async (id: string): Promise<Banner> => {
+    const res = await axiosClient.patch(`/banners/${id}/toggle`) as unknown as ApiResponse<Banner>;
     return res.data;
   },
 };

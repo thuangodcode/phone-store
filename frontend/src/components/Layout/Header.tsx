@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ShoppingCart, Heart, Search, ChevronDown } from 'lucide-react';
 import { UserDropdown } from './UserDropdown';
 import { useCart } from '../../contexts/CartContext';
 import { adminApi } from '../../api/adminApi';
-import type { Brand } from '../../types';
+import type { Brand, Product } from '../../types';
 
 export const Header: React.FC = () => {
   const { isAuthenticated, isAdmin, isAdminOrStaff } = useAuth();
@@ -14,6 +14,9 @@ export const Header: React.FC = () => {
 
   const [brands, setBrands] = useState<Brand[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchBrands = async () => {
@@ -25,8 +28,38 @@ export const Header: React.FC = () => {
     fetchBrands();
   }, []);
 
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (!searchQuery.trim()) {
+        setSuggestions([]);
+        return;
+      }
+      try {
+        const res = await adminApi.getProducts(1, 6, false, searchQuery.trim());
+        setSuggestions(res.items || []);
+      } catch (e) {}
+    };
+
+    const timer = setTimeout(() => {
+      fetchSuggestions();
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setShowSuggestions(false);
     if (searchQuery.trim()) {
       navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
     } else {
@@ -41,18 +74,63 @@ export const Header: React.FC = () => {
           PhoneStore
         </Link>
 
-        {/* Search Bar - added to middle */}
-        <div className="flex-1 max-w-lg hidden md:block px-6">
+        {/* Search Bar with Autocomplete */}
+        <div className="flex-1 max-w-lg hidden md:block px-6 relative" ref={searchContainerRef}>
           <form onSubmit={handleSearch} className="relative">
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => {
+                if (searchQuery.trim()) setShowSuggestions(true);
+              }}
               placeholder="Tìm kiếm điện thoại..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white"
             />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 cursor-pointer" onClick={handleSearch} />
           </form>
+
+          {/* Autocomplete Dropdown */}
+          {showSuggestions && searchQuery.trim() && (
+            <div className="absolute top-full left-6 right-6 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden z-50">
+              {suggestions.length > 0 ? (
+                <div className="py-2 max-h-80 overflow-y-auto">
+                  {suggestions.map(product => (
+                    <div 
+                      key={product.id}
+                      onClick={() => {
+                        setShowSuggestions(false);
+                        navigate(`/products/${product.id}`);
+                        setSearchQuery('');
+                      }}
+                      className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
+                    >
+                      <img src={product.images[0] || 'https://via.placeholder.com/40'} alt={product.name} className="w-12 h-12 object-cover rounded-md border mr-3 bg-white" />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-semibold text-gray-900 truncate">{product.name}</h4>
+                        <p className="text-xs font-bold text-red-600 mt-1">
+                          {product.salePrice > 0 ? product.salePrice.toLocaleString('vi-VN') : product.price.toLocaleString('vi-VN')} đ
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  <div 
+                    onClick={handleSearch}
+                    className="px-4 py-2 text-center text-sm text-primary-600 font-medium hover:bg-gray-50 cursor-pointer border-t"
+                  >
+                    Xem tất cả kết quả
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 text-center text-sm text-gray-500">
+                  Không tìm thấy "{searchQuery}"
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <nav className="hidden lg:flex items-center space-x-6 mr-6">

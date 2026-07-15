@@ -1,5 +1,6 @@
 using MongoDB.Driver;
 using PhoneStore.Domain.Entities;
+using Microsoft.Extensions.Options;
 
 namespace PhoneStore.Infrastructure.Data;
 
@@ -26,4 +27,5 @@ public class MongoDbContext
     public IMongoCollection<ChatMessage> ChatMessages => _database.GetCollection<ChatMessage>("chat_messages");
     public IMongoCollection<ChatSession> ChatSessions => _database.GetCollection<ChatSession>("chat_sessions");
     public IMongoCollection<OrderAuditLog> OrderAuditLogs => _database.GetCollection<OrderAuditLog>("order_audit_logs");
+    public IMongoCollection<Banner> Banners => _database.GetCollection<Banner>("banners");
 }
