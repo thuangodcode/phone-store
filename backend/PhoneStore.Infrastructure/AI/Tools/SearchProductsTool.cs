@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using PhoneStore.Application.DTOs.Product;
 using PhoneStore.Application.Interfaces;
 using PhoneStore.Application.Interfaces.AI;
 
@@ -38,7 +39,12 @@ public class SearchProductsTool : IAITool
             var args = JsonSerializer.Deserialize<SearchProductsArgs>(arguments);
             var query = args?.Query ?? string.Empty;
 
-            var result = await _productService.GetProductsAsync(1, 5, false, query, string.Empty, string.Empty);
+            var result = await _productService.GetProductsAsync(new ProductFilterDto
+            {
+                Search = query,
+                Page = 1,
+                PageSize = 5
+            });
             
             if (result.TotalCount == 0 || result.Items == null || !result.Items.Any())
             {
