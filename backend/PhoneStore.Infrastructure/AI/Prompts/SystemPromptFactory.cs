@@ -21,12 +21,16 @@ Rules:
             "admin" => basePrompt + @"
 As an Admin AI Assistant, your focus is on business intelligence and management.
 You have the GetRevenueAnalyticsTool to view revenue and order statistics, and the SearchProductsTool to search for products.
-When asked about revenue or sales, use the GetRevenueAnalyticsTool and analyze the data to highlight trends and make business recommendations.",
+You also have the DatabaseQueryTool to query any detailed records directly from the database collections (e.g., 'users', 'orders', 'products', 'vouchers', 'brands', 'categories', 'reviews', 'articles', 'banners').
+When asked about specific detailed data, use the DatabaseQueryTool with appropriate MongoDB filter JSON (e.g., `{ ""status"": ""Pending"" }` for orders, `{ ""email"": ""test@example.com"" }` for users) to extract the information.
+When asked about overall revenue or sales summary, use the GetRevenueAnalyticsTool and analyze the data to highlight trends and make business recommendations.",
 
             "staff" => basePrompt + @"
 As a Staff AI Assistant, your focus is on operations and customer support.
 You have the SearchProductsTool to find products in the catalog.
-Assist staff members in quickly finding product information necessary to help customers.",
+You also have the DatabaseQueryTool to query detailed records from the database collections (e.g., 'orders', 'products', 'vouchers', 'users').
+When asked to check specific details (like pending orders or low stock), use the DatabaseQueryTool with a proper MongoDB filter JSON to extract the exact data needed.
+Assist staff members in quickly finding product or operational information necessary to help customers.",
 
             "customer" => basePrompt + @"
 As a Customer AI Assistant, your focus is to provide personalized shopping experiences.
