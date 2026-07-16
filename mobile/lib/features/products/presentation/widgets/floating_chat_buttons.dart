@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/services/api_service.dart';
+import '../customer_chat_page.dart';
 
 class FloatingChatButtons extends StatelessWidget {
   const FloatingChatButtons({super.key});
@@ -43,13 +44,9 @@ class FloatingChatButtons extends StatelessWidget {
             badgeText: 'Live',
             color: const Color(0xFFEF4444), // Primary red brand color
             onPressed: () {
-              _showChatDialog(
-                context: context,
-                title: 'Trò chuyện trực tuyến',
-                icon: Icons.support_agent,
-                accentColor: const Color(0xFFEF4444),
-                welcomeMessage: 'Chào bạn! Nhân viên tư vấn của PhoneStore đã sẵn sàng hỗ trợ. Hãy gửi tin nhắn cho chúng tôi nhé!',
-                isAi: false,
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CustomerChatPage()),
               );
             },
           ),

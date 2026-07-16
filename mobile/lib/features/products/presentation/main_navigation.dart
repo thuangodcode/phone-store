@@ -14,6 +14,7 @@ import '../../../../main.dart';
 import 'settings_page.dart';
 import 'checkout_page.dart';
 import 'order_history_page.dart';
+import 'customer_chat_page.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -2052,6 +2053,12 @@ class _ProfileTabState extends State<ProfileTab> {
                             icon: Icons.chat_bubble_outline_rounded,
                             title: 'Lịch sử chat hỗ trợ',
                             subtitle: 'SignalR & Trợ lý AI logs',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const CustomerChatPage()),
+                              );
+                            },
                           ),
                           const Divider(height: 1, indent: 56, color: Color(0x1F808080)),
                           _buildMenuItem(

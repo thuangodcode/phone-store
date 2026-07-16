@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/services/api_service.dart';
+import '../../../../core/services/auth_provider.dart';
 import '../../products/presentation/main_navigation.dart';
+import '../../staff/presentation/staff_navigation.dart';
+import '../../admin/presentation/admin_navigation.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -34,7 +38,8 @@ class _LoginPageState extends State<LoginPage> {
       _errorMessage = '';
     });
 
-    final result = await ApiService.login(
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final result = await authProvider.login(
       _emailController.text.trim(),
       _passwordController.text,
     );
@@ -48,21 +53,31 @@ class _LoginPageState extends State<LoginPage> {
         // Show success snackbar
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['message']),
+            content: Text(result['message'] ?? 'Đăng nhập thành công!'),
             backgroundColor: const Color(0xFF22C55E), // Green
             behavior: SnackBarBehavior.floating,
           ),
         );
         
-        // Navigate to Main navigation screen and clear stack
+        // Điều hướng tường minh theo role để dọn sạch Navigator stack
+        final role = authProvider.role.toLowerCase();
+        Widget nextScreen;
+        if (role == 'staff') {
+          nextScreen = const StaffNavigation();
+        } else if (role == 'admin') {
+          nextScreen = const AdminNavigation();
+        } else {
+          nextScreen = const MainNavigation();
+        }
+
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const MainNavigation()),
+          MaterialPageRoute(builder: (context) => nextScreen),
           (route) => false,
         );
       } else {
         setState(() {
-          _errorMessage = result['message'];
+          _errorMessage = result['message'] ?? 'Đăng nhập thất bại';
         });
       }
     }

@@ -46,6 +46,12 @@ class ApiService {
     return prefs.containsKey(_tokenKey);
   }
 
+  // Get auth token from local storage
+  static Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_tokenKey);
+  }
+
   // Get currently logged-in user profile from local storage
   static Future<UserInfo?> getSavedUser() async {
     try {
@@ -656,6 +662,222 @@ class ApiService {
       return null;
     } catch (e) {
       print('Check Payment Status Error: $e');
+      return null;
+    }
+  }
+
+  // ==================== CẤU HÌNH API DÀNH CHO STAFF / ADMIN ====================
+
+  // Lấy dữ liệu Dashboard thống kê
+  static Future<Map<String, dynamic>?> getDashboardStats() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/dashboard'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+          return jsonResponse['data'] as Map<String, dynamic>;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Get Dashboard Stats Error: $e');
+      return null;
+    }
+  }
+
+  // Lấy danh sách tất cả các đơn hàng toàn hệ thống
+  static Future<List<dynamic>> getAllOrders({String? status, String? paymentStatus}) async {
+    try {
+      final headers = await _getHeaders();
+      var urlStr = '$baseUrl/orders?page=1&pageSize=100';
+      if (status != null && status.isNotEmpty) {
+        urlStr += '&status=$status';
+      }
+      if (paymentStatus != null && paymentStatus.isNotEmpty) {
+        urlStr += '&paymentStatus=$paymentStatus';
+      }
+      
+      final response = await http.get(
+        Uri.parse(urlStr),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+          final data = jsonResponse['data'];
+          if (data is Map && data.containsKey('items')) {
+            return data['items'] as List<dynamic>;
+          }
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Get All Orders Error: $e');
+      return [];
+    }
+  }
+
+  // Cập nhật trạng thái đơn hàng (Staff / Admin)
+  static Future<Map<String, dynamic>> updateOrderStatus(String orderId, String status) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/orders/$orderId/status'),
+        headers: headers,
+        body: jsonEncode({'status': status}),
+      );
+      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      return jsonResponse;
+    } catch (e) {
+      print('Update Order Status Error: $e');
+      return {'success': false, 'message': 'Lỗi: $e'};
+    }
+  }
+
+  // Cập nhật trạng thái thanh toán đơn hàng (Staff / Admin)
+  static Future<Map<String, dynamic>> updateOrderPaymentStatus(String orderId, String paymentStatus) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/orders/$orderId/payment-status'),
+        headers: headers,
+        body: jsonEncode({'status': paymentStatus}),
+      );
+      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      return jsonResponse;
+    } catch (e) {
+      print('Update Payment Status Error: $e');
+      return {'success': false, 'message': 'Lỗi: $e'};
+    }
+  }
+
+  // Lấy chi tiết đơn hàng kèm Audit Log
+  static Future<Map<String, dynamic>?> getOrderDetail(String orderId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/orders/$orderId'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+          return jsonResponse['data'] as Map<String, dynamic>;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Get Order Detail Error: $e');
+      return null;
+    }
+  }
+
+  // Lấy session chat active của Customer (nếu chưa có tự động tạo mới)
+  static Future<Map<String, dynamic>?> getActiveChatSession() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/chat/session/active'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+          return jsonResponse['data'] as Map<String, dynamic>;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Get Active Chat Session Error: $e');
+      return null;
+    }
+  }
+
+  // Lấy danh sách các session chat hiện tại (Staff / Admin)
+  static Future<List<dynamic>> getChatSessions() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/chat/sessions'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+          return jsonResponse['data'] as List<dynamic>;
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Get Chat Sessions Error: $e');
+      return [];
+    }
+  }
+
+  // Phân công Staff hỗ trợ session chat
+  static Future<Map<String, dynamic>?> assignStaffToSession(String sessionId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/chat/sessions/$sessionId/assign'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+          return jsonResponse['data'] as Map<String, dynamic>;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Assign Staff Error: $e');
+      return null;
+    }
+  }
+
+  // Lấy lịch sử tin nhắn của một phiên chat
+  static Future<List<dynamic>> getChatMessages(String sessionId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/chat/messages/$sessionId'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+          return jsonResponse['data'] as List<dynamic>;
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Get Chat Messages Error: $e');
+      return [];
+    }
+  }
+
+  // Gửi tin nhắn trong phiên chat
+  static Future<Map<String, dynamic>?> sendChatMessage(String sessionId, String content) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/chat/messages/$sessionId'),
+        headers: headers,
+        body: jsonEncode(content),
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+          return jsonResponse['data'] as Map<String, dynamic>;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Send Chat Message Error: $e');
       return null;
     }
   }
