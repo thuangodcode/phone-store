@@ -80,7 +80,7 @@ public class DatabaseQueryTool : IAITool
         }
         catch (Exception ex)
         {
-            return $""Error executing query: {ex.Message}"";
+            return $"Error executing query: {ex.Message}";
         }
     }
 }
