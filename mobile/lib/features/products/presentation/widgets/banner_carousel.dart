@@ -364,7 +364,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(height: 6),
                 Text(
                   promo,
                   maxLines: 2,

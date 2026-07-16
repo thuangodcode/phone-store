@@ -14,6 +14,7 @@ import '../../../../main.dart';
 import 'settings_page.dart';
 import 'checkout_page.dart';
 import 'order_history_page.dart';
+import 'customer_chat_page.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -24,6 +25,8 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
+  final GlobalKey<_CartTabState> _cartKey = GlobalKey<_CartTabState>();
+  final GlobalKey<_WishlistTabState> _wishlistKey = GlobalKey<_WishlistTabState>();
 
   late final List<Widget> _pages;
 
@@ -32,9 +35,9 @@ class _MainNavigationState extends State<MainNavigation> {
     super.initState();
     _pages = [
       const HomePage(),
-      const CartTab(),
+      CartTab(key: _cartKey),
       const SearchTab(),
-      const WishlistTab(),
+      WishlistTab(key: _wishlistKey),
       const ProfileTab(),
     ];
   }
@@ -61,6 +64,11 @@ class _MainNavigationState extends State<MainNavigation> {
                   setState(() {
                     _currentIndex = index;
                   });
+                  if (index == 1) {
+                    _cartKey.currentState?._loadCart();
+                  } else if (index == 3) {
+                    _wishlistKey.currentState?._loadWishlist();
+                  }
                 },
               ),
             ),
@@ -169,7 +177,10 @@ class _CartTabState extends State<CartTab> {
       appBar: AppBar(
         title: Text(
           'Giỏ hàng cá nhân',
-          style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
+          ),
         ),
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
@@ -183,18 +194,26 @@ class _CartTabState extends State<CartTab> {
                   context: context,
                   builder: (context) => AlertDialog(
                     title: const Text('Xác nhận'),
-                    content: const Text('Bạn có chắc chắn muốn xóa toàn bộ sản phẩm trong giỏ hàng?'),
+                    content: const Text(
+                      'Bạn có chắc chắn muốn xóa toàn bộ sản phẩm trong giỏ hàng?',
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
+                        child: const Text(
+                          'Hủy',
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       ),
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);
                           _clearCart();
                         },
-                        child: const Text('Xóa sạch', style: TextStyle(color: Color(0xFFEF4444))),
+                        child: const Text(
+                          'Xóa sạch',
+                          style: TextStyle(color: Color(0xFFEF4444)),
+                        ),
                       ),
                     ],
                   ),
@@ -211,7 +230,9 @@ class _CartTabState extends State<CartTab> {
                   Icon(
                     Icons.shopping_cart_outlined,
                     size: 80,
-                    color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+                    color: isDark
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.black.withOpacity(0.1),
                   ),
                   const SizedBox(height: 16),
                   const Text(
@@ -235,7 +256,10 @@ class _CartTabState extends State<CartTab> {
                     },
                     child: const Text(
                       'MUA SẮM NGAY',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -252,10 +276,15 @@ class _CartTabState extends State<CartTab> {
                       physics: const BouncingScrollPhysics(),
                       itemCount: cartItems.length,
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+                        crossAxisCount: MediaQuery.of(context).size.width > 600
+                            ? 3
+                            : 2,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
-                        childAspectRatio: MediaQuery.of(context).size.width > 600 ? 0.72 : 0.58,
+                        childAspectRatio:
+                            MediaQuery.of(context).size.width > 600
+                            ? 0.72
+                            : 0.58,
                       ),
                       itemBuilder: (context, index) {
                         final item = cartItems[index];
@@ -271,7 +300,9 @@ class _CartTabState extends State<CartTab> {
                       color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE5E7EB),
+                        color: isDark
+                            ? const Color(0xFF1F2937)
+                            : const Color(0xFFE5E7EB),
                         width: 1,
                       ),
                     ),
@@ -352,24 +383,24 @@ class _CartTabState extends State<CartTab> {
                               ),
                               elevation: 0,
                             ),
-                             onPressed: () {
-                               if (_cart != null) {
-                                 Navigator.push(
-                                   context,
-                                   MaterialPageRoute(
-                                     builder: (context) => CheckoutPage(
-                                       cart: _cart!,
-                                       onOrderSuccess: () {
-                                         setState(() {
-                                           _cart = null;
-                                         });
-                                         _loadCart();
-                                       },
-                                     ),
-                                   ),
-                                 );
-                               }
-                             },
+                            onPressed: () {
+                              if (_cart != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CheckoutPage(
+                                      cart: _cart!,
+                                      onOrderSuccess: () {
+                                        setState(() {
+                                          _cart = null;
+                                        });
+                                        _loadCart();
+                                      },
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
                             child: const Text(
                               'TIẾN HÀNH ĐẶT HÀNG',
                               style: TextStyle(
@@ -424,22 +455,30 @@ class _CartTabState extends State<CartTab> {
                   children: [
                     Container(
                       width: double.infinity,
-                      color: _getBgColorForBrand(item.productName.split(' ')[0], isDark),
+                      color: _getBgColorForBrand(
+                        item.productName.split(' ')[0],
+                        isDark,
+                      ),
                       child: Center(
                         child: item.productImage.isNotEmpty
                             ? Image.network(
                                 item.productImage,
                                 fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) => Icon(
-                                  _getIconForBrand(item.productName),
-                                  size: 48,
-                                  color: isDark ? Colors.white70 : const Color(0xFFEF4444),
-                                ),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Icon(
+                                      _getIconForBrand(item.productName),
+                                      size: 48,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : const Color(0xFFEF4444),
+                                    ),
                               )
                             : Icon(
                                 _getIconForBrand(item.productName),
                                 size: 48,
-                                color: isDark ? Colors.white70 : const Color(0xFFEF4444),
+                                color: isDark
+                                    ? Colors.white70
+                                    : const Color(0xFFEF4444),
                               ),
                       ),
                     ),
@@ -507,7 +546,9 @@ class _CartTabState extends State<CartTab> {
                           ),
                         ),
                       Text(
-                        _formatCurrency(item.salePrice > 0 ? item.salePrice : item.price),
+                        _formatCurrency(
+                          item.salePrice > 0 ? item.salePrice : item.price,
+                        ),
                         style: const TextStyle(
                           color: Color(0xFFEF4444),
                           fontWeight: FontWeight.bold,
@@ -521,10 +562,15 @@ class _CartTabState extends State<CartTab> {
                         children: [
                           _buildQtyBtn(
                             Icons.remove,
-                            onTap: () => _updateQuantity(item.productId, item.quantity - 1),
+                            onTap: () => _updateQuantity(
+                              item.productId,
+                              item.quantity - 1,
+                            ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0,
+                            ),
                             child: Text(
                               '${item.quantity}',
                               style: TextStyle(
@@ -536,7 +582,10 @@ class _CartTabState extends State<CartTab> {
                           ),
                           _buildQtyBtn(
                             Icons.add,
-                            onTap: () => _updateQuantity(item.productId, item.quantity + 1),
+                            onTap: () => _updateQuantity(
+                              item.productId,
+                              item.quantity + 1,
+                            ),
                           ),
                         ],
                       ),
@@ -594,14 +643,14 @@ class _SearchTabState extends State<SearchTab> {
 
   Future<void> _performSearch(String query) async {
     if (query.trim().isEmpty) return;
-    
+
     setState(() {
       _isLoading = true;
       _hasSearched = true;
     });
 
     final results = await ApiService.getProducts(search: query);
-    
+
     if (mounted) {
       setState(() {
         _searchResults = results;
@@ -620,7 +669,10 @@ class _SearchTabState extends State<SearchTab> {
       appBar: AppBar(
         title: Text(
           'Tìm kiếm sản phẩm',
-          style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
+          ),
         ),
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
@@ -638,7 +690,9 @@ class _SearchTabState extends State<SearchTab> {
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE5E7EB),
+                  color: isDark
+                      ? const Color(0xFF1F2937)
+                      : const Color(0xFFE5E7EB),
                   width: 1,
                 ),
               ),
@@ -664,7 +718,11 @@ class _SearchTabState extends State<SearchTab> {
                   ),
                   if (_controller.text.isNotEmpty)
                     IconButton(
-                      icon: const Icon(Icons.clear, color: Color(0xFF6B7280), size: 18),
+                      icon: const Icon(
+                        Icons.clear,
+                        color: Color(0xFF6B7280),
+                        size: 18,
+                      ),
                       onPressed: () {
                         _controller.clear();
                         setState(() {
@@ -711,14 +769,18 @@ class _SearchTabState extends State<SearchTab> {
                       Icon(
                         Icons.youtube_searched_for,
                         size: 64,
-                        color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+                        color: isDark
+                            ? Colors.white.withOpacity(0.1)
+                            : Colors.black.withOpacity(0.1),
                       ),
                       const SizedBox(height: 12),
                       Text(
                         'Tìm kiếm nhanh hơn bằng cách nhập từ khóa hoặc chọn thẻ hot',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: isDark ? Colors.white.withOpacity(0.4) : Colors.black.withOpacity(0.4),
+                          color: isDark
+                              ? Colors.white.withOpacity(0.4)
+                              : Colors.black.withOpacity(0.4),
                           fontSize: 13,
                         ),
                       ),
@@ -730,7 +792,9 @@ class _SearchTabState extends State<SearchTab> {
               const Expanded(
                 child: Center(
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFEF4444)),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFFEF4444),
+                    ),
                   ),
                 ),
               ),
@@ -743,12 +807,17 @@ class _SearchTabState extends State<SearchTab> {
                       Icon(
                         Icons.search_off_rounded,
                         size: 64,
-                        color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+                        color: isDark
+                            ? Colors.white.withOpacity(0.1)
+                            : Colors.black.withOpacity(0.1),
                       ),
                       const SizedBox(height: 12),
                       const Text(
                         'Không tìm thấy sản phẩm nào phù hợp',
-                        style: TextStyle(color: Color(0xFF6B7280), fontSize: 14),
+                        style: TextStyle(
+                          color: Color(0xFF6B7280),
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   ),
@@ -769,10 +838,14 @@ class _SearchTabState extends State<SearchTab> {
                   physics: const BouncingScrollPhysics(),
                   itemCount: _searchResults.length,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+                    crossAxisCount: MediaQuery.of(context).size.width > 600
+                        ? 3
+                        : 2,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
-                    childAspectRatio: MediaQuery.of(context).size.width > 600 ? 0.72 : 0.64,
+                    childAspectRatio: MediaQuery.of(context).size.width > 600
+                        ? 0.72
+                        : 0.64,
                   ),
                   itemBuilder: (context, index) {
                     final product = _searchResults[index];
@@ -795,10 +868,13 @@ class _SearchTabState extends State<SearchTab> {
     // Calculate discount percent
     int discountPercent = 0;
     if (product.price > 0 && product.salePrice < product.price) {
-      discountPercent = (((product.price - product.salePrice) / product.price) * 100).round();
+      discountPercent =
+          (((product.price - product.salePrice) / product.price) * 100).round();
     }
 
-    final String mainPromo = product.promotions.isNotEmpty ? product.promotions[0] : '';
+    final String mainPromo = product.promotions.isNotEmpty
+        ? product.promotions[0]
+        : '';
 
     return GestureDetector(
       onTap: () {
@@ -836,16 +912,21 @@ class _SearchTabState extends State<SearchTab> {
                             ? Image.network(
                                 product.images[0],
                                 fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) => Icon(
-                                  _getIconForBrand(product.brandName),
-                                  size: 54,
-                                  color: isDark ? Colors.white70 : const Color(0xFFEF4444),
-                                ),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Icon(
+                                      _getIconForBrand(product.brandName),
+                                      size: 54,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : const Color(0xFFEF4444),
+                                    ),
                               )
                             : Icon(
                                 _getIconForBrand(product.brandName),
                                 size: 54,
-                                color: isDark ? Colors.white70 : const Color(0xFFEF4444),
+                                color: isDark
+                                    ? Colors.white70
+                                    : const Color(0xFFEF4444),
                               ),
                       ),
                     ),
@@ -855,7 +936,10 @@ class _SearchTabState extends State<SearchTab> {
                         top: 8,
                         left: 8,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFEF4444),
                             borderRadius: BorderRadius.circular(6),
@@ -876,7 +960,10 @@ class _SearchTabState extends State<SearchTab> {
                         bottom: 8,
                         left: 8,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(0.6),
                             borderRadius: BorderRadius.circular(6),
@@ -933,7 +1020,9 @@ class _SearchTabState extends State<SearchTab> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            product.averageRating > 0 ? product.averageRating.toString() : '4.8',
+                            product.averageRating > 0
+                                ? product.averageRating.toString()
+                                : '4.8',
                             style: TextStyle(
                               color: theme.colorScheme.onSurface,
                               fontSize: 11,
@@ -985,10 +1074,14 @@ class _SearchTabState extends State<SearchTab> {
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1F2937) : const Color(0xFFF3F4F6),
+                              color: isDark
+                                  ? const Color(0xFF1F2937)
+                                  : const Color(0xFFF3F4F6),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB),
+                                color: isDark
+                                    ? const Color(0xFF374151)
+                                    : const Color(0xFFE5E7EB),
                                 width: 1,
                               ),
                             ),
@@ -996,18 +1089,25 @@ class _SearchTabState extends State<SearchTab> {
                               color: Colors.transparent,
                               child: InkWell(
                                 onTap: () async {
-                                  final updatedCart = await ApiService.addToCart(
-                                    productId: product.id,
-                                    quantity: 1,
-                                    color: "",
-                                    storage: "",
-                                  );
+                                  final updatedCart =
+                                      await ApiService.addToCart(
+                                        productId: product.id,
+                                        quantity: 1,
+                                        color: "",
+                                        storage: "",
+                                      );
                                   final success = updatedCart != null;
                                   if (mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(success ? 'Đã thêm ${product.name} vào giỏ hàng!' : 'Thêm vào giỏ hàng thất bại'),
-                                        backgroundColor: success ? const Color(0xFFEF4444) : Colors.red,
+                                        content: Text(
+                                          success
+                                              ? 'Đã thêm ${product.name} vào giỏ hàng!'
+                                              : 'Thêm vào giỏ hàng thất bại',
+                                        ),
+                                        backgroundColor: success
+                                            ? const Color(0xFFEF4444)
+                                            : Colors.red,
                                         behavior: SnackBarBehavior.floating,
                                         duration: const Duration(seconds: 1),
                                       ),
@@ -1137,7 +1237,10 @@ class _WishlistTabState extends State<WishlistTab> {
       appBar: AppBar(
         title: Text(
           'Danh sách yêu thích',
-          style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
+          ),
         ),
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
@@ -1151,7 +1254,9 @@ class _WishlistTabState extends State<WishlistTab> {
                   Icon(
                     Icons.favorite_border_rounded,
                     size: 80,
-                    color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+                    color: isDark
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.black.withOpacity(0.1),
                   ),
                   const SizedBox(height: 16),
                   const Text(
@@ -1188,10 +1293,15 @@ class _WishlistTabState extends State<WishlistTab> {
                       physics: const BouncingScrollPhysics(),
                       itemCount: items.length,
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+                        crossAxisCount: MediaQuery.of(context).size.width > 600
+                            ? 3
+                            : 2,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
-                        childAspectRatio: MediaQuery.of(context).size.width > 600 ? 0.72 : 0.64,
+                        childAspectRatio:
+                            MediaQuery.of(context).size.width > 600
+                            ? 0.72
+                            : 0.64,
                       ),
                       itemBuilder: (context, index) {
                         final item = items[index];
@@ -1240,22 +1350,30 @@ class _WishlistTabState extends State<WishlistTab> {
                   children: [
                     Container(
                       width: double.infinity,
-                      color: _getBgColorForBrand(item.productName.split(' ')[0], isDark),
+                      color: _getBgColorForBrand(
+                        item.productName.split(' ')[0],
+                        isDark,
+                      ),
                       child: Center(
                         child: item.productImage.isNotEmpty
                             ? Image.network(
                                 item.productImage,
                                 fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) => Icon(
-                                  _getIconForBrand(item.productName),
-                                  size: 48,
-                                  color: isDark ? Colors.white70 : const Color(0xFFEF4444),
-                                ),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Icon(
+                                      _getIconForBrand(item.productName),
+                                      size: 48,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : const Color(0xFFEF4444),
+                                    ),
                               )
                             : Icon(
                                 _getIconForBrand(item.productName),
                                 size: 48,
-                                color: isDark ? Colors.white70 : const Color(0xFFEF4444),
+                                color: isDark
+                                    ? Colors.white70
+                                    : const Color(0xFFEF4444),
                               ),
                       ),
                     ),
@@ -1306,7 +1424,9 @@ class _WishlistTabState extends State<WishlistTab> {
                           Row(
                             children: [
                               Icon(
-                                item.inStock ? Icons.check_circle_outline : Icons.remove_circle_outline,
+                                item.inStock
+                                    ? Icons.check_circle_outline
+                                    : Icons.remove_circle_outline,
                                 color: item.inStock ? Colors.green : Colors.red,
                                 size: 11,
                               ),
@@ -1314,7 +1434,9 @@ class _WishlistTabState extends State<WishlistTab> {
                               Text(
                                 item.inStock ? 'Còn hàng' : 'Hết hàng',
                                 style: TextStyle(
-                                  color: item.inStock ? Colors.green : Colors.red,
+                                  color: item.inStock
+                                      ? Colors.green
+                                      : Colors.red,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -1333,7 +1455,9 @@ class _WishlistTabState extends State<WishlistTab> {
                               ),
                             ),
                           Text(
-                            _formatCurrency(item.salePrice > 0 ? item.salePrice : item.price),
+                            _formatCurrency(
+                              item.salePrice > 0 ? item.salePrice : item.price,
+                            ),
                             style: const TextStyle(
                               color: Color(0xFFEF4444),
                               fontWeight: FontWeight.bold,
@@ -1359,8 +1483,14 @@ class _WishlistTabState extends State<WishlistTab> {
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(success ? 'Đã thêm vào giỏ hàng!' : 'Thêm vào giỏ hàng thất bại'),
-                                backgroundColor: success ? Colors.green : Colors.red,
+                                content: Text(
+                                  success
+                                      ? 'Đã thêm vào giỏ hàng!'
+                                      : 'Thêm vào giỏ hàng thất bại',
+                                ),
+                                backgroundColor: success
+                                    ? Colors.green
+                                    : Colors.red,
                                 duration: const Duration(seconds: 1),
                               ),
                             );
@@ -1428,16 +1558,31 @@ class _ProfileTabState extends State<ProfileTab> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF111827),
-        title: const Text('Đăng xuất', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        content: const Text('Bạn có chắc chắn muốn đăng xuất tài khoản?', style: TextStyle(color: Color(0xFF9CA3AF))),
+        title: const Text(
+          'Đăng xuất',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Bạn có chắc chắn muốn đăng xuất tài khoản?',
+          style: TextStyle(color: Color(0xFF9CA3AF)),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy', style: TextStyle(color: Color(0xFF9CA3AF))),
+            child: const Text(
+              'Hủy',
+              style: TextStyle(color: Color(0xFF9CA3AF)),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Đăng xuất', style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Đăng xuất',
+              style: TextStyle(
+                color: Color(0xFFEF4444),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -1455,7 +1600,13 @@ class _ProfileTabState extends State<ProfileTab> {
     }
   }
 
-  Widget _buildAvatarWidget(String avatar, String displayName, bool isDark, {double size = 90.0, double fontSize = 32.0}) {
+  Widget _buildAvatarWidget(
+    String avatar,
+    String displayName,
+    bool isDark, {
+    double size = 90.0,
+    double fontSize = 32.0,
+  }) {
     String getInitials(String name) {
       if (name.isEmpty) return 'U';
       final parts = name.trim().split(' ');
@@ -1478,7 +1629,9 @@ class _ProfileTabState extends State<ProfileTab> {
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => CircleAvatar(
                 radius: size / 2,
-                backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                backgroundColor: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFF1F5F9),
                 child: Text(
                   getInitials(displayName),
                   style: TextStyle(
@@ -1502,7 +1655,9 @@ class _ProfileTabState extends State<ProfileTab> {
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => CircleAvatar(
               radius: size / 2,
-              backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+              backgroundColor: isDark
+                  ? const Color(0xFF334155)
+                  : const Color(0xFFF1F5F9),
               child: Text(
                 getInitials(displayName),
                 style: TextStyle(
@@ -1519,7 +1674,9 @@ class _ProfileTabState extends State<ProfileTab> {
 
     return CircleAvatar(
       radius: size / 2,
-      backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+      backgroundColor: isDark
+          ? const Color(0xFF334155)
+          : const Color(0xFFF1F5F9),
       child: Text(
         getInitials(displayName),
         style: TextStyle(
@@ -1556,9 +1713,14 @@ class _ProfileTabState extends State<ProfileTab> {
           builder: (context, setStateDialog) {
             return AlertDialog(
               backgroundColor: isDark ? const Color(0xFF111827) : Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
               titlePadding: const EdgeInsets.only(top: 24, left: 24, right: 24),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 16,
+              ),
               title: Row(
                 children: [
                   const Icon(
@@ -1596,50 +1758,86 @@ class _ProfileTabState extends State<ProfileTab> {
                                 width: 2,
                               ),
                             ),
-                            child: _buildAvatarWidget(selectedAvatar, fullName, isDark, size: 80, fontSize: 28),
+                            child: _buildAvatarWidget(
+                              selectedAvatar,
+                              fullName,
+                              isDark,
+                              size: 80,
+                              fontSize: 28,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               TextButton.icon(
-                                onPressed: isSaving ? null : () async {
-                                  final XFile? image = await picker.pickImage(
-                                    source: ImageSource.gallery,
-                                    imageQuality: 40,
-                                    maxWidth: 400,
-                                    maxHeight: 400,
-                                  );
-                                  if (image != null) {
-                                    final bytes = await image.readAsBytes();
-                                    final base64String = 'data:image/jpeg;base64,${base64.encode(bytes)}';
-                                    setStateDialog(() {
-                                      selectedAvatar = base64String;
-                                    });
-                                  }
-                                },
-                                icon: const Icon(Icons.photo_library_outlined, size: 16, color: Color(0xFFEF4444)),
-                                label: const Text('Thư viện', style: TextStyle(color: Color(0xFFEF4444), fontSize: 13)),
+                                onPressed: isSaving
+                                    ? null
+                                    : () async {
+                                        final XFile? image = await picker
+                                            .pickImage(
+                                              source: ImageSource.gallery,
+                                              imageQuality: 40,
+                                              maxWidth: 400,
+                                              maxHeight: 400,
+                                            );
+                                        if (image != null) {
+                                          final bytes = await image
+                                              .readAsBytes();
+                                          final base64String =
+                                              'data:image/jpeg;base64,${base64.encode(bytes)}';
+                                          setStateDialog(() {
+                                            selectedAvatar = base64String;
+                                          });
+                                        }
+                                      },
+                                icon: const Icon(
+                                  Icons.photo_library_outlined,
+                                  size: 16,
+                                  color: Color(0xFFEF4444),
+                                ),
+                                label: const Text(
+                                  'Thư viện',
+                                  style: TextStyle(
+                                    color: Color(0xFFEF4444),
+                                    fontSize: 13,
+                                  ),
+                                ),
                               ),
                               const SizedBox(width: 12),
                               TextButton.icon(
-                                onPressed: isSaving ? null : () async {
-                                  final XFile? image = await picker.pickImage(
-                                    source: ImageSource.camera,
-                                    imageQuality: 40,
-                                    maxWidth: 400,
-                                    maxHeight: 400,
-                                  );
-                                  if (image != null) {
-                                    final bytes = await image.readAsBytes();
-                                    final base64String = 'data:image/jpeg;base64,${base64.encode(bytes)}';
-                                    setStateDialog(() {
-                                      selectedAvatar = base64String;
-                                    });
-                                  }
-                                },
-                                icon: const Icon(Icons.camera_alt_outlined, size: 16, color: Color(0xFFEF4444)),
-                                label: const Text('Chụp ảnh', style: TextStyle(color: Color(0xFFEF4444), fontSize: 13)),
+                                onPressed: isSaving
+                                    ? null
+                                    : () async {
+                                        final XFile? image = await picker
+                                            .pickImage(
+                                              source: ImageSource.camera,
+                                              imageQuality: 40,
+                                              maxWidth: 400,
+                                              maxHeight: 400,
+                                            );
+                                        if (image != null) {
+                                          final bytes = await image
+                                              .readAsBytes();
+                                          final base64String =
+                                              'data:image/jpeg;base64,${base64.encode(bytes)}';
+                                          setStateDialog(() {
+                                            selectedAvatar = base64String;
+                                          });
+                                        }
+                                      },
+                                icon: const Icon(
+                                  Icons.camera_alt_outlined,
+                                  size: 16,
+                                  color: Color(0xFFEF4444),
+                                ),
+                                label: const Text(
+                                  'Chụp ảnh',
+                                  style: TextStyle(
+                                    color: Color(0xFFEF4444),
+                                    fontSize: 13,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -1649,20 +1847,35 @@ class _ProfileTabState extends State<ProfileTab> {
                       // Họ tên
                       TextFormField(
                         controller: nameController,
-                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'Họ và tên',
-                          labelStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
+                          labelStyle: const TextStyle(
+                            color: Color(0xFF9CA3AF),
+                            fontSize: 14,
+                          ),
                           hintText: 'Nhập họ và tên',
                           hintStyle: const TextStyle(color: Color(0xFF6B7280)),
-                          prefixIcon: const Icon(Icons.person_outline_rounded, color: Color(0xFFEF4444)),
+                          prefixIcon: const Icon(
+                            Icons.person_outline_rounded,
+                            color: Color(0xFFEF4444),
+                          ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB)),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? const Color(0xFF374151)
+                                  : const Color(0xFFE5E7EB),
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFEF4444),
+                              width: 1.5,
+                            ),
                           ),
                         ),
                         validator: (value) {
@@ -1676,21 +1889,36 @@ class _ProfileTabState extends State<ProfileTab> {
                       // Số điện thoại
                       TextFormField(
                         controller: phoneController,
-                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
                         keyboardType: TextInputType.phone,
                         decoration: InputDecoration(
                           labelText: 'Số điện thoại',
-                          labelStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
+                          labelStyle: const TextStyle(
+                            color: Color(0xFF9CA3AF),
+                            fontSize: 14,
+                          ),
                           hintText: 'Nhập số điện thoại',
                           hintStyle: const TextStyle(color: Color(0xFF6B7280)),
-                          prefixIcon: const Icon(Icons.phone_iphone_rounded, color: Color(0xFFEF4444)),
+                          prefixIcon: const Icon(
+                            Icons.phone_iphone_rounded,
+                            color: Color(0xFFEF4444),
+                          ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB)),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? const Color(0xFF374151)
+                                  : const Color(0xFFE5E7EB),
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFEF4444),
+                              width: 1.5,
+                            ),
                           ),
                         ),
                         validator: (value) {
@@ -1704,21 +1932,36 @@ class _ProfileTabState extends State<ProfileTab> {
                       // Địa chỉ
                       TextFormField(
                         controller: addressController,
-                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
                         maxLines: 2,
                         decoration: InputDecoration(
                           labelText: 'Địa chỉ giao hàng',
-                          labelStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
+                          labelStyle: const TextStyle(
+                            color: Color(0xFF9CA3AF),
+                            fontSize: 14,
+                          ),
                           hintText: 'Nhập địa chỉ của bạn',
                           hintStyle: const TextStyle(color: Color(0xFF6B7280)),
-                          prefixIcon: const Icon(Icons.location_on_outlined, color: Color(0xFFEF4444)),
+                          prefixIcon: const Icon(
+                            Icons.location_on_outlined,
+                            color: Color(0xFFEF4444),
+                          ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB)),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? const Color(0xFF374151)
+                                  : const Color(0xFFE5E7EB),
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFEF4444),
+                              width: 1.5,
+                            ),
                           ),
                         ),
                         validator: (value) {
@@ -1732,11 +1975,21 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                 ),
               ),
-              actionsPadding: const EdgeInsets.only(bottom: 24, right: 24, left: 24),
+              actionsPadding: const EdgeInsets.only(
+                bottom: 24,
+                right: 24,
+                left: 24,
+              ),
               actions: [
                 TextButton(
                   onPressed: isSaving ? null : () => Navigator.pop(context),
-                  child: const Text('Hủy', style: TextStyle(color: Color(0xFF9CA3AF), fontWeight: FontWeight.w600)),
+                  child: const Text(
+                    'Hủy',
+                    style: TextStyle(
+                      color: Color(0xFF9CA3AF),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: isSaving
@@ -1760,7 +2013,9 @@ class _ProfileTabState extends State<ProfileTab> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(result['message'] ?? ''),
-                                  backgroundColor: result['success'] == true ? Colors.green : Colors.red,
+                                  backgroundColor: result['success'] == true
+                                      ? Colors.green
+                                      : Colors.red,
                                 ),
                               );
 
@@ -1773,8 +2028,13 @@ class _ProfileTabState extends State<ProfileTab> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFEF4444),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                   ),
                   child: isSaving
                       ? const SizedBox(
@@ -1785,7 +2045,10 @@ class _ProfileTabState extends State<ProfileTab> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text('Lưu thay đổi', style: TextStyle(fontWeight: FontWeight.bold)),
+                      : const Text(
+                          'Lưu thay đổi',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                 ),
               ],
             );
@@ -1799,7 +2062,7 @@ class _ProfileTabState extends State<ProfileTab> {
   Widget build(BuildContext context) {
     final isDark = themeManager.isDarkMode;
     final theme = Theme.of(context);
-    
+
     if (_isLoading) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
@@ -1812,7 +2075,8 @@ class _ProfileTabState extends State<ProfileTab> {
     }
 
     final String displayName = _currentUser?.fullName ?? 'Chi Nguyễn';
-    final String displayEmail = _currentUser?.email ?? 'customer.chinyuyen@gmail.com';
+    final String displayEmail =
+        _currentUser?.email ?? 'customer.chinyuyen@gmail.com';
     final String displayPhone = _currentUser?.phone ?? 'Chưa thiết lập';
     final String displayAddress = _currentUser?.address ?? 'Chưa thiết lập';
     final String displayAvatar = _currentUser?.avatar ?? '';
@@ -1871,11 +2135,17 @@ class _ProfileTabState extends State<ProfileTab> {
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.settings_rounded, color: Colors.white, size: 24),
+                      icon: const Icon(
+                        Icons.settings_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const SettingsPage()),
+                          MaterialPageRoute(
+                            builder: (context) => const SettingsPage(),
+                          ),
                         ).then((_) {
                           // Force rebuild khi từ trang Cài đặt quay lại để update theme
                           setState(() {});
@@ -1897,10 +2167,7 @@ class _ProfileTabState extends State<ProfileTab> {
                         height: 90,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 3,
-                          ),
+                          border: Border.all(color: Colors.white, width: 3),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.2),
@@ -1909,7 +2176,11 @@ class _ProfileTabState extends State<ProfileTab> {
                             ),
                           ],
                         ),
-                        child: _buildAvatarWidget(displayAvatar, displayName, isDark),
+                        child: _buildAvatarWidget(
+                          displayAvatar,
+                          displayName,
+                          isDark,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -1931,19 +2202,37 @@ class _ProfileTabState extends State<ProfileTab> {
                       ),
                       const SizedBox(height: 10),
                       OutlinedButton.icon(
-                        icon: const Icon(Icons.edit_rounded, size: 14, color: Colors.white),
-                        label: const Text('Sửa hồ sơ', style: TextStyle(color: Colors.white, fontSize: 12)),
+                        icon: const Icon(
+                          Icons.edit_rounded,
+                          size: 14,
+                          color: Colors.white,
+                        ),
+                        label: const Text(
+                          'Sửa hồ sơ',
+                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        ),
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Colors.white.withOpacity(0.4)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          side: BorderSide(
+                            color: Colors.white.withOpacity(0.4),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         onPressed: () => _showEditProfileDialog(
                           fullName: displayName,
-                          phone: displayPhone == 'Chưa thiết lập' ? '' : displayPhone,
-                          address: displayAddress == 'Chưa thiết lập' ? '' : displayAddress,
+                          phone: displayPhone == 'Chưa thiết lập'
+                              ? ''
+                              : displayPhone,
+                          address: displayAddress == 'Chưa thiết lập'
+                              ? ''
+                              : displayAddress,
                           avatar: displayAvatar,
                         ),
                       ),
@@ -1952,14 +2241,14 @@ class _ProfileTabState extends State<ProfileTab> {
                 ),
               ],
             ),
-            
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 24),
-                  
+
                   // Section 1: Thông tin cá nhân
                   _buildSectionTitle(context, 'THÔNG TIN CHI TIẾT'),
                   const SizedBox(height: 8),
@@ -1968,7 +2257,9 @@ class _ProfileTabState extends State<ProfileTab> {
                       color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE5E7EB),
+                        color: isDark
+                            ? const Color(0xFF1F2937)
+                            : const Color(0xFFE5E7EB),
                         width: 1,
                       ),
                     ),
@@ -1982,21 +2273,33 @@ class _ProfileTabState extends State<ProfileTab> {
                             label: 'Họ và tên',
                             value: displayName,
                           ),
-                          const Divider(height: 1, indent: 56, color: Color(0x1F808080)),
+                          const Divider(
+                            height: 1,
+                            indent: 56,
+                            color: Color(0x1F808080),
+                          ),
                           _buildDetailRow(
                             context,
                             icon: Icons.email_outlined,
                             label: 'Địa chỉ Email',
                             value: displayEmail,
                           ),
-                          const Divider(height: 1, indent: 56, color: Color(0x1F808080)),
+                          const Divider(
+                            height: 1,
+                            indent: 56,
+                            color: Color(0x1F808080),
+                          ),
                           _buildDetailRow(
                             context,
                             icon: Icons.phone_iphone_rounded,
                             label: 'Số điện thoại',
                             value: displayPhone,
                           ),
-                          const Divider(height: 1, indent: 56, color: Color(0x1F808080)),
+                          const Divider(
+                            height: 1,
+                            indent: 56,
+                            color: Color(0x1F808080),
+                          ),
                           _buildDetailRow(
                             context,
                             icon: Icons.location_on_outlined,
@@ -2008,9 +2311,9 @@ class _ProfileTabState extends State<ProfileTab> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Section 2: Tiện ích & Cài đặt
                   _buildSectionTitle(context, 'TIỆN ÍCH & THIẾT LẬP'),
                   const SizedBox(height: 8),
@@ -2019,7 +2322,9 @@ class _ProfileTabState extends State<ProfileTab> {
                       color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE5E7EB),
+                        color: isDark
+                            ? const Color(0xFF1F2937)
+                            : const Color(0xFFE5E7EB),
                         width: 1,
                       ),
                     ),
@@ -2035,46 +2340,40 @@ class _ProfileTabState extends State<ProfileTab> {
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => const OrderHistoryPage()),
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const OrderHistoryPage(),
+                                ),
                               );
                             },
                           ),
-                          const Divider(height: 1, indent: 56, color: Color(0x1F808080)),
-                          _buildMenuItem(
-                            context,
-                            icon: Icons.discount_outlined,
-                            title: 'Kho Voucher của tôi',
-                            subtitle: 'Ưu đãi & giảm giá độc quyền',
+                          const Divider(
+                            height: 1,
+                            indent: 56,
+                            color: Color(0x1F808080),
                           ),
-                          const Divider(height: 1, indent: 56, color: Color(0x1F808080)),
                           _buildMenuItem(
                             context,
                             icon: Icons.chat_bubble_outline_rounded,
                             title: 'Lịch sử chat hỗ trợ',
                             subtitle: 'SignalR & Trợ lý AI logs',
-                          ),
-                          const Divider(height: 1, indent: 56, color: Color(0x1F808080)),
-                          _buildMenuItem(
-                            context,
-                            icon: Icons.settings_outlined,
-                            title: 'Cài đặt hệ thống',
-                            subtitle: 'Chuyển đổi giao diện Sáng / Tối',
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => const SettingsPage()),
-                              ).then((_) {
-                                setState(() {});
-                              });
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const CustomerChatPage(),
+                                ),
+                              );
                             },
                           ),
                         ],
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Section 3: Đăng xuất
                   Material(
                     color: Colors.transparent,
@@ -2084,7 +2383,9 @@ class _ProfileTabState extends State<ProfileTab> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0x1AEF4444) : const Color(0xFFFEF2F2),
+                          color: isDark
+                              ? const Color(0x1AEF4444)
+                              : const Color(0xFFFEF2F2),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: const Color(0xFFEF4444).withOpacity(0.3),
@@ -2094,7 +2395,11 @@ class _ProfileTabState extends State<ProfileTab> {
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.logout_rounded, color: Color(0xFFEF4444), size: 20),
+                            Icon(
+                              Icons.logout_rounded,
+                              color: Color(0xFFEF4444),
+                              size: 20,
+                            ),
                             SizedBox(width: 10),
                             Text(
                               'Đăng xuất tài khoản',
@@ -2109,7 +2414,7 @@ class _ProfileTabState extends State<ProfileTab> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 120), // Bottom padding for float dock
                 ],
               ),
@@ -2147,7 +2452,9 @@ class _ProfileTabState extends State<ProfileTab> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
       child: Row(
-        crossAxisAlignment: isMultiLine ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        crossAxisAlignment: isMultiLine
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -2155,11 +2462,7 @@ class _ProfileTabState extends State<ProfileTab> {
               color: const Color(0xFFEF4444).withOpacity(0.08),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              color: const Color(0xFFEF4444),
-              size: 18,
-            ),
+            child: Icon(icon, color: const Color(0xFFEF4444), size: 18),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -2202,7 +2505,7 @@ class _ProfileTabState extends State<ProfileTab> {
   }) {
     final isDark = themeManager.isDarkMode;
     final theme = Theme.of(context);
-    
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -2214,7 +2517,9 @@ class _ProfileTabState extends State<ProfileTab> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1F2937) : const Color(0xFFF3F4F6),
+                  color: isDark
+                      ? const Color(0xFF1F2937)
+                      : const Color(0xFFF3F4F6),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(

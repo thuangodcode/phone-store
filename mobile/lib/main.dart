@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'features/products/presentation/main_navigation.dart';
 import 'features/auth/presentation/login_page.dart';
-import 'core/services/api_service.dart';
+import 'features/staff/presentation/staff_navigation.dart';
+import 'features/admin/presentation/admin_navigation.dart';
+import 'core/services/auth_provider.dart';
+import 'core/services/chat_service.dart';
 import 'core/theme/theme_manager.dart';
 
 final ThemeManager themeManager = ThemeManager();
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ChatService()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -44,10 +56,9 @@ class MyApp extends StatelessWidget {
             ),
             useMaterial3: true,
           ),
-          home: FutureBuilder<bool>(
-            future: ApiService.isLoggedIn(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
+          home: Consumer<AuthProvider>(
+            builder: (context, authProvider, _) {
+              if (!authProvider.isInitialized) {
                 return const Scaffold(
                   body: Center(
                     child: CircularProgressIndicator(
@@ -56,9 +67,18 @@ class MyApp extends StatelessWidget {
                   ),
                 );
               }
-              if (snapshot.data == true) {
-                return const MainNavigation();
+
+              if (authProvider.isLoggedIn) {
+                final role = authProvider.role.toLowerCase();
+                if (role == 'staff') {
+                  return const StaffNavigation();
+                } else if (role == 'admin') {
+                  return const AdminNavigation();
+                } else {
+                  return const MainNavigation();
+                }
               }
+              
               return const LoginPage();
             },
           ),
