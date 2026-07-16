@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
 import '../../../../main.dart';
 import '../../../../core/services/auth_provider.dart';
+import 'tabs/admin_dashboard_tab.dart';
+import 'tabs/admin_users_tab.dart';
+import 'tabs/admin_ai_traces_tab.dart';
+import 'tabs/admin_profile_tab.dart';
 
 class AdminNavigation extends StatefulWidget {
   const AdminNavigation({super.key});
@@ -11,125 +16,192 @@ class AdminNavigation extends StatefulWidget {
 }
 
 class _AdminNavigationState extends State<AdminNavigation> {
+  int _currentIndex = 0;
+  late List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      const AdminDashboardTab(),
+      const AdminUsersTab(),
+      const AdminAITracesTab(),
+      const AdminProfileTab(),
+    ];
+  }
+
+  Widget _buildAdminDockNavBar(bool isDark) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double dockWidth = screenWidth > 500 ? 400 : screenWidth * 0.90;
+
+    final List<Map<String, dynamic>> items = [
+      {'icon': Icons.dashboard_outlined, 'activeIcon': Icons.dashboard_rounded, 'label': 'Thống kê'},
+      {'icon': Icons.people_outline_rounded, 'activeIcon': Icons.people_rounded, 'label': 'Người dùng'},
+      {'icon': Icons.terminal_outlined, 'activeIcon': Icons.terminal_rounded, 'label': 'AI Logs'},
+      {'icon': Icons.person_outline_rounded, 'activeIcon': Icons.person_rounded, 'label': 'Cá nhân'},
+    ];
+
+    return Container(
+      width: dockWidth,
+      height: 72,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? const Color(0xFF111827).withOpacity(0.85)
+            : Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(36),
+        border: Border.all(
+          color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.08),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black.withOpacity(0.4) : Colors.black.withOpacity(0.06),
+            blurRadius: 24,
+            spreadRadius: 4,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: Colors.purple.withOpacity(isDark ? 0.08 : 0.05),
+            blurRadius: 30,
+            spreadRadius: 8,
+          )
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: List.generate(items.length, (index) {
+          final item = items[index];
+          final isSelected = _currentIndex == index;
+          final isProfile = index == 3;
+
+          return Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              behavior: HitTestBehavior.opaque,
+              child: Center(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOutCubic,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? (isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05))
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(16),
+                    border: isSelected
+                        ? Border.all(
+                            color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+                            width: 1,
+                          )
+                        : null,
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: Colors.purple.withOpacity(0.12),
+                              blurRadius: 10,
+                              spreadRadius: 1,
+                            )
+                          ]
+                        : null,
+                  ),
+                  child: isProfile
+                      ? _buildProfileTab(isSelected, isDark)
+                      : AnimatedScale(
+                          scale: isSelected ? 1.15 : 1.0,
+                          duration: const Duration(milliseconds: 250),
+                          child: Icon(
+                            isSelected ? item['activeIcon'] : item['icon'],
+                            color: isSelected
+                                ? Colors.purple
+                                : (isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280)),
+                            size: isSelected ? 26 : 24,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildProfileTab(bool isSelected, bool isDark) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.currentUser;
+
+    return AnimatedScale(
+      scale: isSelected ? 1.15 : 1.0,
+      duration: const Duration(milliseconds: 250),
+      child: Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected
+                ? Colors.purple
+                : (isDark ? Colors.white.withOpacity(0.6) : Colors.black.withOpacity(0.4)),
+            width: 1.5,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.purple.withOpacity(0.4),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  )
+                ]
+              : null,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(99),
+          child: Container(
+            color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB),
+            child: user?.avatar != null && user!.avatar.isNotEmpty
+                ? (user.avatar.startsWith('data:image')
+                    ? Image.memory(base64Decode(user.avatar.split(',').last), fit: BoxFit.cover)
+                    : Image.network(user.avatar, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 16)))
+                : Icon(
+                    Icons.person,
+                    size: 16,
+                    color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = themeManager.isDarkMode;
-    final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.currentUser;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Bảng Quản Trị Admin', style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 20),
-            // Admin Card Info
-            CircleAvatar(
-              radius: 48,
-              backgroundColor: Colors.purple.withOpacity(0.1),
-              child: Text(
-                user?.fullName.isNotEmpty == true ? user!.fullName[0].toUpperCase() : 'A',
-                style: const TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.purple,
-                ),
-              ),
+      resizeToAvoidBottomInset: false,
+      body: Stack(
+        children: [
+          // Nội dung tab
+          Positioned.fill(
+            child: _pages[_currentIndex],
+          ),
+          // Dock Tab Bar lơ lửng ở dưới cùng
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 24,
+            child: Center(
+              child: _buildAdminDockNavBar(isDark),
             ),
-            const SizedBox(height: 16),
-            Text(
-              user?.fullName ?? 'Quản trị viên',
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              user?.email ?? 'admin@phonestore.com',
-              style: const TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.purple.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Text(
-                'ADMINISTRATOR',
-                style: TextStyle(
-                  color: Colors.purple,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
-                ),
-              ),
-            ),
-            const SizedBox(height: 40),
-
-            // Settings Section
-            Container(
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE5E7EB),
-                ),
-              ),
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.dark_mode_outlined, color: Colors.amber),
-                    title: const Text('Giao diện tối (Dark Mode)'),
-                    trailing: Switch(
-                      value: isDark,
-                      activeColor: const Color(0xFFEF4444),
-                      onChanged: (value) {
-                        themeManager.toggleTheme(value);
-                      },
-                    ),
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  const ListTile(
-                    leading: Icon(Icons.info_outline_rounded, color: Colors.grey),
-                    title: Text('Thông tin hệ thống'),
-                    subtitle: Text('Mobile Admin Panel v1.0'),
-                    trailing: Text('1.0.0', style: TextStyle(color: Colors.grey)),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 48),
-
-            // Logout Button
-            ElevatedButton.icon(
-              onPressed: () {
-                authProvider.logout();
-              },
-              icon: const Icon(Icons.logout_rounded, color: Colors.white),
-              label: const Text('Đăng xuất Admin', style: TextStyle(fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.purple,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Chú ý: Các tính năng thống kê nâng cao đang được phát triển ở Bước 4.',
-              style: TextStyle(color: Colors.grey, fontSize: 11, fontStyle: FontStyle.italic),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

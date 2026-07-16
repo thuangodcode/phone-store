@@ -881,4 +881,108 @@ class ApiService {
       return null;
     }
   }
+
+  // Admin: Lấy danh sách người dùng
+  static Future<List<dynamic>> getUsers() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/users'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+          return jsonResponse['data'] as List<dynamic>;
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Admin: Get Users Error: $e');
+      return [];
+    }
+  }
+
+  // Admin: Tạo tài khoản nhân viên mới
+  static Future<Map<String, dynamic>?> adminCreateUser(Map<String, dynamic> data) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/admin-create'),
+        headers: headers,
+        body: jsonEncode(data),
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        return jsonResponse;
+      }
+      return null;
+    } catch (e) {
+      print('Admin: Create User Error: $e');
+      return null;
+    }
+  }
+
+  // Admin: Xóa tài khoản người dùng
+  static Future<bool> deleteUser(String id) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/users/$id'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        return jsonResponse['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      print('Admin: Delete User Error: $e');
+      return false;
+    }
+  }
+
+  // Admin: Khóa / Mở khóa tài khoản người dùng
+  static Future<Map<String, dynamic>?> toggleUserStatus(String id) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/users/$id/toggle-status'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+          return jsonResponse['data'] as Map<String, dynamic>;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Admin: Toggle User Status Error: $e');
+      return null;
+    }
+  }
+
+  // Admin: Xem lịch sử hoạt động AI Traces
+  static Future<List<dynamic>> getAITraces() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/ai/traces'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final dynamic decodedResponse = jsonDecode(response.body);
+        if (decodedResponse is Map && decodedResponse['success'] == true && decodedResponse['data'] != null) {
+          return decodedResponse['data'] as List<dynamic>;
+        } else if (decodedResponse is List) {
+          return decodedResponse;
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Admin: Get AI Traces Error: $e');
+      return [];
+    }
+  }
 }

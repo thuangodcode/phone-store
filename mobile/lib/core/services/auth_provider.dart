@@ -89,4 +89,36 @@ class AuthProvider extends ChangeNotifier {
       print('Error refreshing profile: $e');
     }
   }
+
+  // Cập nhật hồ sơ người dùng
+  Future<bool> updateProfile({
+    required String fullName,
+    required String phone,
+    required String address,
+    required String avatar,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final result = await ApiService.updateProfile(
+        fullName: fullName,
+        phone: phone,
+        address: address,
+        avatar: avatar,
+      );
+      if (result['success'] == true && result['user'] != null) {
+        _currentUser = result['user'] as UserInfo;
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('Error updating profile in AuthProvider: $e');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }
