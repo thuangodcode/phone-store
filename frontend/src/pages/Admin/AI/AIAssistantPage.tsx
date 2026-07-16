@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { getAIChatErrorMessage, sendAIChatMessage } from '../../../api/aiApi';
 import { useAuth } from '../../../contexts/AuthContext';
 import { PromptInputBox } from '../../../components/ui/ai-prompt-box';
-import ReactMarkdown from 'react-markdown';
+import { MarkdownRenderer } from '../../../components/ui/MarkdownRenderer';
 
 interface ChatMessage {
   id: string;
@@ -259,9 +259,9 @@ export const AIAssistantPage: React.FC = () => {
                   }`}
                 >
                   {msg.role === 'assistant' ? (
-                    <div className="prose prose-sm md:prose-base max-w-none prose-p:my-2 prose-a:text-indigo-600 prose-strong:text-indigo-900">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
-                    </div>
+                      <div className="w-full text-slate-800">
+                        <MarkdownRenderer content={msg.content} />
+                      </div>
                   ) : (
                     <div className="text-base">{msg.content}</div>
                   )}

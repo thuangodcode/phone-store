@@ -10,7 +10,7 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import { MarkdownRenderer } from '../ui/MarkdownRenderer';
 import { getAIChatErrorMessage, sendAIChatMessage } from '../../api/aiApi';
 import { useAuth } from '../../contexts/AuthContext';
 import { PromptInputBox } from '../ui/ai-prompt-box';
@@ -236,8 +236,8 @@ export const AIAssistantWidget: React.FC = () => {
                     }`}
                   >
                     {message.role === 'assistant' ? (
-                      <div className="[&_ol]:my-2 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_p]:m-0 [&_p+p]:mt-2 [&_strong]:font-semibold [&_ul]:my-2 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">
-                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                      <div className="w-full text-slate-800">
+                        <MarkdownRenderer content={message.content} />
                       </div>
                     ) : (
                       <p className="m-0 whitespace-pre-wrap">{message.content}</p>
