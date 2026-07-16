@@ -107,19 +107,61 @@ public class DashboardService : IDashboardService
 
     public async Task<List<TopProductDto>> GetTopProductsAsync(int count = 10)
     {
-        var products = await _context.Products
-            .Find(p => p.IsActive)
-            .SortByDescending(p => p.Sold)
-            .Limit(count)
-            .ToListAsync();
+        // Get all paid orders
+        var paidOrdersFilter = Builders<Order>.Filter.Eq(o => o.PaymentStatus, "Paid");
+        var paidOrders = await _context.Orders.Find(paidOrdersFilter).ToListAsync();
 
-        return products.Select(p => new TopProductDto
+        // Aggregate items
+        var productStats = new Dictionary<string, TopProductDto>();
+
+        foreach (var order in paidOrders)
         {
-            ProductId = p.Id,
-            ProductName = p.Name,
-            ProductImage = p.Images.FirstOrDefault() ?? string.Empty,
-            TotalSold = p.Sold,
-            TotalRevenue = p.Sold * (p.SalePrice > 0 ? p.SalePrice : p.Price)
-        }).ToList();
+            foreach (var item in order.Items)
+            {
+                if (productStats.TryGetValue(item.ProductId, out var stat))
+                {
+                    stat.TotalSold += item.Quantity;
+                    stat.TotalRevenue += item.Quantity * item.Price;
+                }
+                else
+                {
+                    productStats[item.ProductId] = new TopProductDto
+                    {
+                        ProductId = item.ProductId,
+                        ProductName = item.ProductName,
+                        ProductImage = item.ProductImage,
+                        TotalSold = item.Quantity,
+                        TotalRevenue = item.Quantity * item.Price
+                    };
+                }
+            }
+        }
+
+        // Sort by revenue descending and take top N
+        var topProducts = productStats.Values
+            .OrderByDescending(p => p.TotalRevenue)
+            .Take(count)
+            .ToList();
+
+        // If no paid orders, fallback to old logic for display purposes, but with 0 revenue
+        if (topProducts.Count == 0)
+        {
+            var fallbackProducts = await _context.Products
+                .Find(p => p.IsActive)
+                .SortByDescending(p => p.Sold)
+                .Limit(count)
+                .ToListAsync();
+
+            return fallbackProducts.Select(p => new TopProductDto
+            {
+                ProductId = p.Id,
+                ProductName = p.Name,
+                ProductImage = p.Images.FirstOrDefault() ?? string.Empty,
+                TotalSold = p.Sold,
+                TotalRevenue = 0 // Real revenue is 0 since no paid orders
+            }).ToList();
+        }
+
+        return topProducts;
     }
 }

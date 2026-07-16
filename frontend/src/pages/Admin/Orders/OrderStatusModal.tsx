@@ -62,6 +62,48 @@ export const OrderStatusModal: React.FC<OrderStatusModalProps> = ({ isOpen, onCl
             {order.note && <div className="mb-3"><strong>Ghi chú:</strong> {order.note}</div>}
           </div>
 
+          <div className="border-t pt-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Sản phẩm đã đặt</h3>
+            <div className="space-y-3">
+              {order.items?.map((item, index) => (
+                <div key={index} className="flex items-center gap-4 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                  <img src={item.productImage || 'https://via.placeholder.com/64'} alt={item.productName} className="w-16 h-16 object-cover rounded-md border border-gray-200" />
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-800">{item.productName}</div>
+                    <div className="text-sm text-gray-600">
+                      {item.storage && <span>Phiên bản: {item.storage}</span>}
+                      {item.storage && item.color && <span className="mx-1">|</span>}
+                      {item.color && <span>Màu: {item.color}</span>}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-600 mb-1">SL: {item.quantity}</div>
+                    <div className="font-semibold text-red-600">{item.price.toLocaleString('vi-VN')} đ</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-4 flex justify-end">
+              <div className="w-64 space-y-2 text-sm bg-gray-50 p-3 rounded-md border border-gray-200">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Tạm tính:</span>
+                  <span className="font-medium text-gray-800">{order.totalAmount?.toLocaleString('vi-VN')} đ</span>
+                </div>
+                {order.discountAmount > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Giảm giá {order.voucherCode ? `(${order.voucherCode})` : ''}:</span>
+                    <span className="font-medium text-green-600">- {order.discountAmount.toLocaleString('vi-VN')} đ</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
+                  <span className="font-semibold text-gray-800">Tổng cộng:</span>
+                  <span className="font-bold text-red-600 text-lg">{order.finalAmount?.toLocaleString('vi-VN')} đ</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {order.auditLogs && order.auditLogs.length > 0 && (
             <div className="border-t pt-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-3">Lịch sử thay đổi</h3>

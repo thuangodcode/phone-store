@@ -5,7 +5,7 @@ import '../../../../main.dart';
 import '../../../../core/services/auth_provider.dart';
 import 'tabs/admin_dashboard_tab.dart';
 import 'tabs/admin_users_tab.dart';
-import 'tabs/admin_ai_traces_tab.dart';
+import '../../staff/presentation/pages/staff_order_list_page.dart';
 import 'tabs/admin_profile_tab.dart';
 
 class AdminNavigation extends StatefulWidget {
@@ -25,7 +25,7 @@ class _AdminNavigationState extends State<AdminNavigation> {
     _pages = [
       const AdminDashboardTab(),
       const AdminUsersTab(),
-      const AdminAITracesTab(),
+      const StaffOrderListPage(),
       const AdminProfileTab(),
     ];
   }
@@ -37,7 +37,7 @@ class _AdminNavigationState extends State<AdminNavigation> {
     final List<Map<String, dynamic>> items = [
       {'icon': Icons.dashboard_outlined, 'activeIcon': Icons.dashboard_rounded, 'label': 'Thống kê'},
       {'icon': Icons.people_outline_rounded, 'activeIcon': Icons.people_rounded, 'label': 'Người dùng'},
-      {'icon': Icons.terminal_outlined, 'activeIcon': Icons.terminal_rounded, 'label': 'AI Logs'},
+      {'icon': Icons.receipt_long_outlined, 'activeIcon': Icons.receipt_long_rounded, 'label': 'Đơn hàng'},
       {'icon': Icons.person_outline_rounded, 'activeIcon': Icons.person_rounded, 'label': 'Cá nhân'},
     ];
 
