@@ -11,13 +11,13 @@ class ApiService {
   // ==================== CẤU HÌNH ĐƯỜNG DẪN MÁY CHỦ API ====================
   // Hướng dẫn cấu hình:
   // LỰA CHỌN 1: Dùng API deploy Render (máy chủ thật):
-  // static const String baseUrl = 'https://phone-store-api-4bah.onrender.com/api';
+  static const String baseUrl = 'https://phone-store-api-4bah.onrender.com/api';
   
   // LỰA CHỌN 2: Dùng API chạy local dưới máy tính của bạn:
   // - Nếu chạy máy ảo Android (Android Emulator): Dùng 'http://10.0.2.2:5000/api' (hoặc port khác của dotnet)
   // - Nếu chạy máy ảo iOS (Simulator) hoặc Web: Dùng 'http://localhost:5000/api'
   // - Nếu chạy trên điện thoại thật: Dùng IP của máy tính, ví dụ: 'http://192.168.1.10:5000/api'
-  static const String baseUrl = 'http://localhost:5000/api';
+  // static const String baseUrl = 'http://localhost:5000/api';
   // =======================================================================
 
   // Key names for local storage
