@@ -65,7 +65,7 @@ builder.Services.AddScoped<IBannerService, BannerService>();
 builder.Services.AddSingleton<IPayOSService, PayOSService>();
 
 // Register AI Services
-builder.Services.AddHttpClient<PhoneStore.Application.Interfaces.AI.IAIProvider, PhoneStore.Infrastructure.AI.Providers.GeminiProvider>();
+builder.Services.AddHttpClient<PhoneStore.Application.Interfaces.AI.IAIProvider, PhoneStore.Infrastructure.AI.Providers.OpenRouterProvider>();
 builder.Services.AddScoped<PhoneStore.Application.Interfaces.AI.IAIMemoryService, PhoneStore.Infrastructure.AI.Memory.MongoAIChatMemoryService>();
 builder.Services.AddScoped<PhoneStore.Application.Interfaces.AI.IAIChatSessionService, PhoneStore.Infrastructure.AI.Services.AIChatSessionService>();
 builder.Services.AddScoped<PhoneStore.Application.Interfaces.AI.IToolRegistry, PhoneStore.Infrastructure.AI.Tools.ToolRegistry>();
@@ -88,7 +88,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"] ?? ""))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"] ?? "")),
+            RoleClaimType = ClaimTypes.Role
         };
         options.Events = new JwtBearerEvents
         {
@@ -128,7 +129,7 @@ builder.Services.AddSwaggerGen(c =>
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
         Name = "Authorization",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
+        Type = SecuritySchemeType.Http,
         Scheme = "Bearer"
     });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement()
@@ -141,7 +142,7 @@ builder.Services.AddSwaggerGen(c =>
                     Type = ReferenceType.SecurityScheme,
                     Id = "Bearer"
                 },
-                Scheme = "oauth2",
+                Scheme = "Bearer",
                 Name = "Bearer",
                 In = ParameterLocation.Header,
             },
