@@ -19,7 +19,8 @@ public class ToolRegistry : IToolRegistry
         _allToolTypes = new List<Type>
         {
             typeof(SearchProductsTool),
-            typeof(GetRevenueAnalyticsTool)
+            typeof(GetRevenueAnalyticsTool),
+            typeof(DatabaseQueryTool)
         };
     }
 

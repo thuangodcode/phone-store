@@ -74,6 +74,7 @@ builder.Services.AddScoped<PhoneStore.Application.Interfaces.AI.IAIAgentService,
 builder.Services.AddScoped<PhoneStore.Application.Interfaces.AI.IAILogService, PhoneStore.Infrastructure.AI.Services.AILogService>();
 builder.Services.AddTransient<PhoneStore.Infrastructure.AI.Tools.SearchProductsTool>();
 builder.Services.AddTransient<PhoneStore.Infrastructure.AI.Tools.GetRevenueAnalyticsTool>();
+builder.Services.AddTransient<PhoneStore.Infrastructure.AI.Tools.DatabaseQueryTool>();
 // Register Data Seeder
 builder.Services.AddScoped<DataSeeder>();
 
