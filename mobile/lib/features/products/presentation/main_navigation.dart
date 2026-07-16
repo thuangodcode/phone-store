@@ -12,6 +12,8 @@ import '../../../core/services/api_service.dart';
 import '../../auth/presentation/login_page.dart';
 import '../../../../main.dart';
 import 'settings_page.dart';
+import 'checkout_page.dart';
+import 'order_history_page.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -350,14 +352,24 @@ class _CartTabState extends State<CartTab> {
                               ),
                               elevation: 0,
                             ),
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Tính năng đặt hàng đang được xử lý!'),
-                                  backgroundColor: Color(0xFFEF4444),
-                                ),
-                              );
-                            },
+                             onPressed: () {
+                               if (_cart != null) {
+                                 Navigator.push(
+                                   context,
+                                   MaterialPageRoute(
+                                     builder: (context) => CheckoutPage(
+                                       cart: _cart!,
+                                       onOrderSuccess: () {
+                                         setState(() {
+                                           _cart = null;
+                                         });
+                                         _loadCart();
+                                       },
+                                     ),
+                                   ),
+                                 );
+                               }
+                             },
                             child: const Text(
                               'TIẾN HÀNH ĐẶT HÀNG',
                               style: TextStyle(
@@ -2020,6 +2032,12 @@ class _ProfileTabState extends State<ProfileTab> {
                             icon: Icons.history_rounded,
                             title: 'Lịch sử mua hàng',
                             subtitle: 'Đơn hàng, Hóa đơn thanh toán',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const OrderHistoryPage()),
+                              );
+                            },
                           ),
                           const Divider(height: 1, indent: 56, color: Color(0x1F808080)),
                           _buildMenuItem(

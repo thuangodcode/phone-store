@@ -70,68 +70,23 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  actions: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.notifications_none_outlined,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                      onPressed: () {},
-                    ),
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            Icons.shopping_bag_outlined,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                          onPressed: () {},
-                        ),
-                        Positioned(
-                          right: 8,
-                          top: 8,
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEF4444),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: theme.scaffoldBackgroundColor,
-                                width: 1,
-                              ),
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 14,
-                              minHeight: 14,
-                            ),
-                            child: const Text(
-                              '3',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 8,
-                                fontWeight: FontWeight.bold,
-                                ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                    const SizedBox(width: 8),
-                  ],
                   // Search Box
                   bottom: PreferredSize(
                     preferredSize: const Size.fromHeight(60),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: Container(
                         height: 44,
                         decoration: BoxDecoration(
                           color: theme.colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE5E7EB),
+                            color: isDark
+                                ? const Color(0xFF1F2937)
+                                : const Color(0xFFE5E7EB),
                             width: 1,
                           ),
                         ),
@@ -157,7 +112,8 @@ class _HomePageState extends State<HomePage> {
                                   });
                                 },
                                 decoration: const InputDecoration(
-                                  hintText: 'Bạn cần tìm điện thoại gì hôm nay?',
+                                  hintText:
+                                      'Bạn cần tìm điện thoại gì hôm nay?',
                                   hintStyle: TextStyle(
                                     color: Color(0xFF6B7280),
                                     fontSize: 13,
@@ -169,7 +125,11 @@ class _HomePageState extends State<HomePage> {
                             ),
                             if (_searchQuery.isNotEmpty)
                               IconButton(
-                                icon: const Icon(Icons.clear, color: Color(0xFF6B7280), size: 16),
+                                icon: const Icon(
+                                  Icons.clear,
+                                  color: Color(0xFF6B7280),
+                                  size: 16,
+                                ),
                                 onPressed: () {
                                   setState(() {
                                     _searchController.clear();
@@ -191,7 +151,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                
+
                 // Section 1: Promotion Banner Carousel
                 const SliverToBoxAdapter(
                   child: Padding(
@@ -206,7 +166,12 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 12),
+                        padding: const EdgeInsets.only(
+                          left: 16,
+                          right: 16,
+                          top: 16,
+                          bottom: 12,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -244,7 +209,12 @@ class _HomePageState extends State<HomePage> {
                 // Section 3: Hot Products Title
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 16, top: 24, bottom: 12),
+                    padding: const EdgeInsets.only(
+                      left: 16,
+                      right: 16,
+                      top: 24,
+                      bottom: 12,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -274,11 +244,9 @@ class _HomePageState extends State<HomePage> {
                     searchQuery: _searchQuery,
                   ),
                 ),
-                
+
                 // Bottom padding to avoid buttons overlap content
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 100),
-                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
               ],
             ),
           ),

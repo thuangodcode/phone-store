@@ -503,4 +503,160 @@ class ApiService {
       };
     }
   }
+
+  // ==================== THANH TOÁN & ĐƠN HÀNG (CHECKOUT & ORDERS) ====================
+
+  // Lấy thông tin voucher bằng mã code
+  static Future<Map<String, dynamic>?> getVoucherByCode(String code) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/vouchers/code/$code'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+          return jsonResponse['data'];
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Get Voucher Error: $e');
+      return null;
+    }
+  }
+
+  // Tạo đơn hàng mới
+  static Future<Map<String, dynamic>?> createOrder({
+    required String receiverName,
+    required String phone,
+    required String shippingAddress,
+    String note = '',
+    required String paymentMethod,
+    String? voucherCode,
+  }) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/orders'),
+        headers: headers,
+        body: jsonEncode({
+          'receiverName': receiverName,
+          'phone': phone,
+          'shippingAddress': shippingAddress,
+          'note': note,
+          'paymentMethod': paymentMethod,
+          'voucherCode': voucherCode,
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final dynamic jsonResponse = jsonDecode(response.body);
+        if (jsonResponse is Map<String, dynamic>) {
+          if (jsonResponse.containsKey('data') && jsonResponse['data'] != null) {
+            return jsonResponse['data'];
+          }
+          return jsonResponse;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Create Order Error: $e');
+      return null;
+    }
+  }
+
+  // Tạo liên kết thanh toán trực tuyến qua PayOS
+  static Future<String?> createPaymentLink(String orderId) async {
+    try {
+      final headers = await _getHeaders();
+      final returnUrl = 'https://phone-store-api-4bah.onrender.com/history';
+      final cancelUrl = 'https://phone-store-api-4bah.onrender.com/history';
+      final response = await http.post(
+        Uri.parse('$baseUrl/payment/create-link/$orderId?returnUrl=$returnUrl&cancelUrl=$cancelUrl'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        try {
+          final data = jsonDecode(response.body);
+          if (data is Map && data['success'] == true) {
+            return data['data'];
+          }
+          if (data is String) {
+            return data;
+          }
+        } catch (_) {
+          return response.body;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Create Payment Link Error: $e');
+      return null;
+    }
+  }
+
+  // Lấy danh sách bài đăng / tin tức khuyến mãi
+  static Future<List<dynamic>> getArticles() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/articles'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+          return jsonResponse['data'] as List<dynamic>;
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Get Articles Error: $e');
+      return [];
+    }
+  }
+
+  // Lấy lịch sử đơn hàng của người dùng
+  static Future<List<dynamic>> getMyOrders() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/orders?page=1&pageSize=50'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+          final data = jsonResponse['data'];
+          if (data is Map && data.containsKey('items')) {
+            return data['items'] as List<dynamic>;
+          }
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Get My Orders Error: $e');
+      return [];
+    }
+  }
+
+  // Kiểm tra trạng thái thanh toán từ PayOS
+  static Future<Map<String, dynamic>?> checkPaymentStatus(int orderCode) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/payment/check-status/$orderCode'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        return jsonResponse;
+      }
+      return null;
+    } catch (e) {
+      print('Check Payment Status Error: $e');
+      return null;
+    }
+  }
 }
