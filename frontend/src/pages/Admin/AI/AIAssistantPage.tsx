@@ -61,9 +61,15 @@ export const AIAssistantPage: React.FC = () => {
       try {
         const storedConversations = JSON.parse(saved) as Conversation[];
         if (Array.isArray(storedConversations) && storedConversations.length > 0) {
-          setConversations(storedConversations);
-          const defaultConversation = storedConversations.find((conv) => !conv.deletedAt) ?? storedConversations[0];
-          setActiveConversationId(defaultConversation.id);
+          const latestConversation = storedConversations.find((conv) => !conv.deletedAt);
+          if (latestConversation && latestConversation.messages.length === 0) {
+            setConversations(storedConversations);
+            setActiveConversationId(latestConversation.id);
+          } else {
+            const fresh = createConversation();
+            setConversations([fresh, ...storedConversations]);
+            setActiveConversationId(fresh.id);
+          }
           return;
         }
       } catch {
@@ -136,6 +142,9 @@ export const AIAssistantPage: React.FC = () => {
   };
 
   const createNewConversation = () => {
+    const active = conversations.find((c) => c.id === activeConversationId);
+    if (active && !active.deletedAt && active.messages.length === 0) return;
+
     const newConversation = createConversation();
     setConversations((current) => [newConversation, ...current]);
     setActiveConversationId(newConversation.id);
@@ -179,7 +188,7 @@ export const AIAssistantPage: React.FC = () => {
     setActiveConversationId(id);
   };
 
-  const visibleConversations = conversations.filter((conversation) => !conversation.deletedAt);
+  const visibleConversations = conversations.filter((conversation) => !conversation.deletedAt).slice(0, 5);
   const deletedConversations = conversations.filter((conversation) => conversation.deletedAt);
 
   return (
