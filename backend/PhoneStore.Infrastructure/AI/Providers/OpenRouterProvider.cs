@@ -72,7 +72,7 @@ public class OpenRouterProvider : IAIProvider
                 messages.Add(new
                 {
                     role = "assistant",
-                    content = msg.Content ?? "", 
+                    content = (string)null, 
                     tool_calls = new[]
                     {
                         new
@@ -224,6 +224,9 @@ public class OpenRouterProvider : IAIProvider
             HttpStatusCode.TooManyRequests => new AIProviderException(
                 "Trợ lý AI đang nhận nhiều yêu cầu. Vui lòng thử lại sau ít phút.",
                 StatusCodes.Status429TooManyRequests),
+            HttpStatusCode.PaymentRequired => new AIProviderException(
+                "Tài khoản OpenRouter của bạn đã hết tiền (402 Payment Required). Vui lòng nạp thêm credit để sử dụng.",
+                StatusCodes.Status503ServiceUnavailable),
             HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => new AIProviderException(
                 "Trợ lý AI tạm thời chưa sẵn sàng do lỗi xác thực. Vui lòng liên hệ quản trị viên.",
                 StatusCodes.Status503ServiceUnavailable),
