@@ -25,6 +25,8 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
+  final GlobalKey<_CartTabState> _cartKey = GlobalKey<_CartTabState>();
+  final GlobalKey<_WishlistTabState> _wishlistKey = GlobalKey<_WishlistTabState>();
 
   late final List<Widget> _pages;
 
@@ -33,9 +35,9 @@ class _MainNavigationState extends State<MainNavigation> {
     super.initState();
     _pages = [
       const HomePage(),
-      const CartTab(),
+      CartTab(key: _cartKey),
       const SearchTab(),
-      const WishlistTab(),
+      WishlistTab(key: _wishlistKey),
       const ProfileTab(),
     ];
   }
@@ -62,6 +64,11 @@ class _MainNavigationState extends State<MainNavigation> {
                   setState(() {
                     _currentIndex = index;
                   });
+                  if (index == 1) {
+                    _cartKey.currentState?._loadCart();
+                  } else if (index == 3) {
+                    _wishlistKey.currentState?._loadWishlist();
+                  }
                 },
               ),
             ),
