@@ -8,10 +8,7 @@ import '../../../core/services/api_service.dart';
 class ProductDetailPage extends StatefulWidget {
   final String productId;
 
-  const ProductDetailPage({
-    super.key,
-    required this.productId,
-  });
+  const ProductDetailPage({super.key, required this.productId});
 
   @override
   State<ProductDetailPage> createState() => _ProductDetailPageState();
@@ -44,7 +41,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     if (productData == null) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'Không thể tải thông tin sản phẩm. Vui lòng kiểm tra kết nối mạng.';
+          _errorMessage =
+              'Không thể tải thông tin sản phẩm. Vui lòng kiểm tra kết nối mạng.';
           _isLoading = false;
         });
       }
@@ -62,7 +60,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       setState(() {
         _product = productData;
         _isFavorite = fav;
-        
+
         if (productData.storageVariants.isNotEmpty) {
           _selectedStorage = productData.storageVariants[0];
         }
@@ -143,11 +141,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     if (_product == null) return 0.0;
 
     double basePrice = _product!.price;
-    double salePrice = _product!.salePrice > 0 ? _product!.salePrice : _product!.price;
+    double salePrice = _product!.salePrice > 0
+        ? _product!.salePrice
+        : _product!.price;
 
     if (_selectedStorage != null) {
       basePrice = _selectedStorage!.price;
-      salePrice = _selectedStorage!.salePrice > 0 ? _selectedStorage!.salePrice : _selectedStorage!.price;
+      salePrice = _selectedStorage!.salePrice > 0
+          ? _selectedStorage!.salePrice
+          : _selectedStorage!.price;
     }
 
     if (_selectedColor != null) {
@@ -176,19 +178,35 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   Color _getColorBg(String colorName) {
     final name = colorName.toLowerCase();
-    if (name.contains('tím') || name.contains('purple') || name.contains('titan tự nhiên')) {
+    if (name.contains('tím') ||
+        name.contains('purple') ||
+        name.contains('titan tự nhiên')) {
       return const Color(0xFFC7C5D8);
     }
-    if (name.contains('cam') || name.contains('orange') || name.contains('red') || name.contains('đỏ') || name.contains('titan sa mạc') || name.contains('desert')) {
+    if (name.contains('cam') ||
+        name.contains('orange') ||
+        name.contains('red') ||
+        name.contains('đỏ') ||
+        name.contains('titan sa mạc') ||
+        name.contains('desert')) {
       return const Color(0xFFFF8B72);
     }
-    if (name.contains('vàng') || name.contains('yellow') || name.contains('gold')) {
+    if (name.contains('vàng') ||
+        name.contains('yellow') ||
+        name.contains('gold')) {
       return const Color(0xFFFBE8A6);
     }
-    if (name.contains('đen') || name.contains('black') || name.contains('dark') || name.contains('gray') || name.contains('xám') || name.contains('titan đen')) {
+    if (name.contains('đen') ||
+        name.contains('black') ||
+        name.contains('dark') ||
+        name.contains('gray') ||
+        name.contains('xám') ||
+        name.contains('titan đen')) {
       return const Color(0xFF94A3B8);
     }
-    if (name.contains('xanh') || name.contains('blue') || name.contains('green')) {
+    if (name.contains('xanh') ||
+        name.contains('blue') ||
+        name.contains('green')) {
       return const Color(0xFFC5E0DC);
     }
     return const Color(0xFFE2E8F0); // Default slate color
@@ -227,21 +245,36 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 64, color: Colors.red.withOpacity(0.8)),
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.red.withOpacity(0.8),
+                ),
                 const SizedBox(height: 16),
                 Text(
                   _errorMessage ?? 'Đã xảy ra lỗi không xác định',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16),
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface,
+                    fontSize: 16,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFEF4444),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: _loadProductDetail,
-                  child: const Text('Thử lại', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'Thử lại',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -315,11 +348,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           ? Image.network(
                               _mainImage,
                               fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) => Icon(
-                                Icons.phone_iphone,
-                                size: 100,
-                                color: Colors.white.withOpacity(0.6),
-                              ),
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(
+                                    Icons.phone_iphone,
+                                    size: 100,
+                                    color: Colors.white.withOpacity(0.6),
+                                  ),
                             )
                           : Icon(
                               Icons.phone_iphone,
@@ -329,10 +363,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                   ),
                 ),
-                
+
                 // 2. Info area
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 20.0,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -363,11 +400,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      
+
                       // Product Description (matches paragraph under title)
                       Text(
-                        product.description.isNotEmpty 
-                            ? product.description 
+                        product.description.isNotEmpty
+                            ? product.description
                             : 'Trải nghiệm sức mạnh đỉnh cao và thiết kế sang trọng đẳng cấp thế giới cùng chiếc điện thoại thông minh thế hệ mới này.',
                         style: TextStyle(
                           color: isDark ? Colors.white70 : Colors.black54,
@@ -380,7 +417,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       // 3. Color Available section
                       if (product.colorVariants.isNotEmpty) ...[
                         Text(
-                          'Color Available',
+                          'Màu có sẵn',
                           style: TextStyle(
                             color: theme.colorScheme.onSurface,
                             fontSize: 15,
@@ -396,7 +433,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             itemCount: product.colorVariants.length,
                             itemBuilder: (context, idx) {
                               final color = product.colorVariants[idx];
-                              final isSelected = _selectedColor?.name == color.name;
+                              final isSelected =
+                                  _selectedColor?.name == color.name;
                               final cardBgColor = _getColorBg(color.name);
 
                               return GestureDetector(
@@ -415,18 +453,22 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                     color: cardBgColor,
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: isSelected 
-                                          ? (isDark ? Colors.white : Colors.black) 
+                                      color: isSelected
+                                          ? (isDark
+                                                ? Colors.white
+                                                : Colors.black)
                                           : Colors.transparent,
                                       width: 2.0,
                                     ),
-                                    boxShadow: isSelected 
+                                    boxShadow: isSelected
                                         ? [
                                             BoxShadow(
-                                              color: Colors.black.withOpacity(0.1),
+                                              color: Colors.black.withOpacity(
+                                                0.1,
+                                              ),
                                               blurRadius: 4,
                                               offset: const Offset(0, 2),
-                                            )
+                                            ),
                                           ]
                                         : null,
                                   ),
@@ -454,7 +496,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       // 4. Storage section
                       if (product.storageVariants.isNotEmpty) ...[
                         Text(
-                          'Storage',
+                          'Dung lượng',
                           style: TextStyle(
                             color: theme.colorScheme.onSurface,
                             fontSize: 15,
@@ -466,7 +508,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           spacing: 10,
                           runSpacing: 10,
                           children: product.storageVariants.map((storage) {
-                            final isSelected = _selectedStorage?.storage == storage.storage;
+                            final isSelected =
+                                _selectedStorage?.storage == storage.storage;
 
                             return GestureDetector(
                               onTap: () {
@@ -475,15 +518,24 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                 });
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                  vertical: 10,
+                                ),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? (isDark ? Colors.white.withOpacity(0.05) : Colors.transparent)
-                                      : (isDark ? const Color(0xFF1F2937) : const Color(0xFFF3F4F6)),
+                                      ? (isDark
+                                            ? Colors.white.withOpacity(0.05)
+                                            : Colors.transparent)
+                                      : (isDark
+                                            ? const Color(0xFF1F2937)
+                                            : const Color(0xFFF3F4F6)),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
                                     color: isSelected
-                                        ? (isDark ? Colors.white70 : Colors.black87)
+                                        ? (isDark
+                                              ? Colors.white70
+                                              : Colors.black87)
                                         : Colors.transparent,
                                     width: 1.0,
                                   ),
@@ -493,7 +545,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                   style: TextStyle(
                                     color: isSelected
                                         ? (isDark ? Colors.white : Colors.black)
-                                        : (isDark ? Colors.white70 : Colors.black54),
+                                        : (isDark
+                                              ? Colors.white70
+                                              : Colors.black54),
                                     fontWeight: FontWeight.w600,
                                     fontSize: 13,
                                   ),
@@ -512,16 +566,20 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           height: 52,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isDark ? const Color(0xFF111827) : const Color(0xFF000000),
+                              backgroundColor: isDark
+                                  ? const Color(0xFF111827)
+                                  : const Color(0xFF000000),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
                               ),
                               elevation: 2,
                             ),
-                            onPressed: _isActionLoading ? null : _handleAddToCart,
+                            onPressed: _isActionLoading
+                                ? null
+                                : _handleAddToCart,
                             child: const Text(
-                              'Add to Cart',
+                              'Thêm vào giỏ hàng',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
