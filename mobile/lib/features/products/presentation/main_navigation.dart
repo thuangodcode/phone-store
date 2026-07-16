@@ -9,6 +9,7 @@ import '../../../core/models/wishlist.dart';
 import '../../../core/services/api_service.dart';
 import '../../auth/presentation/login_page.dart';
 import '../../../../main.dart';
+import 'settings_page.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -1091,6 +1092,228 @@ class _ProfileTabState extends State<ProfileTab> {
     }
   }
 
+  Future<void> _showEditProfileDialog({
+    required String fullName,
+    required String phone,
+    required String address,
+    required String avatar,
+  }) async {
+    final isDark = themeManager.isDarkMode;
+
+    final nameController = TextEditingController(text: fullName);
+    final phoneController = TextEditingController(text: phone);
+    final addressController = TextEditingController(text: address);
+    final avatarController = TextEditingController(text: avatar);
+
+    final formKey = GlobalKey<FormState>();
+    bool isSaving = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              backgroundColor: isDark ? const Color(0xFF111827) : Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              titlePadding: const EdgeInsets.only(top: 24, left: 24, right: 24),
+              contentPadding: const EdgeInsets.all(24),
+              title: Row(
+                children: [
+                  const Icon(
+                    Icons.edit_note_rounded,
+                    color: Color(0xFFEF4444),
+                    size: 28,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Cập nhật hồ sơ',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Họ tên
+                      TextFormField(
+                        controller: nameController,
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                        decoration: InputDecoration(
+                          labelText: 'Họ và tên',
+                          labelStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
+                          hintText: 'Nhập họ và tên',
+                          hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+                          prefixIcon: const Icon(Icons.person_outline_rounded, color: Color(0xFFEF4444)),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Vui lòng nhập họ và tên';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      // Số điện thoại
+                      TextFormField(
+                        controller: phoneController,
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          labelText: 'Số điện thoại',
+                          labelStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
+                          hintText: 'Nhập số điện thoại',
+                          hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+                          prefixIcon: const Icon(Icons.phone_iphone_rounded, color: Color(0xFFEF4444)),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Vui lòng nhập số điện thoại';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      // Địa chỉ
+                      TextFormField(
+                        controller: addressController,
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                        maxLines: 2,
+                        decoration: InputDecoration(
+                          labelText: 'Địa chỉ giao hàng',
+                          labelStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
+                          hintText: 'Nhập địa chỉ của bạn',
+                          hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+                          prefixIcon: const Icon(Icons.location_on_outlined, color: Color(0xFFEF4444)),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Vui lòng nhập địa chỉ';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      // URL Avatar
+                      TextFormField(
+                        controller: avatarController,
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                        maxLines: 2,
+                        decoration: InputDecoration(
+                          labelText: 'URL Ảnh đại diện',
+                          labelStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
+                          hintText: 'Nhập đường dẫn ảnh đại diện',
+                          hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+                          prefixIcon: const Icon(Icons.image_outlined, color: Color(0xFFEF4444)),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actionsPadding: const EdgeInsets.only(bottom: 24, right: 24, left: 24),
+              actions: [
+                TextButton(
+                  onPressed: isSaving ? null : () => Navigator.pop(context),
+                  child: const Text('Hủy', style: TextStyle(color: Color(0xFF9CA3AF), fontWeight: FontWeight.w600)),
+                ),
+                ElevatedButton(
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          if (formKey.currentState!.validate()) {
+                            setStateDialog(() {
+                              isSaving = true;
+                            });
+
+                            final result = await ApiService.updateProfile(
+                              fullName: nameController.text.trim(),
+                              phone: phoneController.text.trim(),
+                              address: addressController.text.trim(),
+                              avatar: avatarController.text.trim(),
+                            );
+
+                            if (mounted) {
+                              Navigator.pop(context); // Đóng dialog
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(result['message'] ?? ''),
+                                  backgroundColor: result['success'] == true ? Colors.green : Colors.red,
+                                ),
+                              );
+
+                              if (result['success'] == true) {
+                                _loadUserProfile(); // Load lại thông tin
+                              }
+                            }
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFEF4444),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  ),
+                  child: isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text('Lưu thay đổi', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = themeManager.isDarkMode;
@@ -1109,191 +1332,453 @@ class _ProfileTabState extends State<ProfileTab> {
 
     final String displayName = _currentUser?.fullName ?? 'Chi Nguyễn';
     final String displayEmail = _currentUser?.email ?? 'customer.chinyuyen@gmail.com';
+    final String displayPhone = _currentUser?.phone ?? 'Chưa thiết lập';
+    final String displayAddress = _currentUser?.address ?? 'Chưa thiết lập';
     final String displayAvatar = _currentUser?.avatar ?? '';
+
+    // Lấy ký tự viết tắt của tên để làm avatar placeholder
+    String getInitials(String name) {
+      if (name.isEmpty) return 'U';
+      final parts = name.trim().split(' ');
+      if (parts.length > 1) {
+        return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
+      }
+      return name[0].toUpperCase();
+    }
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: ListView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
           children: [
-            const SizedBox(height: 24),
-            // User Info Header
-            Center(
-              child: Column(
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
+            // Custom Header with Gradient
+            Stack(
+              children: [
+                Container(
+                  height: 240,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: isDark
+                          ? [
+                              const Color(0xFF1E1B4B), // Indigo 900
+                              const Color(0xFF311042), // Deep purple
+                              const Color(0xFF581C87), // Purple 900
+                            ]
+                          : [
+                              const Color(0xFFFCA5A5), // Red 300
+                              const Color(0xFFEF4444), // Red 500
+                              const Color(0xFFB91C1C), // Red 700
+                            ],
+                    ),
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(32),
+                      bottomRight: Radius.circular(32),
+                    ),
+                  ),
+                ),
+                // Settings button on top right
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 8,
+                  right: 16,
+                  child: Container(
                     decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.2),
                       shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.settings_rounded, color: Colors.white, size: 24),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SettingsPage()),
+                        ).then((_) {
+                          // Force rebuild khi từ trang Cài đặt quay lại để update theme
+                          setState(() {});
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                // Profile Main details inside header
+                Positioned(
+                  bottom: 24,
+                  left: 0,
+                  right: 0,
+                  child: Column(
+                    children: [
+                      // Avatar
+                      Container(
+                        width: 90,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 3,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: CircleAvatar(
+                          backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                          backgroundImage: displayAvatar.isNotEmpty ? NetworkImage(displayAvatar) : null,
+                          child: displayAvatar.isEmpty
+                              ? Text(
+                                  getInitials(displayName),
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white : const Color(0xFFEF4444),
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        displayName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        displayEmail,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.85),
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        icon: const Icon(Icons.edit_rounded, size: 14, color: Colors.white),
+                        label: const Text('Sửa hồ sơ', style: TextStyle(color: Colors.white, fontSize: 12)),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.white.withOpacity(0.4)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        onPressed: () => _showEditProfileDialog(
+                          fullName: displayName,
+                          phone: displayPhone == 'Chưa thiết lập' ? '' : displayPhone,
+                          address: displayAddress == 'Chưa thiết lập' ? '' : displayAddress,
+                          avatar: displayAvatar,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 24),
+                  
+                  // Section 1: Thông tin cá nhân
+                  _buildSectionTitle(context, 'THÔNG TIN CHI TIẾT'),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: const Color(0xFFEF4444),
-                        width: 2,
+                        color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE5E7EB),
+                        width: 1,
                       ),
                     ),
-                    child: CircleAvatar(
-                      backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE5E7EB),
-                      backgroundImage: displayAvatar.isNotEmpty ? NetworkImage(displayAvatar) : null,
-                      child: displayAvatar.isEmpty
-                          ? Icon(Icons.person, size: 48, color: isDark ? Colors.white : const Color(0xFF4B5563))
-                          : null,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Column(
+                        children: [
+                          _buildDetailRow(
+                            context,
+                            icon: Icons.person_outline_rounded,
+                            label: 'Họ và tên',
+                            value: displayName,
+                          ),
+                          const Divider(height: 1, indent: 56, color: Color(0x1F808080)),
+                          _buildDetailRow(
+                            context,
+                            icon: Icons.email_outlined,
+                            label: 'Địa chỉ Email',
+                            value: displayEmail,
+                          ),
+                          const Divider(height: 1, indent: 56, color: Color(0x1F808080)),
+                          _buildDetailRow(
+                            context,
+                            icon: Icons.phone_iphone_rounded,
+                            label: 'Số điện thoại',
+                            value: displayPhone,
+                          ),
+                          const Divider(height: 1, indent: 56, color: Color(0x1F808080)),
+                          _buildDetailRow(
+                            context,
+                            icon: Icons.location_on_outlined,
+                            label: 'Địa chỉ giao hàng',
+                            value: displayAddress,
+                            isMultiLine: true,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    displayName,
-                    style: TextStyle(
-                      color: theme.colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Section 2: Tiện ích & Cài đặt
+                  _buildSectionTitle(context, 'TIỆN ÍCH & THIẾT LẬP'),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE5E7EB),
+                        width: 1,
+                      ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Column(
+                        children: [
+                          _buildMenuItem(
+                            context,
+                            icon: Icons.history_rounded,
+                            title: 'Lịch sử mua hàng',
+                            subtitle: 'Đơn hàng, Hóa đơn thanh toán',
+                          ),
+                          const Divider(height: 1, indent: 56, color: Color(0x1F808080)),
+                          _buildMenuItem(
+                            context,
+                            icon: Icons.discount_outlined,
+                            title: 'Kho Voucher của tôi',
+                            subtitle: 'Ưu đãi & giảm giá độc quyền',
+                          ),
+                          const Divider(height: 1, indent: 56, color: Color(0x1F808080)),
+                          _buildMenuItem(
+                            context,
+                            icon: Icons.chat_bubble_outline_rounded,
+                            title: 'Lịch sử chat hỗ trợ',
+                            subtitle: 'SignalR & Trợ lý AI logs',
+                          ),
+                          const Divider(height: 1, indent: 56, color: Color(0x1F808080)),
+                          _buildMenuItem(
+                            context,
+                            icon: Icons.settings_outlined,
+                            title: 'Cài đặt hệ thống',
+                            subtitle: 'Chuyển đổi giao diện Sáng / Tối',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const SettingsPage()),
+                              ).then((_) {
+                                setState(() {});
+                              });
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    displayEmail,
-                    style: const TextStyle(color: Color(0xFF6B7280), fontSize: 13),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Section 3: Đăng xuất
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _handleLogout,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0x1AEF4444) : const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFFEF4444).withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.logout_rounded, color: Color(0xFFEF4444), size: 20),
+                            SizedBox(width: 10),
+                            Text(
+                              'Đăng xuất tài khoản',
+                              style: TextStyle(
+                                color: Color(0xFFEF4444),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
+                  
+                  const SizedBox(height: 120), // Bottom padding for float dock
                 ],
               ),
             ),
-            const SizedBox(height: 32),
-            // Menu list
-            _buildMenuItem(
-              Icons.history_rounded,
-              'Lịch sử mua hàng',
-              'Đơn hàng, Hóa đơn thanh toán',
-            ),
-            _buildMenuItem(
-              Icons.discount_outlined,
-              'Kho Voucher của tôi',
-              'Ưu đãi & giảm giá độc quyền',
-            ),
-            _buildMenuItem(
-              Icons.chat_bubble_outline_rounded,
-              'Lịch sử chat hỗ trợ',
-              'SignalR & Trợ lý AI logs',
-            ),
-            _buildMenuItem(
-              Icons.dark_mode_outlined,
-              'Chế độ giao diện tối',
-              'Chuyển đổi giao diện Sáng / Tối',
-              trailing: Switch(
-                value: isDark,
-                activeColor: const Color(0xFFEF4444),
-                onChanged: (value) {
-                  themeManager.toggleTheme(value);
-                  setState(() {});
-                },
-              ),
-            ),
-            _buildMenuItem(
-              Icons.security_outlined,
-              'Bảo mật tài khoản',
-              'Thay đổi mật khẩu, xác thực',
-            ),
-            _buildMenuItem(
-              Icons.location_on_outlined,
-              'Sổ địa chỉ nhận hàng',
-              'Quản lý thông tin giao hàng',
-            ),
-            const Divider(color: Color(0xFF374151), height: 32),
-            _buildMenuItem(
-              Icons.logout_rounded,
-              'Đăng xuất tài khoản',
-              'Thoát khỏi phiên hoạt động',
-              isDestructive: true,
-              onTap: _handleLogout,
-            ),
-            const SizedBox(height: 120), // Bottom padding for float dock
           ],
         ),
       ),
     );
   }
 
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onSurface.withOpacity(0.4),
+          letterSpacing: 1.2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String value,
+    bool isMultiLine = false,
+  }) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+      child: Row(
+        crossAxisAlignment: isMultiLine ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEF4444).withOpacity(0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: const Color(0xFFEF4444),
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: theme.colorScheme.onSurface.withOpacity(0.4),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                  maxLines: isMultiLine ? 3 : 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMenuItem(
-    IconData icon,
-    String title,
-    String subtitle, {
-    bool isDestructive = false,
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
     VoidCallback? onTap,
-    Widget? trailing,
   }) {
     final isDark = themeManager.isDarkMode;
     final theme = Theme.of(context);
     
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE5E7EB),
-            width: 1,
-          ),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: trailing == null ? onTap : null,
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: isDestructive
-                          ? const Color(0xFFEF4444).withOpacity(0.1)
-                          : (isDark ? const Color(0xFF1F2937) : const Color(0xFFF3F4F6)),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      icon,
-                      color: isDestructive
-                          ? const Color(0xFFEF4444)
-                          : (isDark ? Colors.white70 : const Color(0xFF4B5563)),
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                            color: isDestructive
-                                ? const Color(0xFFEF4444)
-                                : theme.colorScheme.onSurface,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          subtitle,
-                          style: const TextStyle(
-                            color: Color(0xFF6B7280),
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  trailing ?? Icon(
-                    Icons.arrow_forward_ios,
-                    color: isDark ? const Color(0xFF374151) : const Color(0xFF9CA3AF),
-                    size: 14,
-                  ),
-                ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1F2937) : const Color(0xFFF3F4F6),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  color: isDark ? Colors.white70 : const Color(0xFF4B5563),
+                  size: 18,
+                ),
               ),
-            ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface.withOpacity(0.5),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: theme.colorScheme.onSurface.withOpacity(0.3),
+                size: 14,
+              ),
+            ],
           ),
         ),
       ),

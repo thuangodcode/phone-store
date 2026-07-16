@@ -3,6 +3,7 @@ import 'widgets/banner_carousel.dart';
 import 'widgets/brand_selector.dart';
 import 'widgets/product_grid.dart';
 import 'widgets/floating_chat_buttons.dart';
+import '../../../../main.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -24,8 +25,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = themeManager.isDarkMode;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF030712), // --color-background = gray-950 (Dark Mode sâu)
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
         children: [
           SafeArea(
@@ -34,19 +38,19 @@ class _HomePageState extends State<HomePage> {
               slivers: [
                 // Custom AppBar sliver
                 SliverAppBar(
-                  backgroundColor: const Color(0xFF030712),
+                  backgroundColor: theme.scaffoldBackgroundColor,
                   floating: true,
                   pinned: true,
                   elevation: 0,
                   title: Row(
                     children: [
                       RichText(
-                        text: const TextSpan(
+                        text: TextSpan(
                           children: [
                             TextSpan(
                               text: 'Phone',
                               style: TextStyle(
-                                color: Color(0xFFF9FAFB),
+                                color: theme.colorScheme.onSurface,
                                 fontSize: 22,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: -0.5,
@@ -54,7 +58,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             TextSpan(
                               text: 'Store',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Color(0xFFEF4444),
                                 fontSize: 22,
                                 fontWeight: FontWeight.w800,
@@ -68,9 +72,9 @@ class _HomePageState extends State<HomePage> {
                   ),
                   actions: [
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.notifications_none_outlined,
-                        color: Color(0xFFF9FAFB),
+                        color: theme.colorScheme.onSurface,
                       ),
                       onPressed: () {},
                     ),
@@ -78,9 +82,9 @@ class _HomePageState extends State<HomePage> {
                       alignment: Alignment.center,
                       children: [
                         IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.shopping_bag_outlined,
-                            color: Color(0xFFF9FAFB),
+                            color: theme.colorScheme.onSurface,
                           ),
                           onPressed: () {},
                         ),
@@ -93,7 +97,7 @@ class _HomePageState extends State<HomePage> {
                               color: const Color(0xFFEF4444),
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: const Color(0xFF030712),
+                                color: theme.scaffoldBackgroundColor,
                                 width: 1,
                               ),
                             ),
@@ -107,7 +111,7 @@ class _HomePageState extends State<HomePage> {
                                 color: Colors.white,
                                 fontSize: 8,
                                 fontWeight: FontWeight.bold,
-                              ),
+                                ),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -124,10 +128,10 @@ class _HomePageState extends State<HomePage> {
                       child: Container(
                         height: 44,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF111827),
+                          color: theme.colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: const Color(0xFF1F2937),
+                            color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE5E7EB),
                             width: 1,
                           ),
                         ),
@@ -143,8 +147,8 @@ class _HomePageState extends State<HomePage> {
                             Expanded(
                               child: TextField(
                                 controller: _searchController,
-                                style: const TextStyle(
-                                  color: Color(0xFFF9FAFB),
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurface,
                                   fontSize: 14,
                                 ),
                                 onChanged: (value) {
@@ -201,21 +205,21 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 12),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 12),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               'Hãng Sản Xuất',
                               style: TextStyle(
-                                color: Color(0xFFF9FAFB),
+                                color: theme.colorScheme.onSurface,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: -0.3,
                               ),
                             ),
-                            Text(
+                            const Text(
                               'Xem tất cả',
                               style: TextStyle(
                                 color: Color(0xFFEF4444),
@@ -238,22 +242,22 @@ class _HomePageState extends State<HomePage> {
                 ),
 
                 // Section 3: Hot Products Title
-                const SliverToBoxAdapter(
+                SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.only(left: 16, right: 16, top: 24, bottom: 12),
+                    padding: const EdgeInsets.only(left: 16, right: 16, top: 24, bottom: 12),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           'Sản Phẩm Nổi Bật',
                           style: TextStyle(
-                            color: Color(0xFFF9FAFB),
+                            color: theme.colorScheme.onSurface,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             letterSpacing: -0.3,
                           ),
                         ),
-                        Icon(
+                        const Icon(
                           Icons.arrow_forward_ios,
                           color: Color(0xFF6B7280),
                           size: 14,

@@ -455,4 +455,52 @@ class ApiService {
       return null;
     }
   }
+
+  // Cập nhật hồ sơ người dùng
+  static Future<Map<String, dynamic>> updateProfile({
+    required String fullName,
+    required String phone,
+    required String address,
+    required String avatar,
+  }) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/Users/profile'),
+        headers: headers,
+        body: jsonEncode({
+          'fullName': fullName,
+          'phone': phone,
+          'address': address,
+          'avatar': avatar,
+        }),
+      );
+
+      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && jsonResponse['success'] == true) {
+        final userMap = jsonResponse['data'];
+        if (userMap != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(_userKey, jsonEncode(userMap));
+          return {
+            'success': true,
+            'message': jsonResponse['message'] ?? 'Cập nhật thông tin thành công!',
+            'user': UserInfo.fromJson(userMap),
+          };
+        }
+      }
+
+      return {
+        'success': false,
+        'message': jsonResponse['message'] ?? 'Cập nhật thất bại. Vui lòng kiểm tra lại thông tin.',
+      };
+    } catch (e) {
+      print('API Update Profile Error: $e');
+      return {
+        'success': false,
+        'message': 'Lỗi kết nối: $e. Không thể cập nhật thông tin.',
+      };
+    }
+  }
 }
