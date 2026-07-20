@@ -11,5 +11,7 @@ public interface IReviewService
     Task<bool> DeleteAsync(string id, string userId);
     Task<bool> DeleteAsAdminAsync(string id);
     Task<ReviewDto> AddReplyAsync(string reviewId, string userId, string userName, string comment);
+    Task<ReviewDto?> UpdateReplyAsync(string reviewId, string replyId, string userId, string comment);
+    Task<ReviewDto?> DeleteReplyAsync(string reviewId, string replyId, string userId);
 }
 

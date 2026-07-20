@@ -73,5 +73,31 @@ public class ReviewsController : ControllerBase
         var result = await _reviewService.DeleteAsAdminAsync(id);
         return Ok(ApiResponse<bool>.SuccessResponse(result));
     }
+
+    [HttpPut("{reviewId}/reply/{replyId}")]
+    [Authorize]
+    public async Task<ActionResult<ApiResponse<bool>>> UpdateReply(string reviewId, string replyId, [FromBody] string comment)
+    {
+        var review = await _reviewService.UpdateReplyAsync(reviewId, replyId, GetUserId(), comment);
+        if (review != null)
+        {
+            await _hubContext.Clients.Group(review.ProductId).SendAsync("ReceiveReview", review);
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "Reply updated"));
+        }
+        return BadRequest(ApiResponse<bool>.ErrorResponse("Update failed or unauthorized"));
+    }
+
+    [HttpDelete("{reviewId}/reply/{replyId}")]
+    [Authorize]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteReply(string reviewId, string replyId)
+    {
+        var review = await _reviewService.DeleteReplyAsync(reviewId, replyId, GetUserId());
+        if (review != null)
+        {
+            await _hubContext.Clients.Group(review.ProductId).SendAsync("ReceiveReview", review);
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "Reply deleted"));
+        }
+        return BadRequest(ApiResponse<bool>.ErrorResponse("Delete failed or unauthorized"));
+    }
 }
 

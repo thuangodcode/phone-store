@@ -1061,13 +1061,12 @@ class ApiService {
         body: jsonEncode(data),
       );
       if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-        return jsonResponse;
+        return jsonDecode(response.body);
+      } else {
+        return {'success': false, 'message': 'HTTP ${response.statusCode}: ${response.body}'};
       }
-      return null;
     } catch (e) {
-      print('Create Review Error: $e');
-      return null;
+      return {'success': false, 'message': 'Network Error: $e'};
     }
   }
 
@@ -1077,24 +1076,75 @@ class ApiService {
       final response = await http.post(
         Uri.parse('$baseUrl/reviews/$reviewId/reply'),
         headers: headers,
-        body: jsonEncode({'comment': comment}),
+        body: jsonEncode(comment),
       );
       if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-        return jsonResponse;
+        return jsonDecode(response.body);
+      } else {
+        return {'success': false, 'message': 'HTTP ${response.statusCode}: ${response.body}'};
       }
-      return null;
     } catch (e) {
-      print('Reply Review Error: $e');
-      return null;
+      return {'success': false, 'message': 'Network Error: $e'};
     }
   }
 
-  static Future<bool> deleteReview(String reviewId) async {
+  static Future<bool> updateReply(String reviewId, String replyId, String comment) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/reviews/$reviewId/reply/$replyId'),
+        headers: headers,
+        body: jsonEncode(comment),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Update Reply Error: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> deleteReply(String reviewId, String replyId) async {
     try {
       final headers = await _getHeaders();
       final response = await http.delete(
+        Uri.parse('$baseUrl/reviews/$reviewId/reply/$replyId'),
+        headers: headers,
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Delete Reply Error: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> updateReview(String reviewId, int rating, String comment) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
         Uri.parse('$baseUrl/reviews/$reviewId'),
+        headers: headers,
+        body: jsonEncode({
+          'rating': rating,
+          'comment': comment
+        }),
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        return jsonResponse['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      print('Update Review Error: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> deleteReview(String reviewId, {bool isAdminDelete = false}) async {
+    try {
+      final headers = await _getHeaders();
+      final url = isAdminDelete ? '$baseUrl/reviews/admin/$reviewId' : '$baseUrl/reviews/$reviewId';
+      final response = await http.delete(
+        Uri.parse(url),
         headers: headers,
       );
       if (response.statusCode == 200) {

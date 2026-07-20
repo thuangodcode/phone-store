@@ -3,7 +3,7 @@ import * as signalR from '@microsoft/signalr';
 import axiosClient from '../../api/axiosClient';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
-import { User, Send, Star, Trash2, MessageSquare } from 'lucide-react';
+import { User, Send, Star, Trash2, MessageSquare, Edit2, X, Check } from 'lucide-react';
 
 interface ReviewDto {
   id: string;
@@ -31,7 +31,15 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
-  const { isAuthenticated, isAdminOrStaff } = useAuth();
+  
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
+  const [editRating, setEditRating] = useState(5);
+  const [editContent, setEditContent] = useState('');
+
+  const [editingReplyId, setEditingReplyId] = useState<{reviewId: string, replyId: string} | null>(null);
+  const [editReplyContent, setEditReplyContent] = useState('');
+
+  const { isAuthenticated, isAdminOrStaff, user } = useAuth();
   
   const connectionRef = useRef<signalR.HubConnection | null>(null);
 
@@ -126,14 +134,30 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
     }
   };
 
-  const handleDeleteComment = async (id: string) => {
+  const handleDeleteComment = async (id: string, isAdminDelete: boolean = false) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa bình luận này?')) return;
     try {
-      await axiosClient.delete(`/reviews/admin/${id}`);
+      const endpoint = isAdminDelete ? `/reviews/admin/${id}` : `/reviews/${id}`;
+      await axiosClient.delete(endpoint);
       setComments(prev => prev.filter(c => c.id !== id));
       toast.success('Đã xóa bình luận');
     } catch (error: any) {
       toast.error('Lỗi khi xóa bình luận');
+    }
+  };
+
+  const handleUpdateComment = async (id: string) => {
+    if (!editContent.trim()) return;
+    try {
+      await axiosClient.put(`/reviews/${id}`, {
+        rating: editRating,
+        comment: editContent.trim()
+      });
+      setComments(prev => prev.map(c => c.id === id ? { ...c, rating: editRating, comment: editContent.trim() } : c));
+      setEditingReviewId(null);
+      toast.success('Đã cập nhật bình luận');
+    } catch (error: any) {
+      toast.error('Lỗi khi cập nhật bình luận');
     }
   };
 
@@ -148,6 +172,47 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
       toast.success('Đã trả lời bình luận');
     } catch (error: any) {
       toast.error('Lỗi khi gửi trả lời');
+    }
+  };
+
+  const handleUpdateReply = async (reviewId: string, replyId: string) => {
+    if (!editReplyContent.trim()) return;
+    try {
+      await axiosClient.put(`/reviews/${reviewId}/reply/${replyId}`, `"${editReplyContent.trim()}"`, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      setComments(prev => prev.map(c => {
+        if (c.id === reviewId) {
+          return {
+            ...c,
+            replies: c.replies.map(r => r.id === replyId ? { ...r, comment: editReplyContent.trim() } : r)
+          };
+        }
+        return c;
+      }));
+      setEditingReplyId(null);
+      toast.success('Đã cập nhật câu trả lời');
+    } catch (error: any) {
+      toast.error('Lỗi khi cập nhật câu trả lời');
+    }
+  };
+
+  const handleDeleteReply = async (reviewId: string, replyId: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa câu trả lời này?')) return;
+    try {
+      await axiosClient.delete(`/reviews/${reviewId}/reply/${replyId}`);
+      setComments(prev => prev.map(c => {
+        if (c.id === reviewId) {
+          return {
+            ...c,
+            replies: c.replies.filter(r => r.id !== replyId)
+          };
+        }
+        return c;
+      }));
+      toast.success('Đã xóa câu trả lời');
+    } catch (error: any) {
+      toast.error('Lỗi khi xóa câu trả lời');
     }
   };
 
@@ -251,7 +316,7 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
                     <p className="text-gray-700 whitespace-pre-wrap">{comment.comment}</p>
                     
                     {/* Controls */}
-                    {isAuthenticated && (
+                    {isAuthenticated && editingReviewId !== comment.id && (
                       <div className="mt-3 flex gap-4 text-sm">
                         <button 
                           onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
@@ -259,14 +324,63 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
                         >
                           <MessageSquare size={14} className="mr-1" /> Trả lời
                         </button>
-                        {isAdminOrStaff && (
+                        {user?.id === comment.userId && (
                           <button 
-                            onClick={() => handleDeleteComment(comment.id)}
+                            onClick={() => {
+                              setEditingReviewId(comment.id);
+                              setEditRating(comment.rating);
+                              setEditContent(comment.comment);
+                            }}
+                            className="flex items-center text-gray-600 hover:text-gray-800 transition"
+                          >
+                            <Edit2 size={14} className="mr-1" /> Sửa
+                          </button>
+                        )}
+                        {(isAdminOrStaff || user?.id === comment.userId) && (
+                          <button 
+                            onClick={() => handleDeleteComment(comment.id, isAdminOrStaff && user?.id !== comment.userId)}
                             className="flex items-center text-red-600 hover:text-red-800 transition"
                           >
                             <Trash2 size={14} className="mr-1" /> Xóa
                           </button>
                         )}
+                      </div>
+                    )}
+                    
+                    {/* Edit Input Box */}
+                    {editingReviewId === comment.id && (
+                      <div className="mt-3 bg-white p-3 border border-gray-200 rounded-lg shadow-sm">
+                        <div className="flex mb-2">
+                          {[...Array(5)].map((_, i) => (
+                            <Star 
+                              key={i} 
+                              size={16} 
+                              className={`cursor-pointer transition-colors ${i < editRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+                              onClick={() => setEditRating(i + 1)}
+                            />
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            value={editContent}
+                            onChange={e => setEditContent(e.target.value)}
+                            className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                          />
+                          <button 
+                            onClick={() => handleUpdateComment(comment.id)}
+                            disabled={!editContent.trim()}
+                            className="bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 flex items-center"
+                          >
+                            <Check size={16} className="mr-1"/> Lưu
+                          </button>
+                          <button 
+                            onClick={() => setEditingReviewId(null)}
+                            className="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm hover:bg-gray-300 flex items-center"
+                          >
+                            <X size={16} className="mr-1"/> Hủy
+                          </button>
+                        </div>
                       </div>
                     )}
 
@@ -312,7 +426,56 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
                               </span>
                               <span className="text-xs text-gray-400">{formatDate(reply.createdAt)}</span>
                             </div>
-                            <p className="text-gray-600">{reply.comment}</p>
+                            
+                            {editingReplyId?.replyId === reply.id ? (
+                              <div className="mt-2 flex gap-2">
+                                <input 
+                                  type="text" 
+                                  value={editReplyContent}
+                                  onChange={e => setEditReplyContent(e.target.value)}
+                                  className="flex-1 bg-white border border-gray-200 rounded-lg px-2 py-1 outline-none focus:border-blue-500"
+                                />
+                                <button 
+                                  onClick={() => handleUpdateReply(comment.id, reply.id)}
+                                  disabled={!editReplyContent.trim()}
+                                  className="bg-green-600 text-white px-2 py-1 rounded-lg hover:bg-green-700 disabled:opacity-50"
+                                >
+                                  Lưu
+                                </button>
+                                <button 
+                                  onClick={() => setEditingReplyId(null)}
+                                  className="bg-gray-200 text-gray-700 px-2 py-1 rounded-lg hover:bg-gray-300"
+                                >
+                                  Hủy
+                                </button>
+                              </div>
+                            ) : (
+                              <p className="text-gray-600">{reply.comment}</p>
+                            )}
+
+                            {isAuthenticated && editingReplyId?.replyId !== reply.id && (
+                              <div className="mt-2 flex gap-3 text-xs">
+                                {user?.id === reply.userId && (
+                                  <button 
+                                    onClick={() => {
+                                      setEditingReplyId({ reviewId: comment.id, replyId: reply.id });
+                                      setEditReplyContent(reply.comment);
+                                    }}
+                                    className="flex items-center text-gray-500 hover:text-gray-700 transition"
+                                  >
+                                    <Edit2 size={12} className="mr-1" /> Sửa
+                                  </button>
+                                )}
+                                {(isAdminOrStaff || user?.id === reply.userId) && (
+                                  <button 
+                                    onClick={() => handleDeleteReply(comment.id, reply.id)}
+                                    className="flex items-center text-red-500 hover:text-red-700 transition"
+                                  >
+                                    <Trash2 size={12} className="mr-1" /> Xóa
+                                  </button>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}

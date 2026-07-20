@@ -112,5 +112,38 @@ public class ReviewService : IReviewService
         var updatedReview = await _context.Reviews.Find(r => r.Id == reviewId).FirstOrDefaultAsync();
         return _mapper.Map<ReviewDto>(updatedReview);
     }
+
+    public async Task<ReviewDto?> UpdateReplyAsync(string reviewId, string replyId, string userId, string comment)
+    {
+        var filter = Builders<Review>.Filter.And(
+            Builders<Review>.Filter.Eq(r => r.Id, reviewId),
+            Builders<Review>.Filter.ElemMatch(r => r.Replies, rep => rep.Id == replyId && rep.UserId == userId)
+        );
+
+        var update = Builders<Review>.Update.Set("replies.$.comment", comment);
+        var result = await _context.Reviews.UpdateOneAsync(filter, update);
+        
+        if (result.ModifiedCount > 0)
+        {
+            var updatedReview = await _context.Reviews.Find(r => r.Id == reviewId).FirstOrDefaultAsync();
+            return _mapper.Map<ReviewDto>(updatedReview);
+        }
+        return null;
+    }
+
+    public async Task<ReviewDto?> DeleteReplyAsync(string reviewId, string replyId, string userId)
+    {
+        var filter = Builders<Review>.Filter.Eq(r => r.Id, reviewId);
+        var update = Builders<Review>.Update.PullFilter(r => r.Replies, rep => rep.Id == replyId && rep.UserId == userId);
+        
+        var result = await _context.Reviews.UpdateOneAsync(filter, update);
+        
+        if (result.ModifiedCount > 0)
+        {
+            var updatedReview = await _context.Reviews.Find(r => r.Id == reviewId).FirstOrDefaultAsync();
+            return _mapper.Map<ReviewDto>(updatedReview);
+        }
+        return null;
+    }
 }
 

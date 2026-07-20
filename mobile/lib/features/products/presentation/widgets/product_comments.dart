@@ -33,6 +33,16 @@ class _ProductCommentsState extends State<ProductComments> {
   final TextEditingController _replyController = TextEditingController();
   bool _isReplying = false;
 
+  String? _editingReviewId;
+  final TextEditingController _editController = TextEditingController();
+  int _editRating = 5;
+  bool _isEditing = false;
+
+  String? _editingReplyReviewId;
+  String? _editingReplyId;
+  final TextEditingController _editReplyController = TextEditingController();
+  bool _isEditingReply = false;
+
   ReviewSignalRService? _signalRService;
 
   @override
@@ -46,6 +56,8 @@ class _ProductCommentsState extends State<ProductComments> {
   void dispose() {
     _commentController.dispose();
     _replyController.dispose();
+    _editController.dispose();
+    _editReplyController.dispose();
     _signalRService?.dispose(widget.productId);
     super.dispose();
   }
@@ -68,7 +80,13 @@ class _ProductCommentsState extends State<ProductComments> {
       onReceiveReview: (reviewData) {
         if (mounted) {
           setState(() {
-            _reviews.insert(0, Review.fromJson(reviewData));
+            final newReview = Review.fromJson(reviewData);
+            final index = _reviews.indexWhere((r) => r.id == newReview.id);
+            if (index != -1) {
+              _reviews[index] = newReview;
+            } else {
+              _reviews.insert(0, newReview);
+            }
           });
         }
       },
@@ -106,7 +124,7 @@ class _ProductCommentsState extends State<ProductComments> {
 
     final result = await ApiService.createReview({
       'productId': widget.productId,
-      'orderId': null, // Bỏ qua orderId theo logic hiện tại
+      'orderId': '000000000000000000000000', // Backend expects a valid 24-digit hex ObjectId
       'rating': _rating,
       'comment': text,
     });
@@ -145,10 +163,106 @@ class _ProductCommentsState extends State<ProductComments> {
     }
   }
 
-  Future<void> _deleteReview(String reviewId) async {
-    final success = await ApiService.deleteReview(reviewId);
+  Future<void> _deleteReview(String reviewId, bool isAdminDelete) async {
+    final success = await ApiService.deleteReview(reviewId, isAdminDelete: isAdminDelete);
     if (!success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Xóa bình luận thất bại')));
+    } else if (success && mounted) {
+      setState(() {
+        _reviews.removeWhere((r) => r.id == reviewId);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã xóa bình luận')));
+    }
+  }
+
+  Future<void> _updateReview(String reviewId) async {
+    final text = _editController.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() => _isEditing = true);
+
+    final success = await ApiService.updateReview(reviewId, _editRating, text);
+
+    if (mounted) {
+      setState(() {
+        _isEditing = false;
+        if (success) {
+          final idx = _reviews.indexWhere((r) => r.id == reviewId);
+          if (idx != -1) {
+            final old = _reviews[idx];
+            _reviews[idx] = Review(
+              id: old.id,
+              userId: old.userId,
+              userName: old.userName,
+              userAvatar: old.userAvatar,
+              userRole: old.userRole,
+              productId: old.productId,
+              orderId: old.orderId,
+              rating: _editRating,
+              comment: text,
+              createdAt: old.createdAt,
+              replies: old.replies,
+            );
+          }
+          _editingReviewId = null;
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cập nhật bình luận thành công')));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cập nhật bình luận thất bại')));
+        }
+      });
+    }
+  }
+
+  Future<void> _updateReply(String reviewId, String replyId) async {
+    final text = _editReplyController.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() => _isEditingReply = true);
+
+    final success = await ApiService.updateReply(reviewId, replyId, text);
+
+    if (mounted) {
+      setState(() {
+        _isEditingReply = false;
+        if (success) {
+          final idx = _reviews.indexWhere((r) => r.id == reviewId);
+          if (idx != -1) {
+            final repIdx = _reviews[idx].replies.indexWhere((r) => r.id == replyId);
+            if (repIdx != -1) {
+              final oldRep = _reviews[idx].replies[repIdx];
+              _reviews[idx].replies[repIdx] = ReviewReply(
+                id: oldRep.id,
+                userId: oldRep.userId,
+                userName: oldRep.userName,
+                userAvatar: oldRep.userAvatar,
+                userRole: oldRep.userRole,
+                comment: text,
+                createdAt: oldRep.createdAt,
+              );
+            }
+          }
+          _editingReplyId = null;
+          _editingReplyReviewId = null;
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cập nhật câu trả lời thành công')));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cập nhật câu trả lời thất bại')));
+        }
+      });
+    }
+  }
+
+  Future<void> _deleteReply(String reviewId, String replyId) async {
+    final success = await ApiService.deleteReply(reviewId, replyId);
+    if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Xóa câu trả lời thất bại')));
+    } else if (success && mounted) {
+      setState(() {
+        final idx = _reviews.indexWhere((r) => r.id == reviewId);
+        if (idx != -1) {
+          _reviews[idx].replies.removeWhere((r) => r.id == replyId);
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã xóa câu trả lời')));
     }
   }
 
@@ -295,7 +409,10 @@ class _ProductCommentsState extends State<ProductComments> {
           separatorBuilder: (context, index) => const Divider(),
           itemBuilder: (context, index) {
             final review = _reviews[index];
-            final bool canDelete = _currentUser?.role == 'Admin' || _currentUser?.role == 'Staff';
+            final bool isOwner = _currentUser?.id == review.userId;
+            final bool canEdit = isOwner;
+            final bool canDelete = _currentUser?.role == 'Admin' || _currentUser?.role == 'Staff' || isOwner;
+            final bool isAdminDelete = _currentUser?.role == 'Admin' || _currentUser?.role == 'Staff';
 
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -344,13 +461,26 @@ class _ProductCommentsState extends State<ProductComments> {
                                     },
                                     child: const Text('Trả lời', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 13)),
                                   ),
-                                if (canDelete) ...[
                                   if (_currentUser != null) const SizedBox(width: 16),
-                                  GestureDetector(
-                                    onTap: () => _deleteReview(review.id),
-                                    child: const Text('Xóa', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 13)),
-                                  ),
-                                ]
+                                  if (canEdit) ...[
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _editingReviewId = review.id;
+                                          _editRating = review.rating;
+                                          _editController.text = review.comment;
+                                        });
+                                      },
+                                      child: const Text('Sửa', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 13)),
+                                    ),
+                                    const SizedBox(width: 16),
+                                  ],
+                                  if (canDelete) ...[
+                                    GestureDetector(
+                                      onTap: () => _deleteReview(review.id, isAdminDelete && !isOwner),
+                                      child: const Text('Xóa', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 13)),
+                                    ),
+                                  ]
                               ],
                             ),
                           ],
@@ -358,6 +488,72 @@ class _ProductCommentsState extends State<ProductComments> {
                       ),
                     ],
                   ),
+                  
+                  // Edit Input Field
+                  if (_editingReviewId == review.id)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 52, top: 12),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: cardColor,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: borderColor),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: List.generate(5, (index) => IconButton(
+                                icon: Icon(
+                                  index < _editRating ? Icons.star : Icons.star_border,
+                                  color: Colors.amber,
+                                  size: 20,
+                                ),
+                                onPressed: () => setState(() => _editRating = index + 1),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              )),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: _editController,
+                              maxLines: 2,
+                              style: TextStyle(color: textColor, fontSize: 13),
+                              decoration: InputDecoration(
+                                hintText: 'Sửa bình luận...',
+                                hintStyle: TextStyle(color: hintColor),
+                                isDense: true,
+                                contentPadding: const EdgeInsets.all(10),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: borderColor)),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.blue)),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                  onPressed: () => setState(() => _editingReviewId = null),
+                                  child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
+                                ),
+                                ElevatedButton(
+                                  onPressed: _isEditing ? null : () => _updateReview(review.id),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    minimumSize: const Size(0, 36),
+                                  ),
+                                  child: _isEditing
+                                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                    : const Text('Lưu', style: TextStyle(color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   
                   // Reply Input Field
                   if (_replyingToReviewId == review.id)
@@ -403,6 +599,10 @@ class _ProductCommentsState extends State<ProductComments> {
                         ),
                         child: Column(
                           children: review.replies.map((reply) {
+                            final bool isReplyOwner = _currentUser?.id == reply.userId;
+                            final bool canEditReply = isReplyOwner;
+                            final bool canDeleteReply = _currentUser?.role == 'Admin' || _currentUser?.role == 'Staff' || isReplyOwner;
+
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 12),
                               child: Row(
@@ -426,7 +626,76 @@ class _ProductCommentsState extends State<ProductComments> {
                                           ],
                                         ),
                                         const SizedBox(height: 4),
-                                        Text(reply.comment, style: TextStyle(color: textColor, height: 1.4, fontSize: 13)),
+
+                                        if (_editingReplyId == reply.id)
+                                          Column(
+                                            children: [
+                                              TextField(
+                                                controller: _editReplyController,
+                                                maxLines: 2,
+                                                style: TextStyle(color: textColor, fontSize: 13),
+                                                decoration: InputDecoration(
+                                                  hintText: 'Sửa câu trả lời...',
+                                                  hintStyle: TextStyle(color: hintColor),
+                                                  isDense: true,
+                                                  contentPadding: const EdgeInsets.all(10),
+                                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: borderColor)),
+                                                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Colors.blue)),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.end,
+                                                children: [
+                                                  TextButton(
+                                                    onPressed: () => setState(() => _editingReplyId = null),
+                                                    child: const Text('Hủy', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                                  ),
+                                                  ElevatedButton(
+                                                    onPressed: _isEditingReply ? null : () => _updateReply(review.id, reply.id),
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: Colors.green,
+                                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                                      minimumSize: const Size(0, 30),
+                                                    ),
+                                                    child: _isEditingReply
+                                                      ? const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                                      : const Text('Lưu', style: TextStyle(color: Colors.white, fontSize: 12)),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          )
+                                        else
+                                          Text(reply.comment, style: TextStyle(color: textColor, height: 1.4, fontSize: 13)),
+
+                                        if (_currentUser != null && _editingReplyId != reply.id)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 4),
+                                            child: Row(
+                                              children: [
+                                                if (canEditReply) ...[
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      setState(() {
+                                                        _editingReplyId = reply.id;
+                                                        _editingReplyReviewId = review.id;
+                                                        _editReplyController.text = reply.comment;
+                                                      });
+                                                    },
+                                                    child: const Text('Sửa', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 11)),
+                                                  ),
+                                                  const SizedBox(width: 12),
+                                                ],
+                                                if (canDeleteReply) ...[
+                                                  GestureDetector(
+                                                    onTap: () => _deleteReply(review.id, reply.id),
+                                                    child: const Text('Xóa', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 11)),
+                                                  ),
+                                                ]
+                                              ],
+                                            ),
+                                          ),
                                       ],
                                     ),
                                   ),
