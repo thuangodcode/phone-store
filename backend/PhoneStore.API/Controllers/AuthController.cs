@@ -32,6 +32,13 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse<AuthResponseDto>.SuccessResponse(result, "Login successful"));
     }
 
+    [HttpPost("google")]
+    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> GoogleLogin([FromBody] GoogleLoginDto dto)
+    {
+        var result = await _authService.GoogleLoginAsync(dto);
+        return Ok(ApiResponse<AuthResponseDto>.SuccessResponse(result, "Google login successful"));
+    }
+
     [HttpPost("forgot-password")]
     public async Task<ActionResult<ApiResponse<string>>> ForgotPassword([FromBody] ForgotPasswordDto dto)
     {

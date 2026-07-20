@@ -7,18 +7,24 @@ import { CartProvider } from './contexts/CartContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 import { AppRoutes } from './routes/AppRoutes';
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
 function App() {
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID';
+
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <WishlistProvider>
-          <CartProvider>
-            <AppRoutes />
-            <ToastContainer position="bottom-right" />
-          </CartProvider>
-        </WishlistProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <BrowserRouter>
+        <AuthProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <AppRoutes />
+              <ToastContainer position="top-right" />
+            </CartProvider>
+          </WishlistProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   );
 }
 

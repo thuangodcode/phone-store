@@ -8,6 +8,7 @@ using PhoneStore.Application.DTOs.Auth;
 using PhoneStore.Application.Interfaces;
 using PhoneStore.Domain.Entities;
 using PhoneStore.Domain.Interfaces;
+using Google.Apis.Auth;
 
 namespace PhoneStore.Infrastructure.Services;
 
@@ -85,6 +86,55 @@ public class AuthService : IAuthService
             Token = token,
             User = _mapper.Map<UserInfoDto>(user)
         };
+    }
+
+    public async Task<AuthResponseDto> GoogleLoginAsync(GoogleLoginDto dto)
+    {
+        try
+        {
+            var clientId = _configuration["Google:ClientId"];
+            var settings = new GoogleJsonWebSignature.ValidationSettings();
+            if (!string.IsNullOrEmpty(clientId))
+            {
+                settings.Audience = new[] { clientId };
+            }
+
+            var payload = await GoogleJsonWebSignature.ValidateAsync(dto.IdToken, settings);
+            
+            var user = await _userRepository.FindOneAsync(u => u.Email == payload.Email);
+            
+            if (user == null)
+            {
+                // Create a new user if one doesn't exist
+                user = new User
+                {
+                    FullName = payload.Name ?? payload.Email.Split('@')[0],
+                    Email = payload.Email,
+                    Password = BCrypt.Net.BCrypt.HashPassword(GenerateRandomPassword()),
+                    Phone = string.Empty,
+                    Role = "Customer",
+                    IsActive = true
+                };
+                await _userRepository.CreateAsync(user);
+                
+                // Welcome email can be sent here similar to Register
+            }
+            else if (!user.IsActive)
+            {
+                throw new Exception("Account has been deactivated.");
+            }
+
+            var token = GenerateJwtToken(user);
+            return new AuthResponseDto
+            {
+                Token = token,
+                User = _mapper.Map<UserInfoDto>(user)
+            };
+        }
+        catch (InvalidJwtException)
+        {
+            throw new Exception("Invalid Google token.");
+        }
     }
 
     public async Task<string> ForgotPasswordAsync(ForgotPasswordDto dto)

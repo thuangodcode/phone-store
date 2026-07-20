@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 import type { User } from '../types';
 
 interface AuthContextType {
@@ -51,6 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    toast.success('Đăng xuất thành công!');
   };
 
   const isAuthenticated = !!token;

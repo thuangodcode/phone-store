@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import axiosClient from '../../api/axiosClient';
 import { toast } from 'react-toastify';
+import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 
 
 
@@ -65,6 +66,29 @@ export const LoginPage: React.FC = () => {
       } else {
         toast.error(err?.response?.data?.message || err?.message || 'Đăng nhập thất bại');
       }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) return;
+    try {
+      setIsLoading(true);
+      const res = await axiosClient.post('/auth/google', { idToken: credentialResponse.credential });
+      if (res.data) {
+        login(res.data.user, res.data.token);
+        toast.success('Đăng nhập Google thành công!');
+        if (res.data.user.role?.toLowerCase() === 'admin') {
+          navigate('/admin');
+        } else if (res.data.user.role?.toLowerCase() === 'staff') {
+          navigate('/staff');
+        } else {
+          navigate('/');
+        }
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Đăng nhập Google thất bại');
     } finally {
       setIsLoading(false);
     }
@@ -201,6 +225,23 @@ export const LoginPage: React.FC = () => {
                 </span>
               ) : 'Đăng Nhập'}
             </button>
+            
+            <div className="relative flex items-center py-2">
+              <div className="flex-grow border-t border-zinc-200"></div>
+              <span className="flex-shrink-0 mx-4 text-zinc-400 text-xs uppercase tracking-wider">Hoặc tiếp tục với</span>
+              <div className="flex-grow border-t border-zinc-200"></div>
+            </div>
+
+            <div className="flex justify-center w-full">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => toast.error('Đăng nhập Google thất bại')}
+                theme="outline"
+                size="large"
+                shape="rectangular"
+                width="100%"
+              />
+            </div>
           </form>
 
           <div className="text-center space-y-3 pt-2">
