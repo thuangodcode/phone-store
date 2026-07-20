@@ -57,7 +57,7 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
       }
       
       const connection = new signalR.HubConnectionBuilder()
-        .withUrl(`${baseURL}/hubs/review`)
+        .withUrl(`${baseURL}/reviewHub`)
         .withAutomaticReconnect()
         .build();
         
