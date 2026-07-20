@@ -15,9 +15,9 @@ const DEFAULT_PRODUCTS = [
 ];
 
 /* 2️⃣  Config ————————————————————————— */
-const CARD_W = 180;
-const CARD_H = 240;
-const RADIUS = 240;
+const CARD_W = 240;
+const CARD_H = 320;
+const RADIUS = 320;
 const TILT_SENSITIVITY = 10;
 const DRAG_SENSITIVITY = 0.5;
 const INERTIA_FRICTION = 0.95;
