@@ -53,28 +53,29 @@ const Card = React.memo(({ product, transform, cardW, cardH, onClick }: CardProp
     onClick={() => onClick(product.id)}
   >
     <div
-      className="w-full h-full rounded-2xl overflow-hidden bg-white dark:bg-gray-800
-                 border border-gray-200 dark:border-gray-700 shadow-xl dark:shadow-gray-900/50
-                 transition-all duration-300 hover:scale-105 hover:shadow-2xl dark:hover:shadow-gray-900/70
-                 hover:z-10 group relative"
+      className="w-full h-full rounded-2xl overflow-hidden bg-white
+                 border border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.05)]
+                 transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]
+                 hover:z-10 group relative flex flex-col"
       style={{ backfaceVisibility: 'hidden' }}
     >
-      <img
-        src={product.image}
-        alt={product.name}
-        width={cardW}
-        height={cardH}
-        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-        loading="lazy"
-        draggable="false"
-        onError={e => {
-          e.currentTarget.src = FALLBACK;
-        }}
-      />
-      {/* Glassmorphic Overlay for Product Info */}
-      <div className="absolute bottom-0 left-0 right-0 p-3 pt-6 bg-gradient-to-t from-black/90 via-black/50 to-transparent backdrop-blur-[1px]">
-        <h3 className="text-white font-bold text-[15px] leading-tight line-clamp-2 drop-shadow-md mb-1">{product.name}</h3>
-        <p className="text-blue-400 font-semibold text-sm drop-shadow-md">{product.price.toLocaleString('vi-VN')} đ</p>
+      <div className="flex-1 w-full h-full p-4 flex items-center justify-center bg-white">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110"
+          style={{ mixBlendMode: 'multiply' }}
+          loading="lazy"
+          draggable="false"
+          onError={e => {
+            e.currentTarget.src = FALLBACK;
+          }}
+        />
+      </div>
+      {/* Premium Gradient Overlay for Product Info */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 pt-12 bg-gradient-to-t from-gray-900 via-gray-900/80 to-transparent">
+        <h3 className="text-white font-bold text-[15px] leading-tight line-clamp-2 mb-1">{product.name}</h3>
+        <p className="text-blue-400 font-bold text-sm">{product.price.toLocaleString('vi-VN')} đ</p>
       </div>
     </div>
   </div>
