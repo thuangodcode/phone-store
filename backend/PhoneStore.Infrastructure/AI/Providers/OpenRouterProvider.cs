@@ -155,7 +155,7 @@ public class OpenRouterProvider : IAIProvider
 
             responseString = await response.Content.ReadAsStringAsync();
             _logger.LogWarning("OpenRouter API request failed with status code {StatusCode}. Response: {Response}", (int)response.StatusCode, responseString);
-            throw CreateProviderException(response.StatusCode);
+            throw CreateProviderException(response.StatusCode, responseString);
         }
 
         using var doc = JsonDocument.Parse(responseString);
@@ -218,7 +218,7 @@ public class OpenRouterProvider : IAIProvider
         return clone;
     }
 
-    private static AIProviderException CreateProviderException(HttpStatusCode statusCode)
+    private static AIProviderException CreateProviderException(HttpStatusCode statusCode, string responseStr = "")
     {
         return statusCode switch
         {
@@ -235,7 +235,7 @@ public class OpenRouterProvider : IAIProvider
                 "Mô hình AI hiện không khả dụng. Vui lòng liên hệ quản trị viên.",
                 StatusCodes.Status503ServiceUnavailable),
             _ => new AIProviderException(
-                "Trợ lý AI tạm thời không thể phản hồi. Vui lòng thử lại sau.",
+                $"Lỗi OpenRouter: {(int)statusCode} - {responseStr}",
                 StatusCodes.Status502BadGateway)
         };
     }
