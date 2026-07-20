@@ -65,5 +65,13 @@ public class ReviewsController : ControllerBase
         var result = await _reviewService.DeleteAsync(id, GetUserId());
         return Ok(ApiResponse<bool>.SuccessResponse(result));
     }
+
+    [HttpDelete("admin/{id}")]
+    [Authorize(Roles = "Admin,Staff")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteReviewAsAdmin(string id)
+    {
+        var result = await _reviewService.DeleteAsAdminAsync(id);
+        return Ok(ApiResponse<bool>.SuccessResponse(result));
+    }
 }
 

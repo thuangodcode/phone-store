@@ -3,7 +3,7 @@ import * as signalR from '@microsoft/signalr';
 import axiosClient from '../../api/axiosClient';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
-import { User, Send, Star } from 'lucide-react';
+import { User, Send, Star, Trash2, MessageSquare } from 'lucide-react';
 
 interface ReviewDto {
   id: string;
@@ -27,7 +27,9 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
   const [rating, setRating] = useState(5);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState('');
+  const { isAuthenticated, isAdminOrStaff } = useAuth();
   
   const connectionRef = useRef<signalR.HubConnection | null>(null);
 
@@ -108,7 +110,7 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
     try {
       await axiosClient.post('/reviews', {
         productId,
-        orderId: "", // Passing empty orderId to allow anyone to comment
+        orderId: "000000000000000000000000", // valid dummy ObjectId to bypass MongoDB validation
         rating,
         comment: newComment.trim()
       });
@@ -119,6 +121,31 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
       toast.error(error.response?.data?.message || 'Lỗi khi gửi bình luận');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteComment = async (id: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa bình luận này?')) return;
+    try {
+      await axiosClient.delete(`/reviews/admin/${id}`);
+      setComments(prev => prev.filter(c => c.id !== id));
+      toast.success('Đã xóa bình luận');
+    } catch (error: any) {
+      toast.error('Lỗi khi xóa bình luận');
+    }
+  };
+
+  const handleReplySubmit = async (id: string) => {
+    if (!replyContent.trim()) return;
+    try {
+      await axiosClient.post(`/reviews/${id}/reply`, `"${replyContent.trim()}"`, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      setReplyContent('');
+      setReplyingTo(null);
+      toast.success('Đã trả lời bình luận');
+    } catch (error: any) {
+      toast.error('Lỗi khi gửi trả lời');
     }
   };
 
@@ -211,6 +238,44 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
                       ))}
                     </div>
                     <p className="text-gray-700 whitespace-pre-wrap">{comment.comment}</p>
+                    
+                    {/* Admin Controls */}
+                    {isAdminOrStaff && (
+                      <div className="mt-3 flex gap-4 text-sm">
+                        <button 
+                          onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                          className="flex items-center text-blue-600 hover:text-blue-800 transition"
+                        >
+                          <MessageSquare size={14} className="mr-1" /> Trả lời
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="flex items-center text-red-600 hover:text-red-800 transition"
+                        >
+                          <Trash2 size={14} className="mr-1" /> Xóa
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Reply Input Box */}
+                    {replyingTo === comment.id && (
+                      <div className="mt-3 flex gap-2">
+                        <input 
+                          type="text" 
+                          value={replyContent}
+                          onChange={e => setReplyContent(e.target.value)}
+                          placeholder="Nhập câu trả lời của bạn..."
+                          className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                        />
+                        <button 
+                          onClick={() => handleReplySubmit(comment.id)}
+                          disabled={!replyContent.trim()}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          Gửi
+                        </button>
+                      </div>
+                    )}
                   </div>
                   {/* Replies (if any) */}
                   {comment.replies && comment.replies.length > 0 && (

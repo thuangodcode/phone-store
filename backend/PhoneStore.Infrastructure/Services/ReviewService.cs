@@ -53,6 +53,12 @@ public class ReviewService : IReviewService
         return result.DeletedCount > 0;
     }
 
+    public async Task<bool> DeleteAsAdminAsync(string id)
+    {
+        var result = await _context.Reviews.DeleteOneAsync(r => r.Id == id);
+        return result.DeletedCount > 0;
+    }
+
     public async Task<ReviewDto> AddReplyAsync(string reviewId, string userId, string userName, string comment)
     {
         var reply = new ReviewReply
