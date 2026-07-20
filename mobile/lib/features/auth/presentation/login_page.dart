@@ -466,8 +466,8 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       onPressed: _isLoading ? null : _handleGoogleLogin,
-                      icon: Image.network(
-                        'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
+                      icon: Image.asset(
+                        'assets/images/google_logo.png',
                         height: 24,
                       ),
                       label: const Text(

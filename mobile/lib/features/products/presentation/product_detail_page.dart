@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../../main.dart';
 import '../../../core/models/product.dart';
@@ -213,6 +214,33 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     return const Color(0xFFE2E8F0); // Default slate color
   }
 
+  Widget _buildProductImage(String url, {double? size, Color iconColor = Colors.white70, BoxFit fit = BoxFit.contain, Color? blendColor}) {
+    if (url.isEmpty) {
+      return Icon(Icons.phone_iphone, size: size ?? 32, color: iconColor);
+    }
+    if (url.startsWith('data:image')) {
+      try {
+        final base64Str = url.split(',').last;
+        return Image.memory(
+          base64Decode(base64Str),
+          fit: fit,
+          color: blendColor,
+          colorBlendMode: blendColor != null ? BlendMode.multiply : null,
+          errorBuilder: (ctx, err, stack) => Icon(Icons.broken_image, size: size ?? 32, color: iconColor),
+        );
+      } catch (e) {
+        return Icon(Icons.broken_image, size: size ?? 32, color: iconColor);
+      }
+    }
+    return Image.network(
+      url,
+      fit: fit,
+      color: blendColor,
+      colorBlendMode: blendColor != null ? BlendMode.multiply : null,
+      errorBuilder: (ctx, err, stack) => Icon(Icons.broken_image, size: size ?? 32, color: iconColor),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = themeManager.isDarkMode;
@@ -345,22 +373,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   child: Center(
                     child: Hero(
                       tag: 'product_${product.id}',
-                      child: _mainImage.isNotEmpty
-                          ? Image.network(
-                              _mainImage,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Icon(
-                                    Icons.phone_iphone,
-                                    size: 100,
-                                    color: Colors.white.withOpacity(0.6),
-                                  ),
-                            )
-                          : Icon(
-                              Icons.phone_iphone,
-                              size: 100,
-                              color: Colors.white.withOpacity(0.6),
-                            ),
+                      child: _buildProductImage(
+                        _mainImage,
+                        blendColor: headerBgColor,
+                        iconColor: Colors.white.withOpacity(0.6),
+                      ),
                     ),
                   ),
                 ),
@@ -464,9 +481,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                     boxShadow: isSelected
                                         ? [
                                             BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.1,
-                                              ),
+                                              color: Colors.black.withOpacity(0.1),
                                               blurRadius: 4,
                                               offset: const Offset(0, 2),
                                             ),
@@ -475,16 +490,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                   ),
                                   padding: const EdgeInsets.all(8),
                                   child: Center(
-                                    child: color.imageUrl.isNotEmpty
-                                        ? Image.network(
-                                            color.imageUrl,
-                                            fit: BoxFit.contain,
-                                          )
-                                        : const Icon(
-                                            Icons.phone_iphone,
-                                            color: Colors.white70,
-                                            size: 32,
-                                          ),
+                                    child: _buildProductImage(
+                                      color.imageUrl,
+                                      size: 32,
+                                      blendColor: cardBgColor,
+                                    ),
                                   ),
                                 ),
                               );
