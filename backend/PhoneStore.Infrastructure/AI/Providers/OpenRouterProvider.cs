@@ -182,7 +182,8 @@ public class OpenRouterProvider : IAIProvider
             var function = toolCall.GetProperty("function");
             var toolName = function.GetProperty("name").GetString();
             var arguments = function.TryGetProperty("arguments", out var args) ? args.GetString() : "{}";
-            var toolCallId = toolCall.GetProperty("id").GetString();
+            if (string.IsNullOrWhiteSpace(arguments)) arguments = "{}";
+            var toolCallId = toolCall.TryGetProperty("id", out var idProp) ? idProp.GetString() : Guid.NewGuid().ToString("N");
 
             return new ChatMessageDto
             {
