@@ -30,6 +30,12 @@ public class Review
     [BsonElement("userName")]
     public string UserName { get; set; } = string.Empty;
 
+    [BsonElement("userAvatar")]
+    public string UserAvatar { get; set; } = string.Empty;
+
+    [BsonElement("userRole")]
+    public string UserRole { get; set; } = "Customer";
+
     [BsonElement("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

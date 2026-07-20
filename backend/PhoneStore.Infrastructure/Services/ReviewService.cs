@@ -26,9 +26,12 @@ public class ReviewService : IReviewService
 
     public async Task<ReviewDto> CreateAsync(string userId, string userName, CreateReviewDto dto)
     {
+        var user = await _context.Users.Find(u => u.Id == userId).FirstOrDefaultAsync();
         var review = _mapper.Map<Review>(dto);
         review.UserId = userId;
         review.UserName = userName;
+        review.UserAvatar = user?.Avatar ?? string.Empty;
+        review.UserRole = user?.Role ?? "Customer";
         review.CreatedAt = DateTime.UtcNow;
         review.UpdatedAt = DateTime.UtcNow;
 
@@ -61,10 +64,13 @@ public class ReviewService : IReviewService
 
     public async Task<ReviewDto> AddReplyAsync(string reviewId, string userId, string userName, string comment)
     {
+        var user = await _context.Users.Find(u => u.Id == userId).FirstOrDefaultAsync();
         var reply = new ReviewReply
         {
             UserId = userId,
             UserName = userName,
+            UserAvatar = user?.Avatar ?? string.Empty,
+            UserRole = user?.Role ?? "Customer",
             Comment = comment,
             CreatedAt = DateTime.UtcNow
         };

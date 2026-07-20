@@ -9,6 +9,8 @@ interface ReviewDto {
   id: string;
   userId: string;
   userName: string;
+  userAvatar?: string;
+  userRole?: string;
   productId: string;
   orderId: string;
   rating: number;
@@ -223,13 +225,22 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
           <div className="space-y-6">
             {comments.map(comment => (
               <div key={comment.id} className="flex gap-4">
-                <div className="w-10 h-10 bg-gradient-to-tr from-primary-500 to-purple-500 rounded-full flex items-center justify-center text-white flex-shrink-0 font-bold shadow-sm">
-                  {comment.userName ? comment.userName.charAt(0).toUpperCase() : <User size={20} />}
+                <div className="w-10 h-10 bg-gradient-to-tr from-primary-500 to-purple-500 rounded-full flex items-center justify-center text-white flex-shrink-0 font-bold shadow-sm overflow-hidden">
+                  {comment.userAvatar ? (
+                    <img src={comment.userAvatar} alt="avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    comment.userName ? comment.userName.charAt(0).toUpperCase() : <User size={20} />
+                  )}
                 </div>
                 <div className="flex-1">
                   <div className="bg-gray-50 p-4 rounded-2xl rounded-tl-none border border-gray-100">
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold text-gray-900">{comment.userName || 'Người dùng'}</h4>
+                      <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                        {comment.userName || 'Người dùng'}
+                        {(comment.userRole === 'Admin' || comment.userRole === 'Staff') && (
+                           <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">QTV</span>
+                        )}
+                      </h4>
                       <span className="text-xs text-gray-500">{formatDate(comment.createdAt)}</span>
                     </div>
                     <div className="flex mb-2">
@@ -239,8 +250,8 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
                     </div>
                     <p className="text-gray-700 whitespace-pre-wrap">{comment.comment}</p>
                     
-                    {/* Admin Controls */}
-                    {isAdminOrStaff && (
+                    {/* Controls */}
+                    {isAuthenticated && (
                       <div className="mt-3 flex gap-4 text-sm">
                         <button 
                           onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
@@ -248,12 +259,14 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
                         >
                           <MessageSquare size={14} className="mr-1" /> Trả lời
                         </button>
-                        <button 
-                          onClick={() => handleDeleteComment(comment.id)}
-                          className="flex items-center text-red-600 hover:text-red-800 transition"
-                        >
-                          <Trash2 size={14} className="mr-1" /> Xóa
-                        </button>
+                        {isAdminOrStaff && (
+                          <button 
+                            onClick={() => handleDeleteComment(comment.id)}
+                            className="flex items-center text-red-600 hover:text-red-800 transition"
+                          >
+                            <Trash2 size={14} className="mr-1" /> Xóa
+                          </button>
+                        )}
                       </div>
                     )}
 
@@ -282,12 +295,21 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
                     <div className="mt-3 ml-4 space-y-3 border-l-2 border-gray-100 pl-4">
                       {comment.replies.map((reply: any, idx) => (
                         <div key={idx} className="flex gap-3">
-                          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 flex-shrink-0 text-sm font-bold">
-                            {reply.userName?.charAt(0).toUpperCase()}
+                          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 flex-shrink-0 text-sm font-bold overflow-hidden">
+                            {reply.userAvatar ? (
+                              <img src={reply.userAvatar} alt="avatar" className="w-full h-full object-cover" />
+                            ) : (
+                              reply.userName ? reply.userName.charAt(0).toUpperCase() : <User size={14} />
+                            )}
                           </div>
                           <div className="flex-1 bg-white p-3 rounded-xl border border-gray-100 text-sm">
                             <div className="flex justify-between mb-1">
-                              <span className="font-semibold">{reply.userName}</span>
+                              <span className="font-semibold flex items-center gap-2">
+                                {reply.userName}
+                                {(reply.userRole === 'Admin' || reply.userRole === 'Staff') && (
+                                   <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">QTV</span>
+                                )}
+                              </span>
                               <span className="text-xs text-gray-400">{formatDate(reply.createdAt)}</span>
                             </div>
                             <p className="text-gray-600">{reply.comment}</p>
