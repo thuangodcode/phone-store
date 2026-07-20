@@ -6,6 +6,7 @@ using PhoneStore.Application.Interfaces;
 using System.Security.Claims;
 using Microsoft.AspNetCore.SignalR;
 using PhoneStore.API.Hubs;
+using MongoDB.Driver;
 
 namespace PhoneStore.API.Controllers;
 
@@ -99,5 +100,48 @@ public class ReviewsController : ControllerBase
         }
         return BadRequest(ApiResponse<bool>.ErrorResponse("Delete failed or unauthorized"));
     }
-}
 
+    [HttpGet("fix-db")]
+    public async Task<ActionResult> FixDb([FromServices] PhoneStore.Infrastructure.Data.MongoDbContext context)
+    {
+        var collection = context.Database.GetCollection<MongoDB.Bson.BsonDocument>("reviews");
+        var docs = await collection.Find(new MongoDB.Bson.BsonDocument()).ToListAsync();
+        int fixedCount = 0;
+        foreach (var doc in docs)
+        {
+            bool modified = false;
+            if (doc.Contains("replies") && doc["replies"].IsBsonArray)
+            {
+                var replies = doc["replies"].AsBsonArray;
+                foreach (var reply in replies)
+                {
+                    if (reply.IsBsonDocument)
+                    {
+                        var replyDoc = reply.AsBsonDocument;
+                        if (replyDoc.Contains("Comment") && !replyDoc["Comment"].IsString)
+                        {
+                            replyDoc["Comment"] = replyDoc["Comment"].ToJson();
+                            modified = true;
+                        }
+                        if (replyDoc.Contains("comment"))
+                        {
+                            if (replyDoc["comment"].IsString && (!replyDoc.Contains("Comment") || !replyDoc["Comment"].IsString))
+                            {
+                                replyDoc["Comment"] = replyDoc["comment"];
+                            }
+                            replyDoc.Remove("comment");
+                            modified = true;
+                        }
+                    }
+                }
+            }
+            if (modified)
+            {
+                var filter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("_id", doc["_id"]);
+                await collection.ReplaceOneAsync(filter, doc);
+                fixedCount++;
+            }
+        }
+        return Ok(new { message = "Database fixed", fixedCount });
+    }
+}
