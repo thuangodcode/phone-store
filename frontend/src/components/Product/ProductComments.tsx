@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import * as signalR from '@microsoft/signalr';
-import axiosClient from '../../../api/axiosClient';
-import { useAuth } from '../../../contexts/AuthContext';
+import axiosClient from '../../api/axiosClient';
+import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import { User, Send, Star } from 'lucide-react';
 
