@@ -21,6 +21,37 @@ public class ReviewService : IReviewService
     public async Task<IEnumerable<ReviewDto>> GetByProductIdAsync(string productId)
     {
         var reviews = await _context.Reviews.Find(r => r.ProductId == productId).SortByDescending(r => r.CreatedAt).ToListAsync();
+        
+        // Fetch users to populate up-to-date avatars and roles, especially for old comments
+        var userIds = reviews.Select(r => r.UserId)
+            .Concat(reviews.SelectMany(r => r.Replies.Select(rp => rp.UserId)))
+            .Distinct()
+            .ToList();
+
+        if (userIds.Any())
+        {
+            var users = await _context.Users.Find(u => userIds.Contains(u.Id)).ToListAsync();
+            var userDict = users.ToDictionary(u => u.Id, u => u);
+
+            foreach (var review in reviews)
+            {
+                if (userDict.TryGetValue(review.UserId, out var user))
+                {
+                    review.UserAvatar = user.Avatar ?? string.Empty;
+                    review.UserRole = user.Role ?? "Customer";
+                }
+
+                foreach (var reply in review.Replies)
+                {
+                    if (userDict.TryGetValue(reply.UserId, out var replyUser))
+                    {
+                        reply.UserAvatar = replyUser.Avatar ?? string.Empty;
+                        reply.UserRole = replyUser.Role ?? "Customer";
+                    }
+                }
+            }
+        }
+
         return _mapper.Map<IEnumerable<ReviewDto>>(reviews);
     }
 
