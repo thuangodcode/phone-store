@@ -61,6 +61,28 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // Đăng nhập bằng Google
+  Future<Map<String, dynamic>> googleLogin(String idToken) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final result = await ApiService.googleLogin(idToken);
+      if (result['success'] == true && result['user'] != null) {
+        _currentUser = result['user'] as UserInfo;
+      }
+      return result;
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Đã xảy ra lỗi hệ thống: $e',
+      };
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   // Đăng xuất tài khoản
   Future<void> logout() async {
     _isLoading = true;

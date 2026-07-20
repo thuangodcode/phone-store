@@ -109,6 +109,50 @@ class ApiService {
     }
   }
 
+  // Google Login
+  static Future<Map<String, dynamic>> googleLogin(String idToken) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/google'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'idToken': idToken,
+        }),
+      );
+
+      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      
+      if (response.statusCode == 200 && jsonResponse['success'] == true) {
+        final data = jsonResponse['data'];
+        final token = data['token'] ?? '';
+        final userMap = data['user'];
+
+        if (token.isNotEmpty && userMap != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(_tokenKey, token);
+          await prefs.setString(_userKey, jsonEncode(userMap));
+          
+          return {
+            'success': true,
+            'message': jsonResponse['message'] ?? 'Đăng nhập Google thành công!',
+            'user': UserInfo.fromJson(userMap),
+          };
+        }
+      }
+      
+      return {
+        'success': false,
+        'message': jsonResponse['message'] ?? 'Đăng nhập Google thất bại.',
+      };
+    } catch (e) {
+      print('API Google Login Error: $e');
+      return {
+        'success': false,
+        'message': 'Lỗi kết nối: $e.',
+      };
+    }
+  }
+
   // Register new account
   static Future<Map<String, dynamic>> register({
     required String fullName,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../../core/services/auth_provider.dart';
 import '../../products/presentation/main_navigation.dart';
@@ -28,6 +29,78 @@ class _LoginPageState extends State<LoginPage> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: '144351527539-onf6nkn49irjvv2m322s2s1c5acg1m8j.apps.googleusercontent.com',
+  );
+
+  Future<void> _handleGoogleLogin() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
+
+      if (idToken != null) {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final result = await authProvider.googleLogin(idToken);
+
+        if (mounted) {
+          setState(() => _isLoading = false);
+          if (result['success'] == true) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result['message'] ?? 'Đăng nhập Google thành công!'),
+                backgroundColor: const Color(0xFF22C55E),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            
+            final role = authProvider.role.toLowerCase();
+            Widget nextScreen;
+            if (role == 'staff') {
+              nextScreen = const StaffNavigation();
+            } else if (role == 'admin') {
+              nextScreen = const AdminNavigation();
+            } else {
+              nextScreen = const MainNavigation();
+            }
+
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => nextScreen),
+              (route) => false,
+            );
+          } else {
+            setState(() => _errorMessage = result['message'] ?? 'Đăng nhập thất bại');
+          }
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _errorMessage = 'Không lấy được mã xác thực từ Google';
+          });
+        }
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Đăng nhập Google bị lỗi: $error';
+        });
+      }
+    }
   }
 
   Future<void> _handleLogin() async {
@@ -361,6 +434,51 @@ class _LoginPageState extends State<LoginPage> {
                                 letterSpacing: 0.5,
                               ),
                             ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Divider
+                  Row(
+                    children: [
+                      const Expanded(child: Divider(color: Color(0xFF374151))),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'Hoặc tiếp tục với',
+                          style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 13, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                      const Expanded(child: Divider(color: Color(0xFF374151))),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Google Login Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF374151)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: _isLoading ? null : _handleGoogleLogin,
+                      icon: Image.network(
+                        'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
+                        height: 24,
+                      ),
+                      label: const Text(
+                        'ĐĂNG NHẬP VỚI GOOGLE',
+                        style: TextStyle(
+                          color: Color(0xFFF9FAFB),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
