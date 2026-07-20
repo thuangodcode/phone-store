@@ -4,6 +4,7 @@ import axiosClient from '../../api/axiosClient';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import { User, Send, Star, Trash2, MessageSquare, Edit2, X, Check } from 'lucide-react';
+import { ConfirmModal } from '../Layout/ConfirmModal';
 
 interface ReviewDto {
   id: string;
@@ -38,6 +39,22 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
 
   const [editingReplyId, setEditingReplyId] = useState<{reviewId: string, replyId: string} | null>(null);
   const [editReplyContent, setEditReplyContent] = useState('');
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    description: '',
+    onConfirm: () => {}
+  });
+
+  const closeConfirmModal = () => {
+    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+  };
 
   const { isAuthenticated, isAdminOrStaff, user } = useAuth();
   
@@ -134,16 +151,24 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
     }
   };
 
-  const handleDeleteComment = async (id: string, isAdminDelete: boolean = false) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa bình luận này?')) return;
-    try {
-      const endpoint = isAdminDelete ? `/reviews/admin/${id}` : `/reviews/${id}`;
-      await axiosClient.delete(endpoint);
-      setComments(prev => prev.filter(c => c.id !== id));
-      toast.success('Đã xóa bình luận');
-    } catch (error: any) {
-      toast.error('Lỗi khi xóa bình luận');
-    }
+  const handleDeleteComment = (id: string, isAdminDelete: boolean = false) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Xóa bình luận',
+      description: 'Bạn có chắc chắn muốn xóa bình luận này không?',
+      onConfirm: async () => {
+        try {
+          const endpoint = isAdminDelete ? `/reviews/admin/${id}` : `/reviews/${id}`;
+          await axiosClient.delete(endpoint);
+          setComments(prev => prev.filter(c => c.id !== id));
+          toast.success('Đã xóa bình luận');
+        } catch (error: any) {
+          toast.error('Lỗi khi xóa bình luận');
+        } finally {
+          closeConfirmModal();
+        }
+      }
+    });
   };
 
   const handleUpdateComment = async (id: string) => {
@@ -197,23 +222,31 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
     }
   };
 
-  const handleDeleteReply = async (reviewId: string, replyId: string) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa câu trả lời này?')) return;
-    try {
-      await axiosClient.delete(`/reviews/${reviewId}/reply/${replyId}`);
-      setComments(prev => prev.map(c => {
-        if (c.id === reviewId) {
-          return {
-            ...c,
-            replies: c.replies.filter(r => r.id !== replyId)
-          };
+  const handleDeleteReply = (reviewId: string, replyId: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Xóa câu trả lời',
+      description: 'Bạn có chắc chắn muốn xóa câu trả lời này không?',
+      onConfirm: async () => {
+        try {
+          await axiosClient.delete(`/reviews/${reviewId}/reply/${replyId}`);
+          setComments(prev => prev.map(c => {
+            if (c.id === reviewId) {
+              return {
+                ...c,
+                replies: c.replies.filter(r => r.id !== replyId)
+              };
+            }
+            return c;
+          }));
+          toast.success('Đã xóa câu trả lời');
+        } catch (error: any) {
+          toast.error('Lỗi khi xóa câu trả lời');
+        } finally {
+          closeConfirmModal();
         }
-        return c;
-      }));
-      toast.success('Đã xóa câu trả lời');
-    } catch (error: any) {
-      toast.error('Lỗi khi xóa câu trả lời');
-    }
+      }
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -491,6 +524,14 @@ export const ProductComments: React.FC<ProductCommentsProps> = ({ productId }) =
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        description={confirmModal.description}
+        onConfirm={confirmModal.onConfirm}
+        onClose={closeConfirmModal}
+      />
     </div>
   );
 };
