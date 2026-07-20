@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import { cartApi } from '../../api/cartApi';
@@ -7,6 +8,7 @@ import { useCart } from '../../contexts/CartContext';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { toast } from 'react-toastify';
 import type { Product, ProductStorageVariantDto, ProductColorVariantDto } from '../../types';
+import { ProductComments } from '../../components/Product/ProductComments';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +24,8 @@ export const ProductDetailPage: React.FC = () => {
   const [mainImage, setMainImage] = useState<string>('');
 
   useEffect(() => {
+    window.scrollTo(0, 0); // Fix scroll position
+
     const fetchProduct = async () => {
       try {
         const res: any = await axiosClient.get(`/products/${id}`);
@@ -251,10 +255,11 @@ export const ProductDetailPage: React.FC = () => {
                 <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{product.description}</p>
              </div>
           )}
+
+          {/* Real-time Comments Section */}
+          <ProductComments productId={product.id} />
         </div>
       </div>
     </div>
   );
 };
-
-
