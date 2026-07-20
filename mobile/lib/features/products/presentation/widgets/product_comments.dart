@@ -163,7 +163,32 @@ class _ProductCommentsState extends State<ProductComments> {
     }
   }
 
+  Future<bool> _showConfirmDialog(String title, String content) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Xóa', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
   Future<void> _deleteReview(String reviewId, bool isAdminDelete) async {
+    final confirm = await _showConfirmDialog('Xác nhận xóa', 'Bạn có chắc chắn muốn xóa bình luận này không?');
+    if (!confirm) return;
+
     final success = await ApiService.deleteReview(reviewId, isAdminDelete: isAdminDelete);
     if (!success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Xóa bình luận thất bại')));
@@ -252,6 +277,9 @@ class _ProductCommentsState extends State<ProductComments> {
   }
 
   Future<void> _deleteReply(String reviewId, String replyId) async {
+    final confirm = await _showConfirmDialog('Xác nhận xóa', 'Bạn có chắc chắn muốn xóa câu trả lời này không?');
+    if (!confirm) return;
+
     final success = await ApiService.deleteReply(reviewId, replyId);
     if (!success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Xóa câu trả lời thất bại')));

@@ -120,10 +120,10 @@ public class ReviewService : IReviewService
             Builders<Review>.Filter.ElemMatch(r => r.Replies, rep => rep.Id == replyId && rep.UserId == userId)
         );
 
-        var update = Builders<Review>.Update.Set("replies.$.comment", comment);
+        var update = Builders<Review>.Update.Set("replies.$.Comment", comment);
         var result = await _context.Reviews.UpdateOneAsync(filter, update);
         
-        if (result.ModifiedCount > 0)
+        if (result.MatchedCount > 0)
         {
             var updatedReview = await _context.Reviews.Find(r => r.Id == reviewId).FirstOrDefaultAsync();
             return _mapper.Map<ReviewDto>(updatedReview);
@@ -138,7 +138,7 @@ public class ReviewService : IReviewService
         
         var result = await _context.Reviews.UpdateOneAsync(filter, update);
         
-        if (result.ModifiedCount > 0)
+        if (result.MatchedCount > 0)
         {
             var updatedReview = await _context.Reviews.Find(r => r.Id == reviewId).FirstOrDefaultAsync();
             return _mapper.Map<ReviewDto>(updatedReview);
