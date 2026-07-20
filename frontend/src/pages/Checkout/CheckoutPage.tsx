@@ -12,6 +12,7 @@ interface CartItem {
   productImage: string;
   quantity: number;
   price: number;
+  salePrice: number;
   storage?: string;
   color?: string;
 }
@@ -70,7 +71,7 @@ export const CheckoutPage: React.FC = () => {
     }
   };
 
-  const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalAmount = cartItems.reduce((sum, item) => sum + item.salePrice * item.quantity, 0);
   
   let discountAmount = 0;
   if (appliedVoucher && totalAmount >= appliedVoucher.minOrderAmount) {
@@ -226,7 +227,7 @@ export const CheckoutPage: React.FC = () => {
                       <p className="text-xs text-gray-500">Số lượng: {item.quantity}</p>
                    </div>
                    <div className="font-bold text-sm">
-                      {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price * item.quantity)}
+                      {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.salePrice * item.quantity)}
                    </div>
                 </div>
               ))}

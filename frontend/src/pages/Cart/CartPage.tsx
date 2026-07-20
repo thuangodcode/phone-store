@@ -11,6 +11,7 @@ interface CartItem {
   productImage: string;
   quantity: number;
   price: number;
+  salePrice: number;
   storage?: string;
   color?: string;
 }
@@ -66,7 +67,7 @@ export const CartPage: React.FC = () => {
   }
 
   const items = cart?.items || [];
-  const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalAmount = items.reduce((sum, item) => sum + item.salePrice * item.quantity, 0);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -89,7 +90,7 @@ export const CartPage: React.FC = () => {
                     {item.storage && <span className="mr-3">Dung lượng: {item.storage}</span>}
                     {item.color && <span>Màu sắc: {item.color}</span>}
                   </div>
-                  <p className="text-red-600 font-bold">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}</p>
+                  <p className="text-red-600 font-bold">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.salePrice)}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={() => updateQuantity(item.productId, item.quantity - 1, item.storage, item.color)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">-</button>
