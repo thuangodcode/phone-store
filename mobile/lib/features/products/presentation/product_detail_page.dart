@@ -4,6 +4,7 @@ import '../../../core/models/product.dart';
 import '../../../core/models/cart.dart';
 import '../../../core/models/wishlist.dart';
 import '../../../core/services/api_service.dart';
+import 'widgets/product_comments.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final String productId;
@@ -588,6 +589,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             ),
                           ),
                         ),
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      ProductComments(
+                        productId: product.id,
+                        isDark: isDark,
                       ),
                       const SizedBox(height: 40),
                     ],

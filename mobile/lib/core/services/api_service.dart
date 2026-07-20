@@ -985,4 +985,83 @@ class ApiService {
       return [];
     }
   }
+
+  // ==================== REVIEWS API ====================
+
+  static Future<List<dynamic>> getProductReviews(String productId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/reviews/product/$productId'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
+          return jsonResponse['data'] as List<dynamic>;
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Get Product Reviews Error: $e');
+      return [];
+    }
+  }
+
+  static Future<Map<String, dynamic>?> createReview(Map<String, dynamic> data) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/reviews'),
+        headers: headers,
+        body: jsonEncode(data),
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        return jsonResponse;
+      }
+      return null;
+    } catch (e) {
+      print('Create Review Error: $e');
+      return null;
+    }
+  }
+
+  static Future<Map<String, dynamic>?> replyReview(String reviewId, String comment) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/reviews/$reviewId/reply'),
+        headers: headers,
+        body: jsonEncode({'comment': comment}),
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        return jsonResponse;
+      }
+      return null;
+    } catch (e) {
+      print('Reply Review Error: $e');
+      return null;
+    }
+  }
+
+  static Future<bool> deleteReview(String reviewId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/reviews/$reviewId'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        return jsonResponse['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      print('Delete Review Error: $e');
+      return false;
+    }
+  }
 }
+
