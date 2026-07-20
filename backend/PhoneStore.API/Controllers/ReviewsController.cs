@@ -120,7 +120,7 @@ public class ReviewsController : ControllerBase
                         var replyDoc = reply.AsBsonDocument;
                         if (replyDoc.Contains("Comment") && !replyDoc["Comment"].IsString)
                         {
-                            replyDoc["Comment"] = replyDoc["Comment"].ToJson();
+                            replyDoc["Comment"] = replyDoc["Comment"].ToString();
                             modified = true;
                         }
                         if (replyDoc.Contains("comment"))
