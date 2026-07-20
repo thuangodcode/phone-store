@@ -8,6 +8,7 @@ COPY ["PhoneStore.API/PhoneStore.API.csproj", "PhoneStore.API/"]
 COPY ["PhoneStore.Application/PhoneStore.Application.csproj", "PhoneStore.Application/"]
 COPY ["PhoneStore.Domain/PhoneStore.Domain.csproj", "PhoneStore.Domain/"]
 COPY ["PhoneStore.Infrastructure/PhoneStore.Infrastructure.csproj", "PhoneStore.Infrastructure/"]
+COPY ["PhoneStore.Tests/PhoneStore.Tests.csproj", "PhoneStore.Tests/"]
 
 # Restore dependencies
 RUN dotnet restore
