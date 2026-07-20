@@ -161,17 +161,24 @@ public class OpenRouterProvider : IAIProvider
         using var doc = JsonDocument.Parse(responseString);
         var root = doc.RootElement;
 
+        if (root.TryGetProperty("error", out var errorProp))
+        {
+            var errorMsg = errorProp.TryGetProperty("message", out var msgProp) ? msgProp.GetString() : responseString;
+            _logger.LogWarning("OpenRouter API returned error in JSON: {Error}", errorMsg);
+            throw new AIProviderException($"Lỗi từ mô hình AI: {errorMsg}", StatusCodes.Status502BadGateway);
+        }
+
         if (!root.TryGetProperty("choices", out var choices) || choices.GetArrayLength() == 0)
         {
             _logger.LogWarning("OpenRouter API returned no choices.");
-            throw new AIProviderException("Trợ lý AI không thể tạo phản hồi lúc này. Vui lòng thử lại sau.", StatusCodes.Status502BadGateway);
+            throw new AIProviderException($"OpenRouter trả về 200 nhưng không có choices. Response: {responseString}", StatusCodes.Status502BadGateway);
         }
 
         var firstChoice = choices[0];
         if (!firstChoice.TryGetProperty("message", out var message))
         {
             _logger.LogWarning("OpenRouter API returned a choice without a message.");
-            throw new AIProviderException("Trợ lý AI không thể tạo phản hồi lúc này. Vui lòng thử lại sau.", StatusCodes.Status502BadGateway);
+            throw new AIProviderException($"OpenRouter trả về choice không có message. Response: {responseString}", StatusCodes.Status502BadGateway);
         }
 
         var content = message.TryGetProperty("content", out var c) && c.ValueKind == JsonValueKind.String ? c.GetString() : "";
