@@ -37,6 +37,19 @@ export const HomePage: React.FC = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (brandParam || searchParam) {
+      // Delay slightly to allow layout to settle
+      setTimeout(() => {
+        const el = document.getElementById('product-section');
+        if (el) {
+          const y = el.getBoundingClientRect().top + window.scrollY - 80; // 80px offset for fixed header
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  }, [brandParam, searchParam]);
+
   const highestPricedProducts = useMemo(() => {
     return [...products].sort((a, b) => b.price - a.price).slice(0, 8);
   }, [products]);
@@ -144,7 +157,7 @@ export const HomePage: React.FC = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div id="product-section" className="container mx-auto px-4 py-8">
         <div className="border-b pb-4 mb-8 sticky top-[72px] bg-white/95 backdrop-blur-md z-40 shadow-sm rounded-lg px-4 pt-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center text-gray-700 font-medium mr-2">
